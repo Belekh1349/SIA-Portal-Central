@@ -634,17 +634,23 @@
                 if (exportConfig.type === 'dashboard') {
                     if (dashboardRef.current) {
                         try {
-                            // Optimizaciones para color, nitidez y fidelidad de gradientes
+                            // Optimizaciones ultra-nitidez para evitar efecto cenizo y pixelado
                             const canvas = await html2canvas(dashboardRef.current, {
-                                scale: 3,
+                                scale: 5, // Aumentamos a escala 5 para resolución 4K+
                                 useCORS: true,
                                 logging: false,
-                                backgroundColor: '#f8fafc', // Asegura fondo sólido para evitar el efecto cenizo
-                                removeContainer: true
+                                backgroundColor: '#f8fafc',
+                                removeContainer: true,
+                                imageTimeout: 0,
+                                onclone: (clonedDoc) => {
+                                    // Aseguramos que los elementos no tengan animaciones activas durante la captura
+                                    const el = clonedDoc.querySelector('.animate-fade-in');
+                                    if (el) el.style.animation = 'none';
+                                }
                             });
 
-                            // Usamos JPEG con calidad máxima para mejor fidelidad de color en gradientes
-                            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                            // Usamos PNG para evitar artefactos de compresión (look cenizo)
+                            const imgData = canvas.toDataURL('image/png');
                             const imgProps = doc.getImageProperties(imgData);
                             const pdfWidth = doc.internal.pageSize.getWidth() - 20;
                             const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
@@ -654,7 +660,8 @@
                             doc.setTextColor(76, 5, 25);
                             doc.text(`DASHBOARD EJECUTIVO - ${areaMap[exportConfig.area]}`, 105, 15, { align: 'center' });
 
-                            doc.addImage(imgData, 'JPEG', 10, 25, pdfWidth, pdfHeight, undefined, 'FAST');
+                            // 'SLOW' asegura la mejor interpolación de imagen al reescalar dentro del PDF
+                            doc.addImage(imgData, 'PNG', 10, 25, pdfWidth, pdfHeight, undefined, 'SLOW');
 
                             if (previewOnly) {
                                 const blob = doc.output('blob');
