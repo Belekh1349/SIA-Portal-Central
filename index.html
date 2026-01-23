@@ -14,13 +14,35 @@
         :root {
             --primary: #4c0519;
             --accent: #f59e0b;
+            --bg-body: #0f172a;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+
+        body.light {
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        body.sepia {
+            --bg-body: #f4ecd8;
+            --text-main: #433422;
+            --text-muted: #705d46;
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(67, 52, 34, 0.1);
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: #0f172a;
-            color: white;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         h1,
@@ -30,37 +52,70 @@
         }
 
         .glass {
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--glass-bg);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .glass:hover {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--glass-bg);
             border-color: var(--accent);
             transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark .glass:hover {
+            background: rgba(255, 255, 255, 0.08);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
         .bg-gradient-mesh {
-            background-color: #0f172a;
+            background-color: var(--bg-body);
             background-image:
-                radial-gradient(at 0% 0%, rgba(76, 5, 25, 0.3) 0, transparent 50%),
+                radial-gradient(at 0% 0%, rgba(76, 5, 25, 0.15) 0, transparent 50%),
                 radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.1) 0, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(30, 58, 138, 0.2) 0, transparent 50%);
+                radial-gradient(at 50% 100%, rgba(30, 58, 138, 0.1) 0, transparent 50%);
         }
 
         .title-gradient {
-            background: linear-gradient(to right, #fff, #94a3b8);
+            background: linear-gradient(to right, var(--text-main), var(--text-muted));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .card-icon {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.05));
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-btn {
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .theme-btn.active {
+            background: var(--accent);
+            color: #433422;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .theme-btn:not(.active) {
+            background: var(--glass-bg);
+            color: var(--text-muted);
+            border-color: var(--glass-border);
+        }
+
+        .theme-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
         }
 
         .animate-in {
@@ -95,7 +150,22 @@
 
 <body class="bg-gradient-mesh min-h-screen">
 
-    <div class="relative z-10 container mx-auto px-6 py-12 md:py-20 flex flex-col items-center min-h-screen">
+    <div class="relative z-10 container mx-auto px-6 py-8 md:py-16 flex flex-col items-center min-h-screen">
+
+        <!-- Theme Switcher -->
+        <div class="w-full max-w-4xl flex justify-end mb-8 animate-in">
+            <div class="glass p-1.5 rounded-2xl flex gap-1">
+                <button onclick="setTheme('light')" id="theme-light" class="theme-btn flex items-center gap-2">
+                    <i data-lucide="sun" class="w-3.5 h-3.5"></i><span>Claro</span>
+                </button>
+                <button onclick="setTheme('dark')" id="theme-dark" class="theme-btn flex items-center gap-2 active">
+                    <i data-lucide="moon" class="w-3.5 h-3.5"></i><span>Oscuro</span>
+                </button>
+                <button onclick="setTheme('sepia')" id="theme-sepia" class="theme-btn flex items-center gap-2">
+                    <i data-lucide="coffee" class="w-3.5 h-3.5"></i><span>Sepia</span>
+                </button>
+            </div>
+        </div>
 
         <!-- Header -->
         <header class="text-center mb-16 animate-in">
@@ -212,6 +282,19 @@
 
     <script>
         lucide.createIcons();
+
+        function setTheme(theme) {
+            document.body.className = 'bg-gradient-mesh min-h-screen ' + theme;
+            localStorage.setItem('sia-theme', theme);
+
+            // Update buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('theme-' + theme).classList.add('active');
+        }
+
+        // Init theme
+        const savedTheme = localStorage.getItem('sia-theme') || 'dark';
+        setTheme(savedTheme);
     </script>
 </body>
 
