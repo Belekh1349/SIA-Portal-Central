@@ -997,7 +997,7 @@
                                                             <td className="px-6 py-4 text-right text-xs font-medium text-slate-600">
                                                                 {mgmtView === 'general' && `5A: ${formatCurrency(row.fiveYears)} | Vh: ${formatCurrency(row.vehicles)}`}
                                                                 {mgmtView === 'location' && `Units: ${row.units} | 5A: ${formatCurrency(row.fiveYears)}`}
-                                                                {mgmtView === 'highest' && `Slim: ${row.slim} | Tower: ${row.tower}`}
+                                                                {mgmtView === 'highest' && `EA: ${row.slim} | ED: ${row.tower} | Mon: ${row.monitor} | Lap: ${row.laptop} | iMac: ${row.imac}`}
                                                             </td>
                                                             <td className="px-6 py-4 text-right space-x-1">
                                                                 <button onClick={() => handleEdit(row)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Icons.Edit className="w-5 h-5" /></button>
@@ -1071,8 +1071,16 @@
                                     <div><label className="text-xs font-black">Ct($)</label><input type="number" className="w-full border rounded-lg p-3" value={formData.contents} onChange={e => setFormData({ ...formData, contents: e.target.value })} /></div>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-5 gap-2">
-                                    {['slim', 'tower', 'monitor', 'laptop', 'imac'].map(k => <div key={k}><label className="text-[10px] font-black uppercase text-slate-400">{k}</label><input type="number" className="w-full border rounded-lg p-2 text-xs" value={formData[k]} onChange={e => setFormData({ ...formData, [k]: e.target.value })} /></div>)}
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="text-[10px] font-black uppercase text-slate-500">CPU EA</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.slim} onChange={e => setFormData({ ...formData, slim: e.target.value })} /></div>
+                                        <div><label className="text-[10px] font-black uppercase text-slate-500">CPU ED</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.tower} onChange={e => setFormData({ ...formData, tower: e.target.value })} /></div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div><label className="text-[10px] font-black uppercase text-slate-500">Monitor</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.monitor} onChange={e => setFormData({ ...formData, monitor: e.target.value })} /></div>
+                                        <div><label className="text-[10px] font-black uppercase text-slate-500">Laptop</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.laptop} onChange={e => setFormData({ ...formData, laptop: e.target.value })} /></div>
+                                        <div><label className="text-[10px] font-black uppercase text-slate-500">iMac</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.imac} onChange={e => setFormData({ ...formData, imac: e.target.value })} /></div>
+                                    </div>
                                 </div>
                             )}
                             <button type="submit" className="w-full bg-[#4c0519] text-white py-4 rounded-xl font-bold shadow-xl flex items-center justify-center gap-3 hover:bg-[#630d16] transition-all">
