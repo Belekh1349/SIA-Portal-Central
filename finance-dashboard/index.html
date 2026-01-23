@@ -322,7 +322,7 @@
                                         <td className="px-6 py-4 text-right">{formatCurrency(row.fiveYears)}</td>
                                         <td className="px-6 py-4 text-right">{formatCurrency(row.vehicles)}</td>
                                         <td className="px-6 py-4 text-right">{formatCurrency(row.contents)}</td>
-                                        <td className="px-6 py-4 text-right font-bold bg-slate-50">{formatCurrency(row.fiveYears + row.vehicles + row.contents)}</td>
+                                        <td className="px-6 py-4 text-right font-bold bg-slate-50">{formatCurrency(Number(row.fiveYears || 0) + Number(row.vehicles || 0) + Number(row.contents || 0))}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -387,8 +387,8 @@
 
         const HighestValuesTable = ({ title, data, types }) => {
             const totals = types.map(t => ({
-                count: data.reduce((a, c) => a + (c[t.k] || 0), 0),
-                value: data.reduce((a, c) => a + ((c[t.k] || 0) * (c[t.k + '_v'] || t.p)), 0)
+                count: data.reduce((a, c) => a + Number(c[t.k] || 0), 0),
+                value: data.reduce((a, c) => a + (Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)), 0)
             }));
 
             return (
