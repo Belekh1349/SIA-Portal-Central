@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIA - Suite Integrada Administrativa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #4c0519;
+            --accent: #f59e0b;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .bg-gradient-mesh {
+            background-color: #0f172a;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(76, 5, 25, 0.3) 0, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.1) 0, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(30, 58, 138, 0.2) 0, transparent 50%);
+        }
+
+        .title-gradient {
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-icon {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .animate-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delay-1 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.6s;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-mesh min-h-screen">
+
+    <div class="relative z-10 container mx-auto px-6 py-12 md:py-20 flex flex-col items-center min-h-screen">
+
+        <!-- Header -->
+        <header class="text-center mb-16 animate-in">
+            <div class="flex items-center justify-center gap-4 mb-6">
+                <img src="control-oficios/logo-edomex.png" alt="Edomex"
+                    class="h-16 md:h-20 drop-shadow-lg bg-white/90 p-2 rounded-lg">
+                <div class="h-12 w-[2px] bg-white/20"></div>
+                <div class="text-left">
+                    <h2 class="text-xs font-black tracking-[0.3em] uppercase text-amber-500">Suite Integrada</h2>
+                    <h1 class="text-3xl md:text-5xl font-black title-gradient">GESTIÓN ADMINISTRATIVA</h1>
+                </div>
+            </div>
+            <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-lg">
+                Bienvenido al portal central de control y seguimiento. Acceda a los diferentes sistemas institucionales
+                de manera unificada.
+            </p>
+        </header>
+
+        <!-- Apps Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 w-full max-w-4xl">
+
+            <!-- App 1: Finanzas -->
+            <a href="finance-dashboard/index.html"
+                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-1 group">
+                <div
+                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="bar-chart-3" class="w-10 h-10 text-amber-500"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Múltiple Empresarial</h3>
+                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                    Control Patrimonial y Gestión Financiera de Activos. Monitoreo de inversión a 5 años y reportes
+                    ejecutivos.
+                </p>
+                <div
+                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-amber-500 group-hover:text-amber-950 transition-colors">
+                    Ingresar Sistema
+                </div>
+            </a>
+
+            <!-- App 2: Oficios -->
+            <a href="control-oficios/index.html"
+                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-2 group">
+                <div
+                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="file-text" class="w-10 h-10 text-blue-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Control de Oficios</h3>
+                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                    Gestión documental de correspondencia, seguimiento de asuntos y base de datos de solicitudes
+                    administrativas.
+                </p>
+                <div
+                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-blue-400 group-hover:text-blue-950 transition-colors">
+                    Ingresar Sistema
+                </div>
+            </a>
+
+            <!-- App 3: Calendario / HR -->
+            <a href="calendar_app/index.html"
+                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-3 group">
+                <div
+                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="calendar" class="w-10 h-10 text-emerald-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">AdminFlow 2026</h3>
+                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                    Registro de actividades diarias, control de asistencia y asistencia por IA.
+                </p>
+                <div
+                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-emerald-400 group-hover:text-emerald-950 transition-colors">
+                    Ingresar Sistema
+                </div>
+            </a>
+
+            <!-- App 4: Pobalines -->
+            <a href="pobalines/index.html"
+                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-1 group md:col-span-1">
+                <div
+                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="book-open" class="w-10 h-10 text-amber-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Pobalines</h3>
+                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                    Manual de Normas y Políticas para la Administración de Recursos. Consulta inteligente con IA.
+                </p>
+                <div
+                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-amber-600 group-hover:text-amber-950 transition-colors">
+                    Ingresar Sistema
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-auto pt-20 pb-8 text-center text-slate-500 text-xs tracking-widest uppercase">
+            <div class="flex items-center justify-center gap-6 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span>Servidores Activos</span>
+                </div>
+                <div class="h-4 w-[1px] bg-slate-800"></div>
+                <span>Versión 2026.1</span>
+            </div>
+            <p>&copy; 2026 Coordinación General de Administración. Todos los derechos reservados.</p>
+        </footer>
+
+    </div>
+
+    <!-- Background Elements -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
