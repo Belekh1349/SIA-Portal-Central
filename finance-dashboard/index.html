@@ -145,7 +145,8 @@
             Upload: (props) => <Icon {...props} path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12" />,
             FileDown: (props) => <Icon {...props} path="M12 17V3 M6 11l6 6 6-6 M19 21H5" />,
             Home: (props) => <Icon {...props} path="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" />,
-            Layout: (props) => <Icon {...props} path="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
+            Layout: (props) => <Icon {...props} path="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />,
+            Monitor: (props) => <Icon {...props} path="M2 12V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v7 m-10 5v4 m-5 0h10" />
         };
 
         const DEFAULT_DATA = [
@@ -514,7 +515,26 @@
                         <div className="xl:col-span-7 h-full">
                             <Card title="Gasto por Departamento" subtitle="Comparativa interna de áreas" className="h-full flex flex-col">
                                 <div className="flex-grow">
-                                    <BarChart labels={data.map(d => d.area)} datasets={[{ label: 'Presupuesto Asignado', data: data.map(d => Number(d.fiveYears || 0) + Number(d.vehicles || 0) + Number(d.contents || 0)), backgroundColor: color + 'CC' }]} horizontal={true} />
+                                    <BarChart
+                                        labels={[...data, ...locData, ...highData].map(d => d.area).filter((v, i, a) => a.indexOf(v) === i)}
+                                        datasets={[{
+                                            label: 'Presupuesto Total',
+                                            data: [...data, ...locData, ...highData].map(d => d.area).filter((v, i, a) => a.indexOf(v) === i).map(area => {
+                                                const d1 = data.find(it => it.area === area) || {};
+                                                const d2 = locData.find(it => it.area === area) || {};
+                                                const d3 = highData.find(it => it.area === area) || {};
+
+                                                let highSum = 0;
+                                                types.forEach(t => highSum += Number(d3[t.k] || 0) * Number(d3[t.k + '_v'] || t.p));
+
+                                                return Number(d1.fiveYears || 0) + Number(d1.vehicles || 0) + Number(d1.contents || 0) +
+                                                    Number(d2.fiveYears || 0) + Number(d2.contents || 0) +
+                                                    highSum;
+                                            }),
+                                            backgroundColor: color + 'CC'
+                                        }]}
+                                        horizontal={true}
+                                    />
                                 </div>
                             </Card>
                         </div>
