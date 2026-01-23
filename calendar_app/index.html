@@ -1107,7 +1107,18 @@
         function selectDay(dateStr) {
             selectedDate = dateStr;
             const records = getRecords();
-            const record = records[dateStr] || '';
+            let record = records[dateStr] || '';
+
+            // Si el registro es un objeto o array (por importación de versiones distintas), lo convertimos a texto
+            if (record && typeof record === 'object') {
+                if (Array.isArray(record)) {
+                    record = record.map(item => typeof item === 'object' ? (item.text || JSON.stringify(item)) : item).join('\n');
+                } else if (record.text) {
+                    record = record.text;
+                } else {
+                    record = JSON.stringify(record);
+                }
+            }
 
             document.getElementById('selectedDateLabel').textContent = dateStr;
             document.getElementById('actividadesText').value = record;
@@ -1492,7 +1503,22 @@
                         }
 
                         if (content.records) {
-                            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(content.records));
+                            let recordsToStore = content.records;
+
+                            // Si el respaldo viene como un Array (formato de otras apps), lo convertimos a Objeto Map
+                            if (Array.isArray(recordsToStore)) {
+                                const mappedRecords = {};
+                                recordsToStore.forEach(item => {
+                                    if (item.date && item.text) {
+                                        mappedRecords[item.date] = item.text;
+                                    } else if (item.fecha && item.actividad) {
+                                        mappedRecords[item.fecha] = item.actividad;
+                                    }
+                                });
+                                recordsToStore = mappedRecords;
+                            }
+
+                            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(recordsToStore));
                         }
 
                         if (content.profile) {
