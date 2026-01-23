@@ -1473,18 +1473,44 @@
         function importData() {
             const input = document.createElement('input');
             input.type = 'file';
+            input.accept = '.json';
+            input.style.display = 'none';
+            document.body.appendChild(input);
+
             input.onchange = e => {
                 const file = e.target.files[0];
+                if (!file) return;
+
                 const reader = new FileReader();
                 reader.onload = readerEvent => {
                     try {
                         const content = JSON.parse(readerEvent.target.result);
-                        localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(content.records));
-                        localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(content.profile));
+
+                        // Validación básica de estructura
+                        if (!content.records && !content.profile) {
+                            throw new Error("El archivo no tiene el formato correcto.");
+                        }
+
+                        if (content.records) {
+                            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(content.records));
+                        }
+
+                        if (content.profile) {
+                            localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(content.profile));
+                        }
+
+                        alert("¡Datos restaurados con éxito!");
                         location.reload();
                     } catch (err) {
-                        alert("Error al importar el archivo.");
+                        console.error(err);
+                        alert("Error al importar el archivo: " + err.message);
+                    } finally {
+                        document.body.removeChild(input);
                     }
+                };
+                reader.onerror = () => {
+                    alert("Error al leer el archivo.");
+                    document.body.removeChild(input);
                 };
                 reader.readAsText(file);
             };
