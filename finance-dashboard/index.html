@@ -445,12 +445,22 @@
             );
         };
 
-        const SpecificDashboard = ({ title, icon: Icon, data, color }) => {
-            const sum = (k) => data.reduce((a, c) => a + Number(c[k] || 0), 0);
-            const sub5Y = sum('fiveYears');
-            const subVeh = sum('vehicles');
-            const subCon = sum('contents');
-            const grandTotal = sub5Y + subVeh + subCon;
+        const SpecificDashboard = ({ title, icon: Icon, data, locData = [], highData = [], types = [], color }) => {
+            const sum = (list, k) => list.reduce((a, c) => a + Number(c[k] || 0), 0);
+
+            // Sumar de Items y de Ubicaciones
+            const sub5Y = sum(data, 'fiveYears') + sum(locData, 'fiveYears');
+            const subVeh = sum(data, 'vehicles');
+            const subCon = sum(data, 'contents') + sum(locData, 'contents');
+
+            // Sumar Valores Altos (Equipos)
+            const subHigh = highData.reduce((a, c) => {
+                let s = 0;
+                types.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p));
+                return a + s;
+            }, 0);
+
+            const grandTotal = sub5Y + subVeh + subCon + subHigh;
 
             return (
                 <div className="space-y-8 animate-fade-in max-w-full">
@@ -463,21 +473,22 @@
                                 <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight leading-none mb-2">{title}</h2>
                                 <div className="flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }}></span>
-                                    <p className="text-slate-400 font-bold uppercase text-[11px] tracking-[0.2em]">Reporte de Gastos por Área Correspondiente</p>
+                                    <p className="text-slate-400 font-bold uppercase text-[11px] tracking-[0.2em]">Reporte Consolidado por Área</p>
                                 </div>
                             </div>
                         </div>
                         <div className="bg-slate-50 px-8 py-5 rounded-2xl border border-slate-100 text-center lg:text-right w-full lg:w-auto">
-                            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Inversión Total del Área</div>
+                            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Inversión Consolidada</div>
                             <div className="text-4xl font-black text-slate-900">{formatCurrency(grandTotal)}</div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {[
                             { l: 'A 5 Años', v: sub5Y, c: 'blue', i: Icons.FileText },
                             { l: 'Vehículos', v: subVeh, c: 'amber', i: Icons.Car },
-                            { l: 'Contenidos', v: subCon, c: 'emerald', i: Icons.Wallet }
+                            { l: 'Contenidos', v: subCon, c: 'emerald', i: Icons.Wallet },
+                            { l: 'Equipos', v: subHigh, c: 'purple', i: Icons.Monitor }
                         ].map((m, i) => (
                             <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-4">
@@ -496,14 +507,14 @@
                         <div className="xl:col-span-5 h-full">
                             <Card title="Composición del Gasto" subtitle="Distribución porcentual por rubro" className="h-full flex flex-col">
                                 <div className="flex-grow flex items-center justify-center">
-                                    <PieChart labels={['5 Años', 'Vehículos', 'Contenidos']} data={[sub5Y, subVeh, subCon]} bgColors={['#3b82f6', '#f59e0b', '#10b981']} />
+                                    <PieChart labels={['5 Años', 'Vehículos', 'Contenidos', 'Equipos']} data={[sub5Y, subVeh, subCon, subHigh]} bgColors={['#3b82f6', '#f59e0b', '#10b981', '#a855f7']} />
                                 </div>
                             </Card>
                         </div>
                         <div className="xl:col-span-7 h-full">
                             <Card title="Gasto por Departamento" subtitle="Comparativa interna de áreas" className="h-full flex flex-col">
                                 <div className="flex-grow">
-                                    <BarChart labels={data.map(d => d.area)} datasets={[{ label: 'Presupuesto Asignado', data: data.map(d => d.fiveYears + d.vehicles + d.contents), backgroundColor: color + 'CC' }]} horizontal={true} />
+                                    <BarChart labels={data.map(d => d.area)} datasets={[{ label: 'Presupuesto Asignado', data: data.map(d => Number(d.fiveYears || 0) + Number(d.vehicles || 0) + Number(d.contents || 0)), backgroundColor: color + 'CC' }]} horizontal={true} />
                                 </div>
                             </Card>
                         </div>
@@ -908,7 +919,17 @@
                                                     <p className="text-rose-100/70 font-medium mb-12 max-sm:max-w-xs max-w-sm leading-relaxed">Reporte ejecutivo centralizado que integra todas las áreas y rubros de inversión patrimonial.</p>
                                                     <div className="flex flex-col">
                                                         <span className="text-[11px] font-black text-amber-500 uppercase tracking-[0.3em] mb-2">Presupuesto Global Programado</span>
-                                                        <div className="text-7xl font-black text-white leading-none tracking-tighter drop-shadow-lg">{formatCurrency(items.reduce((a, c) => a + c.fiveYears + c.vehicles + c.contents, 0))}</div>
+                                                        <div className="text-7xl font-black text-white leading-none tracking-tighter drop-shadow-lg">
+                                                            {formatCurrency(
+                                                                items.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0) +
+                                                                Object.values(locationData).flat().reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0) +
+                                                                Object.values(highestData).flat().reduce((a, c) => {
+                                                                    let rowSum = 0;
+                                                                    equipmentTypes.forEach(t => { rowSum += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p); });
+                                                                    return a + rowSum;
+                                                                }, 0)
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="hidden lg:block relative z-10">
@@ -920,18 +941,43 @@
 
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
                                                 <Card title="Inversión por Rubro" subtitle="Acumulado histórico por categoría">
-                                                    <BarChart labels={['A 5 Años', 'Vehículos', 'Contenidos']} datasets={[{ label: 'Monto Total', data: [items.reduce((a, c) => a + c.fiveYears, 0), items.reduce((a, c) => a + c.vehicles, 0), items.reduce((a, c) => a + c.contents, 0)], backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'] }]} />
+                                                    <BarChart labels={['A 5 Años', 'Vehículos', 'Contenidos', 'Equipos']} datasets={[{
+                                                        label: 'Monto Total',
+                                                        data: [
+                                                            items.reduce((a, c) => a + Number(c.fiveYears || 0), 0) + Object.values(locationData).flat().reduce((a, c) => a + Number(c.fiveYears || 0), 0),
+                                                            items.reduce((a, c) => a + Number(c.vehicles || 0), 0),
+                                                            items.reduce((a, c) => a + Number(c.contents || 0), 0) + Object.values(locationData).flat().reduce((a, c) => a + Number(c.contents || 0), 0),
+                                                            Object.values(highestData).flat().reduce((a, c) => {
+                                                                let rowSum = 0;
+                                                                equipmentTypes.forEach(t => { rowSum += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p); });
+                                                                return a + rowSum;
+                                                            }, 0)
+                                                        ],
+                                                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#9333ea']
+                                                    }]} />
                                                 </Card>
 
                                                 <Card title="Peso Presupuestal por Entidad" subtitle="Distribución entre las 3 coordinaciones principales">
-                                                    <PieChart labels={['Unidad de Apoyo', 'Gubernatura', 'Vocería']} data={[items.filter(i => i.category === 'Unidad de Apoyo').reduce((a, c) => a + c.fiveYears + c.vehicles + c.contents, 0), items.filter(i => i.category === 'Gubernatura').reduce((a, c) => a + c.fiveYears + c.vehicles + c.contents, 0), items.filter(i => i.category === 'Vocería').reduce((a, c) => a + c.fiveYears + c.vehicles + c.contents, 0)]} bgColors={['#4c0519', '#3b82f6', '#9333ea']} />
+                                                    <PieChart labels={['Unidad de Apoyo', 'Gubernatura', 'Vocería']} data={[
+                                                        (items.filter(i => i.category === 'Unidad de Apoyo').reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0)) +
+                                                        (locationData.unidadApoyo.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0)) +
+                                                        (highestData.unidadApoyo.reduce((a, c) => { let s = 0; equipmentTypes.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)); return a + s; }, 0)),
+
+                                                        (items.filter(i => i.category === 'Gubernatura').reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0)) +
+                                                        (locationData.gubernatura.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0)) +
+                                                        (highestData.gubernatura.reduce((a, c) => { let s = 0; equipmentTypes.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)); return a + s; }, 0)),
+
+                                                        (items.filter(i => i.category === 'Vocería').reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0)) +
+                                                        (locationData.voceria.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0)) +
+                                                        (highestData.voceria.reduce((a, c) => { let s = 0; equipmentTypes.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)); return a + s; }, 0))
+                                                    ]} bgColors={['#4c0519', '#3b82f6', '#9333ea']} />
                                                 </Card>
                                             </div>
                                         </div>
                                     )}
-                                    {dashboardTab === 'unidad' && <SpecificDashboard title="Unidad de Apoyo a la Admón. General" data={items.filter(i => i.category === 'Unidad de Apoyo')} icon={Icons.Users} color="#2563eb" />}
-                                    {dashboardTab === 'gubernatura' && <SpecificDashboard title="Gubernatura" data={items.filter(i => i.category === 'Gubernatura')} icon={Icons.Building2} color="#f59e0b" />}
-                                    {dashboardTab === 'voceria' && <SpecificDashboard title="Vocería de la Gubernatura" data={items.filter(i => i.category === 'Vocería')} icon={Icons.Mic2} color="#9333ea" />}
+                                    {dashboardTab === 'unidad' && <SpecificDashboard title="Unidad de Apoyo a la Admón. General" data={items.filter(i => i.category === 'Unidad de Apoyo')} locData={locationData.unidadApoyo} highData={highestData.unidadApoyo} types={equipmentTypes} icon={Icons.Users} color="#2563eb" />}
+                                    {dashboardTab === 'gubernatura' && <SpecificDashboard title="Gubernatura" data={items.filter(i => i.category === 'Gubernatura')} locData={locationData.gubernatura} highData={highestData.gubernatura} types={equipmentTypes} icon={Icons.Building2} color="#f59e0b" />}
+                                    {dashboardTab === 'voceria' && <SpecificDashboard title="Vocería de la Gubernatura" data={items.filter(i => i.category === 'Vocería')} locData={locationData.voceria} highData={highestData.voceria} types={equipmentTypes} icon={Icons.Mic2} color="#9333ea" />}
                                 </div>
                             </div>
                         )}
