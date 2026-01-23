@@ -150,9 +150,7 @@
         const DEFAULT_DATA = [
             { id: 1, area: "Administración", fiveYears: 1833920.00, vehicles: 7694984.00, contents: 1779641.96, category: "Unidad de Apoyo" },
             { id: 2, area: "Oficina de Relaciones Públicas", fiveYears: 255024.00, vehicles: 0.00, contents: 174715.92, category: "Unidad de Apoyo" },
-            { id: 3, area: "Estacionamiento (Pedro Ascencio)", fiveYears: 0.00, vehicles: 0.00, contents: 26834.41, category: "Unidad de Apoyo" },
             { id: 4, area: "Explanada", fiveYears: 23936.00, vehicles: 0.00, contents: 368355.62, category: "Unidad de Apoyo" },
-            { id: 5, area: "Casa Colón", fiveYears: 0.00, vehicles: 0.00, contents: 37350.00, category: "Unidad de Apoyo" },
             { id: 6, area: "Coordinación de Giras, Logística y Seguridad", fiveYears: 1047907.00, vehicles: 2176500.00, contents: 546746.69, category: "Unidad de Apoyo" },
             { id: 7, area: "Jefe de la Unidad", fiveYears: 261536.00, vehicles: 0.00, contents: 254064.23, category: "Unidad de Apoyo" },
             { id: 8, area: "Subcoordinación de Informática", fiveYears: 1533836.00, vehicles: 0.00, contents: 2204269.06, category: "Unidad de Apoyo" },
@@ -169,12 +167,9 @@
             unidadApoyo: [
                 { area: "Palacio de Gobierno", units: 143, fiveYears: 4405631.00, contents: 3767517.72 },
                 { area: "Explanada", units: 1, fiveYears: 23936.00, contents: 368355.62 },
-                { area: "Casa Colón", units: 0, fiveYears: 0.00, contents: 37350.00 },
                 { area: "Jefe de la Unidad y Administración (Quintana Roo)", units: 81, fiveYears: 2095456.00, contents: 2033706.19 },
-                { area: "Estacionamiento", units: 0, fiveYears: 0.00, contents: 26834.41 },
                 { area: "Coordinación de Asuntos Internacionales (Sor Juana)", units: 13, fiveYears: 326832.00, contents: 434656.02 },
                 { area: "Coordinación de Asuntos Internacionales (Hamburgo)", units: 8, fiveYears: 207152.00, contents: 290716.98 },
-                { area: "Coordinación de Asuntos Internacionales (HOUSTON)", units: 0, fiveYears: 0.00, contents: 137060.25 },
             ],
             gubernatura: [
                 { area: "Palacio de Gobierno", units: 21, fiveYears: 690624.00, contents: 1307551.97 }
@@ -186,20 +181,17 @@
 
         const HIGHEST_VALUES_DATA = {
             unidadApoyo: [
-                { area: "Palacio de Gobierno", slim: 74, tower: 10, monitor: 10, laptop: 45, imac: 4 },
-                { area: "Explanada", slim: 1, tower: 0, monitor: 0, laptop: 0, imac: 0 },
-                { area: "Casa Colón", slim: 0, tower: 0, monitor: 0, laptop: 0, imac: 0 },
-                { area: "Jefe de la Unidad y Administración (Quintana Roo)", slim: 71, tower: 0, monitor: 0, laptop: 10, imac: 0 },
-                { area: "Estacionamiento (Pedro Ascencio)", slim: 0, tower: 0, monitor: 0, laptop: 0, imac: 0 },
-                { area: "Coordinación de Asuntos Internacionales (Sor Juana)", slim: 12, tower: 0, monitor: 0, laptop: 1, imac: 0 },
-                { area: "Coordinación de Asuntos Internacionales (Hamburgo)", slim: 7, tower: 0, monitor: 0, laptop: 1, imac: 0 },
-                { area: "Coordinación de Asuntos Internacionales (HOUSTON)", slim: 0, tower: 0, monitor: 0, laptop: 0, imac: 0 },
+                { area: "Palacio de Gobierno", slim: 74, slim_v: 23936.00, tower: 10, tower_v: 54950.00, monitor: 10, monitor_v: 5568.00, laptop: 45, laptop_v: 39600.00, imac: 4, imac_v: 61796.00 },
+                { area: "Explanada", slim: 1, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 0, laptop_v: 0, imac: 0, imac_v: 0 },
+                { area: "Jefe de la Unidad y Administración (Quintana Roo)", slim: 71, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 10, laptop_v: 39600.00, imac: 0, imac_v: 0 },
+                { area: "Coordinación de Asuntos Internacionales (Sor Juana)", slim: 12, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 1, laptop_v: 39600.00, imac: 0, imac_v: 0 },
+                { area: "Coordinación de Asuntos Internacionales (Hamburgo)", slim: 7, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 1, laptop_v: 39600.00, imac: 0, imac_v: 0 }
             ],
             gubernatura: [
-                { area: "Gubernatura", slim: 9, tower: 0, monitor: 0, laptop: 12, imac: 0 }
+                { area: "Gubernatura", slim: 9, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 12, laptop_v: 39600.00, imac: 0, imac_v: 0 }
             ],
             voceria: [
-                { area: "Vocería de la Gubernatura", slim: 5, tower: 3, monitor: 3, laptop: 16, imac: 0 }
+                { area: "Vocería de la Gubernatura", slim: 5, slim_v: 23936.00, tower: 3, tower_v: 54950.00, monitor: 3, monitor_v: 5568.00, laptop: 16, laptop_v: 39600.00, imac: 0, imac_v: 0 }
             ]
         };
 
@@ -398,7 +390,7 @@
 
             const totals = types.map(t => ({
                 count: data.reduce((a, c) => a + (c[t.k] || 0), 0),
-                value: data.reduce((a, c) => a + ((c[t.k] || 0) * t.p), 0)
+                value: data.reduce((a, c) => a + ((c[t.k] || 0) * (c[t.k + '_v'] || t.p)), 0)
             }));
 
             return (
@@ -408,41 +400,43 @@
                     </div>
                     <div className="overflow-x-auto">
                         <table className="min-w-full border-collapse text-[11px] text-slate-800 bg-white">
-                            <thead className="bg-slate-50">
-                                <tr className="border-b border-slate-200">
-                                    <th className="px-4 py-3 border-r border-slate-100 text-left font-bold uppercase text-slate-600">UBICACIÓN</th>
+                            <thead className="bg-[#bcbcbc] text-slate-900">
+                                <tr className="border-b border-slate-300">
+                                    <th className="px-4 py-2 border-r border-slate-400 text-left font-bold uppercase text-[9px]">UBICACIÓN</th>
                                     {types.map((t, idx) => (
                                         <React.Fragment key={idx}>
-                                            <th className="px-2 py-3 border-r border-slate-100 text-center font-bold text-slate-500 bg-slate-100/30">UND</th>
-                                            <th className="px-2 py-3 border-r border-slate-100 text-center font-bold text-slate-500">{t.h}</th>
+                                            <th className="px-2 py-2 border-r border-slate-400 text-center font-bold text-[9px] uppercase">UNIDADES</th>
+                                            <th className="px-2 py-2 border-r border-slate-400 text-center font-bold text-[9px] uppercase">{t.h}</th>
                                         </React.Fragment>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {data.map((row, i) => (
-                                    <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-3 border-r border-slate-100 font-bold text-slate-900">{row.area}</td>
-                                        {types.map((t, idx) => (
-                                            <React.Fragment key={idx}>
-                                                <td className="px-2 py-3 border-r border-slate-100 text-center font-medium">
-                                                    {row[t.k] > 0 ? row[t.k] : <span className="text-slate-300">N/A</span>}
-                                                </td>
-                                                <td className="px-2 py-3 border-r border-slate-100 text-right text-slate-500 font-bold">
-                                                    {row[t.k] > 0 ? formatCurrency(row[t.k] * t.p) : <span className="text-slate-300 font-normal">N/A</span>}
-                                                </td>
-                                            </React.Fragment>
-                                        ))}
-                                    </tr>
-                                ))}
+                            <tbody className="divide-y divide-slate-300 border-b border-slate-300">
+                                {data.map((row, i) => {
+                                    return (
+                                        <tr key={i} className="hover:bg-slate-50 transition-colors border-b border-slate-200">
+                                            <td className="px-4 py-2 border-r border-slate-200 font-bold text-slate-800 bg-slate-50/50">{row.area}</td>
+                                            {types.map((t, idx) => (
+                                                <React.Fragment key={idx}>
+                                                    <td className="px-2 py-2 border-r border-slate-200 text-center font-medium">
+                                                        {row[t.k] || 0}
+                                                    </td>
+                                                    <td className="px-2 py-2 border-r border-slate-200 text-right text-slate-600 font-medium">
+                                                        {formatCurrency(row[t.k + '_v'] || (row[t.k] > 0 ? t.p : 0))}
+                                                    </td>
+                                                </React.Fragment>
+                                            ))}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                             <tfoot className="bg-[#4c0519] text-white font-bold">
                                 <tr>
-                                    <td className="px-4 py-3 border-r border-slate-800 uppercase tracking-tighter text-[10px]">TOTALES</td>
+                                    <td className="px-4 py-2 border-r border-slate-800 uppercase tracking-tighter text-[9px]">TOTALES</td>
                                     {totals.map((t, idx) => (
                                         <React.Fragment key={idx}>
-                                            <td className="px-2 py-3 border-r border-slate-800 text-center text-amber-400">{t.count}</td>
-                                            <td className="px-2 py-3 border-r border-slate-800 text-right text-[9px]">{formatCurrency(t.value)}</td>
+                                            <td className="px-2 py-2 border-r border-slate-800 text-center text-amber-400">{t.count}</td>
+                                            <td className="px-2 py-2 border-r border-slate-800 text-right text-[8px]">{formatCurrency(t.value)}</td>
                                         </React.Fragment>
                                     ))}
                                 </tr>
@@ -556,7 +550,7 @@
                 setModal({ open: true, item: null });
                 if (mgmtView === 'general') setFormData({ area: '', category: 'Unidad de Apoyo', fiveYears: 0, vehicles: 0, contents: 0 });
                 else if (mgmtView === 'location') setFormData({ section: 'unidadApoyo', area: '', units: 0, fiveYears: 0, contents: 0 });
-                else setFormData({ section: 'unidadApoyo', area: '', slim: 0, tower: 0, monitor: 0, laptop: 0, imac: 0 });
+                else setFormData({ section: 'unidadApoyo', area: '', slim: 0, slim_v: EQUIPMENT_PRICES.slim, tower: 0, tower_v: EQUIPMENT_PRICES.tower, monitor: 0, monitor_v: EQUIPMENT_PRICES.monitor, laptop: 0, laptop_v: EQUIPMENT_PRICES.laptop, imac: 0, imac_v: EQUIPMENT_PRICES.imac });
             };
 
             const handleSave = (e) => {
@@ -575,7 +569,14 @@
                 } else {
                     const s = formData.section || 'unidadApoyo';
                     const list = [...highestData[s]];
-                    const vals = { area: formData.area, slim: Number(formData.slim), tower: Number(formData.tower), monitor: Number(formData.monitor), laptop: Number(formData.laptop), imac: Number(formData.imac) };
+                    const vals = {
+                        area: formData.area,
+                        slim: Number(formData.slim), slim_v: Number(formData.slim_v),
+                        tower: Number(formData.tower), tower_v: Number(formData.tower_v),
+                        monitor: Number(formData.monitor), monitor_v: Number(formData.monitor_v),
+                        laptop: Number(formData.laptop), laptop_v: Number(formData.laptop_v),
+                        imac: Number(formData.imac), imac_v: Number(formData.imac_v)
+                    };
                     if (modal.item) {
                         const idx = parseInt(modal.item.id.split('-').pop());
                         list[idx] = vals;
@@ -735,11 +736,11 @@
                     map[exportConfig.area].forEach(k => filtered = [...filtered, ...highestData[k]]);
 
                     tableData = filtered.map(i => {
-                        const v1 = Number(i.slim || 0) * EQUIPMENT_PRICES.slim;
-                        const v2 = Number(i.tower || 0) * EQUIPMENT_PRICES.tower;
-                        const v3 = Number(i.monitor || 0) * EQUIPMENT_PRICES.monitor;
-                        const v4 = Number(i.laptop || 0) * EQUIPMENT_PRICES.laptop;
-                        const v5 = Number(i.imac || 0) * EQUIPMENT_PRICES.imac;
+                        const v1 = Number(i.slim || 0) * (i.slim_v || EQUIPMENT_PRICES.slim);
+                        const v2 = Number(i.tower || 0) * (i.tower_v || EQUIPMENT_PRICES.tower);
+                        const v3 = Number(i.monitor || 0) * (i.monitor_v || EQUIPMENT_PRICES.monitor);
+                        const v4 = Number(i.laptop || 0) * (i.laptop_v || EQUIPMENT_PRICES.laptop);
+                        const v5 = Number(i.imac || 0) * (i.imac_v || EQUIPMENT_PRICES.imac);
                         const rowTotal = v1 + v2 + v3 + v4 + v5;
                         return [
                             i.area,
@@ -943,9 +944,9 @@
                                     )}
                                     {detailsView === 'highest' && (
                                         <>
-                                            <HighestValuesTable title="VALOR MÁS ALTO: Unidad de Apoyo a la Administración General" data={highestData.unidadApoyo} />
-                                            <HighestValuesTable title="VALOR MÁS ALTO: Gubernatura" data={highestData.gubernatura} />
-                                            <HighestValuesTable title="VALOR MÁS ALTO: Vocería de la Gubernatura" data={highestData.voceria} />
+                                            <HighestValuesTable title="VALOR MAS ALTO-UNIDAD DE APOYO A LA ADMINISTRACIÓN GENERAL" data={highestData.unidadApoyo} />
+                                            <HighestValuesTable title="VALOR MAS ALTO-GUBERNATURA" data={highestData.gubernatura} />
+                                            <HighestValuesTable title="VALOR MAS ALTO-VOCERÍA DE LA GUBERNATURA" data={highestData.voceria} />
                                         </>
                                     )}
                                 </div>
@@ -1071,15 +1072,45 @@
                                     <div><label className="text-xs font-black">Ct($)</label><input type="number" className="w-full border rounded-lg p-3" value={formData.contents} onChange={e => setFormData({ ...formData, contents: e.target.value })} /></div>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-[10px] font-black uppercase text-slate-500">CPU EA</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.slim} onChange={e => setFormData({ ...formData, slim: e.target.value })} /></div>
-                                        <div><label className="text-[10px] font-black uppercase text-slate-500">CPU ED</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.tower} onChange={e => setFormData({ ...formData, tower: e.target.value })} /></div>
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">CPU EA (Slim)</h4>
+                                            <div className="flex gap-3">
+                                                <div className="flex-1"><label className="text-[9px] font-bold text-slate-500 uppercase">Cantidad</label><input type="number" className="w-full border rounded-lg p-2 mt-1" value={formData.slim} onChange={e => setFormData({ ...formData, slim: e.target.value })} /></div>
+                                                <div className="flex-[2]"><label className="text-[9px] font-bold text-slate-500 uppercase">Valor Unitario ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-2 mt-1" value={formData.slim_v} onChange={e => setFormData({ ...formData, slim_v: e.target.value })} /></div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">CPU ED (Tower)</h4>
+                                            <div className="flex gap-3">
+                                                <div className="flex-1"><label className="text-[9px] font-bold text-slate-500 uppercase">Cantidad</label><input type="number" className="w-full border rounded-lg p-2 mt-1" value={formData.tower} onChange={e => setFormData({ ...formData, tower: e.target.value })} /></div>
+                                                <div className="flex-[2]"><label className="text-[9px] font-bold text-slate-500 uppercase">Valor Unitario ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-2 mt-1" value={formData.tower_v} onChange={e => setFormData({ ...formData, tower_v: e.target.value })} /></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div><label className="text-[10px] font-black uppercase text-slate-500">Monitor</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.monitor} onChange={e => setFormData({ ...formData, monitor: e.target.value })} /></div>
-                                        <div><label className="text-[10px] font-black uppercase text-slate-500">Laptop</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.laptop} onChange={e => setFormData({ ...formData, laptop: e.target.value })} /></div>
-                                        <div><label className="text-[10px] font-black uppercase text-slate-500">iMac</label><input type="number" className="w-full border rounded-lg p-3 bg-slate-50" value={formData.imac} onChange={e => setFormData({ ...formData, imac: e.target.value })} /></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Monitor</h4>
+                                            <div className="space-y-2">
+                                                <div><label className="text-[9px] font-bold text-slate-500 uppercase">Cant.</label><input type="number" className="w-full border rounded-lg p-2 mt-1" value={formData.monitor} onChange={e => setFormData({ ...formData, monitor: e.target.value })} /></div>
+                                                <div><label className="text-[9px] font-bold text-slate-500 uppercase">Valor ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-2 mt-1" value={formData.monitor_v} onChange={e => setFormData({ ...formData, monitor_v: e.target.value })} /></div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Laptop</h4>
+                                            <div className="space-y-2">
+                                                <div><label className="text-[9px] font-bold text-slate-500 uppercase">Cant.</label><input type="number" className="w-full border rounded-lg p-2 mt-1" value={formData.laptop} onChange={e => setFormData({ ...formData, laptop: e.target.value })} /></div>
+                                                <div><label className="text-[9px] font-bold text-slate-500 uppercase">Valor ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-2 mt-1" value={formData.laptop_v} onChange={e => setFormData({ ...formData, laptop_v: e.target.value })} /></div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">iMac</h4>
+                                            <div className="space-y-2">
+                                                <div><label className="text-[9px] font-bold text-slate-500 uppercase">Cant.</label><input type="number" className="w-full border rounded-lg p-2 mt-1" value={formData.imac} onChange={e => setFormData({ ...formData, imac: e.target.value })} /></div>
+                                                <div><label className="text-[9px] font-bold text-slate-500 uppercase">Valor ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-2 mt-1" value={formData.imac_v} onChange={e => setFormData({ ...formData, imac_v: e.target.value })} /></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
