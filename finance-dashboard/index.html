@@ -634,23 +634,22 @@
                 if (exportConfig.type === 'dashboard') {
                     if (dashboardRef.current) {
                         try {
-                            // Optimizaciones ultra-nitidez para evitar efecto cenizo y pixelado
+                            // Ajuste de ultra-estabilidad para evitar distorsión visual (glitch)
                             const canvas = await html2canvas(dashboardRef.current, {
-                                scale: 5, // Aumentamos a escala 5 para resolución 4K+
+                                scale: 2, // Escala estable que no desborda la memoria del navegador
                                 useCORS: true,
                                 logging: false,
-                                backgroundColor: '#f8fafc',
+                                backgroundColor: '#ffffff', // Fondo blanco total para evitar el tono cenizo
                                 removeContainer: true,
-                                imageTimeout: 0,
+                                imageTimeout: 15000,
                                 onclone: (clonedDoc) => {
-                                    // Aseguramos que los elementos no tengan animaciones activas durante la captura
                                     const el = clonedDoc.querySelector('.animate-fade-in');
                                     if (el) el.style.animation = 'none';
                                 }
                             });
 
-                            // Usamos PNG para evitar artefactos de compresión (look cenizo)
-                            const imgData = canvas.toDataURL('image/png');
+                            // Usamos JPEG en máxima calidad para mayor estabilidad en el buffer de jspdf
+                            const imgData = canvas.toDataURL('image/jpeg', 1.0);
                             const imgProps = doc.getImageProperties(imgData);
                             const pdfWidth = doc.internal.pageSize.getWidth() - 20;
                             const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
@@ -660,8 +659,8 @@
                             doc.setTextColor(76, 5, 25);
                             doc.text(`DASHBOARD EJECUTIVO - ${areaMap[exportConfig.area]}`, 105, 15, { align: 'center' });
 
-                            // 'SLOW' asegura la mejor interpolación de imagen al reescalar dentro del PDF
-                            doc.addImage(imgData, 'PNG', 10, 25, pdfWidth, pdfHeight, undefined, 'SLOW');
+                            // 'FAST' es más estable para incrustar imágenes grandes
+                            doc.addImage(imgData, 'JPEG', 10, 25, pdfWidth, pdfHeight);
 
                             if (previewOnly) {
                                 const blob = doc.output('blob');
