@@ -294,9 +294,9 @@
         );
 
         const CategorySection = ({ title, data }) => {
-            const sum5Y = data.reduce((a, c) => a + (c.fiveYears || 0), 0);
-            const sumVeh = data.reduce((a, c) => a + (c.vehicles || 0), 0);
-            const sumCon = data.reduce((a, c) => a + (c.contents || 0), 0);
+            const sum5Y = data.reduce((a, c) => a + Number(c.fiveYears || 0), 0);
+            const sumVeh = data.reduce((a, c) => a + Number(c.vehicles || 0), 0);
+            const sumCon = data.reduce((a, c) => a + Number(c.contents || 0), 0);
             const sumTotal = sum5Y + sumVeh + sumCon;
 
             return (
@@ -342,9 +342,9 @@
         };
 
         const LocationTable = ({ title, data }) => {
-            const sumUnits = data.reduce((a, c) => a + (c.units || 0), 0);
-            const sum5Y = data.reduce((a, c) => a + (c.fiveYears || 0), 0);
-            const sumCon = data.reduce((a, c) => a + (c.contents || 0), 0);
+            const sumUnits = data.reduce((a, c) => a + Number(c.units || 0), 0);
+            const sum5Y = data.reduce((a, c) => a + Number(c.fiveYears || 0), 0);
+            const sumCon = data.reduce((a, c) => a + Number(c.contents || 0), 0);
 
             return (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 card">
@@ -446,7 +446,7 @@
         };
 
         const SpecificDashboard = ({ title, icon: Icon, data, color }) => {
-            const sum = (k) => data.reduce((a, c) => a + (c[k] || 0), 0);
+            const sum = (k) => data.reduce((a, c) => a + Number(c[k] || 0), 0);
             const sub5Y = sum('fiveYears');
             const subVeh = sum('vehicles');
             const subCon = sum('contents');
@@ -570,10 +570,22 @@
             const handleSave = (e) => {
                 e.preventDefault();
                 if (mgmtView === 'general') {
-                    if (modal.item) setItems(items.map(i => i.id === modal.item.id ? { ...formData, id: i.id } : i));
-                    else setItems([...items, { ...formData, id: Date.now() }]);
+                    const dataToSave = {
+                        ...formData,
+                        fiveYears: Number(formData.fiveYears || 0),
+                        vehicles: Number(formData.vehicles || 0),
+                        contents: Number(formData.contents || 0)
+                    };
+                    if (modal.item) setItems(items.map(i => i.id === modal.item.id ? { ...dataToSave, id: i.id } : i));
+                    else setItems([...items, { ...dataToSave, id: Date.now() }]);
                 } else if (mgmtView === 'location') {
                     const s = formData.section || 'unidadApoyo';
+                    const dataToSave = {
+                        area: formData.area,
+                        units: Number(formData.units || 0),
+                        fiveYears: Number(formData.fiveYears || 0),
+                        contents: Number(formData.contents || 0)
+                    };
 
                     if (modal.item && modal.item.cat && modal.item.cat !== s) {
                         const oldCat = modal.item.cat;
@@ -581,18 +593,23 @@
                         const oldList = locationData[oldCat].filter((_, i) => i !== oldIdx);
 
                         const newList = [...locationData[s]];
-                        newList.push({ area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) });
+                        newList.push(dataToSave);
                         setLocationData({ ...locationData, [oldCat]: oldList, [s]: newList });
                     } else {
                         const list = [...locationData[s]];
                         if (modal.item) {
                             const idx = parseInt(modal.item.id.split('-').pop());
-                            list[idx] = { area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) };
-                        } else list.push({ area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) });
+                            list[idx] = dataToSave;
+                        } else list.push(dataToSave);
                         setLocationData({ ...locationData, [s]: list });
                     }
                 } else {
                     const s = formData.section || 'unidadApoyo';
+                    const vals = { area: formData.area };
+                    equipmentTypes.forEach(t => {
+                        vals[t.k] = Number(formData[t.k] || 0);
+                        vals[t.k + '_v'] = Number(formData[t.k + '_v'] || t.p);
+                    });
 
                     // If we're editing and the section changed, remove from old and add to new
                     if (modal.item && modal.item.cat && modal.item.cat !== s) {
@@ -601,20 +618,10 @@
                         const oldList = highestData[oldCat].filter((_, i) => i !== oldIdx);
 
                         const newList = [...highestData[s]];
-                        const rowData = { area: formData.area };
-                        equipmentTypes.forEach(t => {
-                            rowData[t.k] = Number(formData[t.k] || 0);
-                            rowData[t.k + '_v'] = Number(formData[t.k + '_v'] || t.p);
-                        });
-                        newList.push(rowData);
+                        newList.push(vals);
                         setHighestData({ ...highestData, [oldCat]: oldList, [s]: newList });
                     } else {
                         const list = [...highestData[s]];
-                        const vals = { area: formData.area };
-                        equipmentTypes.forEach(t => {
-                            vals[t.k] = Number(formData[t.k] || 0);
-                            vals[t.k + '_v'] = Number(formData[t.k + '_v'] || t.p);
-                        });
                         if (modal.item) {
                             const idx = parseInt(modal.item.id.split('-').pop());
                             list[idx] = vals;
@@ -1031,7 +1038,7 @@
                                                             <td className="px-6 py-4 text-right text-xs font-medium text-slate-600">
                                                                 {mgmtView === 'general' && `5A: ${formatCurrency(row.fiveYears)} | Vh: ${formatCurrency(row.vehicles)}`}
                                                                 {mgmtView === 'location' && `Units: ${row.units} | 5A: ${formatCurrency(row.fiveYears)}`}
-                                                                {mgmtView === 'highest' && `EA: ${row.slim} | ED: ${row.tower} | Mon: ${row.monitor} | Lap: ${row.laptop} | iMac: ${row.imac}`}
+                                                                {mgmtView === 'highest' && equipmentTypes.map(t => `${t.h}: ${row[t.k] || 0}`).join(' | ')}
                                                             </td>
                                                             <td className="px-6 py-4 text-right space-x-1">
                                                                 <button onClick={() => handleEdit(row)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Icons.Edit className="w-5 h-5" /></button>
