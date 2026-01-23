@@ -565,28 +565,58 @@
                     else setItems([...items, { ...formData, id: Date.now() }]);
                 } else if (mgmtView === 'location') {
                     const s = formData.section || 'unidadApoyo';
-                    const list = [...locationData[s]];
-                    if (modal.item) {
-                        const idx = parseInt(modal.item.id.split('-').pop());
-                        list[idx] = { area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) };
-                    } else list.push({ area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) });
-                    setLocationData({ ...locationData, [s]: list });
+
+                    if (modal.item && modal.item.cat && modal.item.cat !== s) {
+                        const oldCat = modal.item.cat;
+                        const oldIdx = parseInt(modal.item.id.split('-').pop());
+                        const oldList = locationData[oldCat].filter((_, i) => i !== oldIdx);
+
+                        const newList = [...locationData[s]];
+                        newList.push({ area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) });
+                        setLocationData({ ...locationData, [oldCat]: oldList, [s]: newList });
+                    } else {
+                        const list = [...locationData[s]];
+                        if (modal.item) {
+                            const idx = parseInt(modal.item.id.split('-').pop());
+                            list[idx] = { area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) };
+                        } else list.push({ area: formData.area, units: Number(formData.units), fiveYears: Number(formData.fiveYears), contents: Number(formData.contents) });
+                        setLocationData({ ...locationData, [s]: list });
+                    }
                 } else {
                     const s = formData.section || 'unidadApoyo';
-                    const list = [...highestData[s]];
-                    const vals = {
-                        area: formData.area,
-                        slim: Number(formData.slim), slim_v: Number(formData.slim_v),
-                        tower: Number(formData.tower), tower_v: Number(formData.tower_v),
-                        monitor: Number(formData.monitor), monitor_v: Number(formData.monitor_v),
-                        laptop: Number(formData.laptop), laptop_v: Number(formData.laptop_v),
-                        imac: Number(formData.imac), imac_v: Number(formData.imac_v)
-                    };
-                    if (modal.item) {
-                        const idx = parseInt(modal.item.id.split('-').pop());
-                        list[idx] = vals;
-                    } else list.push(vals);
-                    setHighestData({ ...highestData, [s]: list });
+
+                    // If we're editing and the section changed, remove from old and add to new
+                    if (modal.item && modal.item.cat && modal.item.cat !== s) {
+                        const oldCat = modal.item.cat;
+                        const oldIdx = parseInt(modal.item.id.split('-').pop());
+                        const oldList = highestData[oldCat].filter((_, i) => i !== oldIdx);
+
+                        const newList = [...highestData[s]];
+                        newList.push({
+                            area: formData.area,
+                            slim: Number(formData.slim), slim_v: Number(formData.slim_v),
+                            tower: Number(formData.tower), tower_v: Number(formData.tower_v),
+                            monitor: Number(formData.monitor), monitor_v: Number(formData.monitor_v),
+                            laptop: Number(formData.laptop), laptop_v: Number(formData.laptop_v),
+                            imac: Number(formData.imac), imac_v: Number(formData.imac_v)
+                        });
+                        setHighestData({ ...highestData, [oldCat]: oldList, [s]: newList });
+                    } else {
+                        const list = [...highestData[s]];
+                        const vals = {
+                            area: formData.area,
+                            slim: Number(formData.slim), slim_v: Number(formData.slim_v),
+                            tower: Number(formData.tower), tower_v: Number(formData.tower_v),
+                            monitor: Number(formData.monitor), monitor_v: Number(formData.monitor_v),
+                            laptop: Number(formData.laptop), laptop_v: Number(formData.laptop_v),
+                            imac: Number(formData.imac), imac_v: Number(formData.imac_v)
+                        };
+                        if (modal.item) {
+                            const idx = parseInt(modal.item.id.split('-').pop());
+                            list[idx] = vals;
+                        } else list.push(vals);
+                        setHighestData({ ...highestData, [s]: list });
+                    }
                 }
                 setModal({ open: false, item: null });
             };
@@ -994,7 +1024,9 @@
                                                         <tr key={row.id} className="hover:bg-slate-50 transition-colors">
                                                             <td className="px-6 py-4">
                                                                 <div className="font-bold text-slate-900">{row.area}</div>
-                                                                <div className="text-[10px] uppercase font-bold text-slate-400">{row.category || row.cat}</div>
+                                                                <div className="text-[10px] inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 mt-1 uppercase font-black tracking-tighter border border-slate-200">
+                                                                    {row.cat === 'unidadApoyo' || row.category === 'Unidad de Apoyo' ? 'Unidad de Apoyo' : row.cat === 'gubernatura' || row.category === 'Gubernatura' ? 'Gubernatura' : 'Vocería'}
+                                                                </div>
                                                             </td>
                                                             <td className="px-6 py-4 text-right text-xs font-medium text-slate-600">
                                                                 {mgmtView === 'general' && `5A: ${formatCurrency(row.fiveYears)} | Vh: ${formatCurrency(row.vehicles)}`}
@@ -1054,9 +1086,19 @@
 
                     <Modal isOpen={modal.open} onClose={() => setModal({ open: false, item: null })} title={modal.item ? "Actualizar Registro" : "Crear Registro"}>
                         <form onSubmit={handleSave} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700">Nombre del Área / Ubicación</label>
-                                <input required className="w-full border rounded-lg p-3 mt-1 bg-slate-50" value={formData.area} onChange={e => setFormData({ ...formData, area: e.target.value })} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-black uppercase text-slate-400 mb-1">Área / Ubicación</label>
+                                    <input required className="w-full border rounded-lg p-3 bg-slate-50 focus:ring-2 focus:ring-amber-500 transition-all" value={formData.area} onChange={e => setFormData({ ...formData, area: e.target.value })} />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-xs font-black uppercase text-slate-400 mb-1">Categoría General</label>
+                                    <select className="w-full border rounded-lg p-3 bg-slate-50 font-bold text-slate-700" value={mgmtView === 'general' ? formData.category : formData.section} onChange={e => setFormData({ ...formData, [mgmtView === 'general' ? 'category' : 'section']: e.target.value })}>
+                                        <option value={mgmtView === 'general' ? 'Unidad de Apoyo' : 'unidadApoyo'}>Unidad de Apoyo</option>
+                                        <option value={mgmtView === 'general' ? 'Gubernatura' : 'gubernatura'}>Gubernatura</option>
+                                        <option value={mgmtView === 'general' ? 'Vocería' : 'voceria'}>Vocería</option>
+                                    </select>
+                                </div>
                             </div>
                             {mgmtView === 'general' ? (
                                 <>
