@@ -735,42 +735,38 @@
                     doc.setFontSize(10);
                     doc.text(`Generado el: ${new Date().toLocaleString()}`, 148, 38, { align: 'center' });
 
-                    headers = [["Ubicación", "CPU EA (U)", "CPU EA ($)", "CPU ED (U)", "CPU ED ($)", "Monit (U)", "Monit ($)", "Lapt (U)", "Lapt ($)", "iMac (U)", "iMac ($)", "TOTAL ($)"]];
+                    headers = [["Ubicación", "UND", "CPU EA", "UND", "CPU ED", "UND", "Monitor", "UND", "Laptop", "UND", "iMac"]];
                     const map = { all: ['unidadApoyo', 'gubernatura', 'voceria'], 'Unidad de Apoyo': ['unidadApoyo'], Gubernatura: ['gubernatura'], Vocería: ['voceria'] };
                     let filtered = [];
                     map[exportConfig.area].forEach(k => filtered = [...filtered, ...highestData[k]]);
 
                     tableData = filtered.map(i => {
-                        const v1 = Number(i.slim || 0) * (i.slim_v || EQUIPMENT_PRICES.slim);
-                        const v2 = Number(i.tower || 0) * (i.tower_v || EQUIPMENT_PRICES.tower);
-                        const v3 = Number(i.monitor || 0) * (i.monitor_v || EQUIPMENT_PRICES.monitor);
-                        const v4 = Number(i.laptop || 0) * (i.laptop_v || EQUIPMENT_PRICES.laptop);
-                        const v5 = Number(i.imac || 0) * (i.imac_v || EQUIPMENT_PRICES.imac);
-                        const rowTotal = v1 + v2 + v3 + v4 + v5;
                         return [
                             i.area,
-                            i.slim, formatCurrency(v1),
-                            i.tower, formatCurrency(v2),
-                            i.monitor, formatCurrency(v3),
-                            i.laptop, formatCurrency(v4),
-                            i.imac, formatCurrency(v5),
-                            formatCurrency(rowTotal)
+                            i.slim || 0, formatCurrency(i.slim_v || (i.slim > 0 ? EQUIPMENT_PRICES.slim : 0)),
+                            i.tower || 0, formatCurrency(i.tower_v || (i.tower > 0 ? EQUIPMENT_PRICES.tower : 0)),
+                            i.monitor || 0, formatCurrency(i.monitor_v || (i.monitor > 0 ? EQUIPMENT_PRICES.monitor : 0)),
+                            i.laptop || 0, formatCurrency(i.laptop_v || (i.laptop > 0 ? EQUIPMENT_PRICES.laptop : 0)),
+                            i.imac || 0, formatCurrency(i.imac_v || (i.imac > 0 ? EQUIPMENT_PRICES.imac : 0))
                         ];
                     });
 
-                    const s1 = filtered.reduce((a, c) => a + Number(c.slim || 0), 0);
-                    const v1 = filtered.reduce((a, c) => a + (Number(c.slim || 0) * EQUIPMENT_PRICES.slim), 0);
-                    const s2 = filtered.reduce((a, c) => a + Number(c.tower || 0), 0);
-                    const v2 = filtered.reduce((a, c) => a + (Number(c.tower || 0) * EQUIPMENT_PRICES.tower), 0);
-                    const s3 = filtered.reduce((a, c) => a + Number(c.monitor || 0), 0);
-                    const v3 = filtered.reduce((a, c) => a + (Number(c.monitor || 0) * EQUIPMENT_PRICES.monitor), 0);
-                    const s4 = filtered.reduce((a, c) => a + Number(c.laptop || 0), 0);
-                    const v4 = filtered.reduce((a, c) => a + (Number(c.laptop || 0) * EQUIPMENT_PRICES.laptop), 0);
-                    const s5 = filtered.reduce((a, c) => a + Number(c.imac || 0), 0);
-                    const v5 = filtered.reduce((a, c) => a + (Number(c.imac || 0) * EQUIPMENT_PRICES.imac), 0);
-                    const totalG = v1 + v2 + v3 + v4 + v5;
+                    const types = [
+                        { k: 'slim', p: EQUIPMENT_PRICES.slim },
+                        { k: 'tower', p: EQUIPMENT_PRICES.tower },
+                        { k: 'monitor', p: EQUIPMENT_PRICES.monitor },
+                        { k: 'laptop', p: EQUIPMENT_PRICES.laptop },
+                        { k: 'imac', p: EQUIPMENT_PRICES.imac }
+                    ];
 
-                    tableData.push(["TOTAL GENERAL", s1, formatCurrency(v1), s2, formatCurrency(v2), s3, formatCurrency(v3), s4, formatCurrency(v4), s5, formatCurrency(v5), formatCurrency(totalG)]);
+                    const foot = ["TOTALES"];
+                    types.forEach(t => {
+                        const count = filtered.reduce((a, c) => a + Number(c[t.k] || 0), 0);
+                        const val = filtered.reduce((a, c) => a + (Number(c[t.k] || 0) * (c[t.k + '_v'] || t.p)), 0);
+                        foot.push(count);
+                        foot.push(formatCurrency(val));
+                    });
+                    tableData.push(foot);
                 }
 
                 doc.autoTable({
