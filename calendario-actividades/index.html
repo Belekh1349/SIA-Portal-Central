@@ -73,10 +73,18 @@
             --glass: rgba(139, 26, 45, 0.05);
             --shadow: 0 10px 40px rgba(67, 52, 34, 0.1);
             --silver-gradient: linear-gradient(135deg, #433422 0%, #705d49 100%);
-            --input-bg: #ffffff;
+            --input-bg: #ece2c6;
             --input-text: #2c1e11;
             --input-label: #433422;
             --highlight: rgba(139, 26, 45, 0.1);
+        }
+
+        /* Estilo base para inputs asegurar visibilidad */
+        input,
+        select,
+        textarea {
+            background: var(--input-bg) !important;
+            color: var(--input-text) !important;
         }
 
         /* Theme Top Menu */
@@ -2497,9 +2505,12 @@
 
             localStorage.setItem('theme_preference', theme);
 
+            // Update portal state if exists
+            localStorage.setItem('sia-theme', theme);
+
             // If charts are visible, update them to reflect new theme colors
             if (document.getElementById('stats-section').style.display !== 'none') {
-                updateCharts();
+                if (typeof updateCharts === 'function') updateCharts();
             }
         }
 
