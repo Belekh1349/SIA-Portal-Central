@@ -514,7 +514,52 @@
             }
 
             .card-header {
+                flex-direction: column;
+                align-items: stretch;
                 padding: 15px;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .date-filters {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .header-actions {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .brand {
+                flex-direction: column;
+                text-align: center;
+                width: 100%;
+            }
+
+            .logo-img {
+                height: 50px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+
+            .header-actions .btn span {
+                display: none;
+            }
+
+            .header-actions .btn {
+                padding: 10px;
             }
         }
 
@@ -552,16 +597,16 @@
             </div>
             <div class="header-actions no-print">
                 <a href="../index.html" class="btn btn-outline" title="Regresar a la Entrada Principal">
-                    <i data-lucide="home"></i> Entrada Principal
+                    <i data-lucide="home"></i> <span>Entrada Principal</span>
                 </a>
                 <button class="btn btn-outline" id="theme-toggle"><i data-lucide="sun" id="theme-icon"></i></button>
                 <button class="btn btn-outline" id="admin-login-btn" title="Acceso Administrativo">
                     <i data-lucide="lock" id="admin-icon"></i>
                 </button>
-                <button class="btn btn-outline" id="view-records-btn"><i data-lucide="scroll-text"></i> Ver
-                    Lista</button>
+                <button class="btn btn-outline" id="view-records-btn"><i data-lucide="scroll-text"></i> <span>Ver
+                        Lista</span></button>
                 <button class="btn btn-primary" id="add-oficio-btn" style="display: none;"><i data-lucide="plus"></i>
-                    Nuevo Registro</button>
+                    <span>Nuevo Registro</span></button>
             </div>
         </header>
 

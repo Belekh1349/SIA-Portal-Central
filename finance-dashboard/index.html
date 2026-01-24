@@ -911,35 +911,35 @@
                     <main className="max-w-7xl mx-auto p-6">
                         {activeTab === 'general' && (
                             <div className="flex flex-col md:flex-row gap-6">
-                                <div className="w-64 space-y-2 no-print">
+                                <div className="w-full md:w-64 space-y-2 no-print overflow-x-auto flex md:flex-col gap-2 pb-2 md:pb-0">
                                     {[
                                         { id: 'consolidated', l: 'Consolidado', i: Icons.Globe },
                                         { id: 'unidad', l: 'Unidad de Apoyo a la Administración General', i: Icons.Users },
                                         { id: 'gubernatura', l: 'Gubernatura', i: Icons.Building2 },
                                         { id: 'voceria', l: 'Vocería de la Gubernatura', i: Icons.Mic2 }
                                     ].map(v => (
-                                        <button key={v.id} onClick={() => setDashboardTab(v.id)} className={`w-full text-left p-3 rounded-xl font-bold text-[11px] uppercase tracking-tighter transition-all flex items-center gap-3 ${dashboardTab === v.id ? 'bg-[#4c0519] text-white shadow-lg scale-[1.02]' : 'bg-white border text-slate-600 hover:bg-slate-50'}`}>
+                                        <button key={v.id} onClick={() => setDashboardTab(v.id)} className={`flex-shrink-0 md:w-full text-left p-3 rounded-xl font-bold text-[10px] uppercase tracking-tighter transition-all flex items-center gap-3 ${dashboardTab === v.id ? 'bg-[#4c0519] text-white shadow-lg scale-[1.02]' : 'bg-white border text-slate-600 hover:bg-slate-50'}`}>
                                             <v.i className="w-4 h-4" />
-                                            <span>{v.l}</span>
+                                            <span className="whitespace-nowrap">{v.l}</span>
                                         </button>
                                     ))}
-                                    <button onClick={() => { setExportConfig({ ...exportConfig, type: 'dashboard' }); setExportModal(true); }} className="w-full text-left p-3 rounded-xl font-bold text-xs text-amber-600 uppercase border border-amber-100 hover:bg-amber-50 mt-2 flex items-center gap-3">
+                                    <button onClick={() => { setExportConfig({ ...exportConfig, type: 'dashboard' }); setExportModal(true); }} className="flex-shrink-0 md:w-full text-left p-3 rounded-xl font-bold text-xs text-amber-600 uppercase border border-amber-100 hover:bg-amber-50 mt-0 md:mt-2 flex items-center gap-3">
                                         <Icons.FileDown className="w-4 h-4" />
-                                        <span>Exportar Dashboard</span>
+                                        <span className="whitespace-nowrap">Exportar Dashboard</span>
                                     </button>
                                 </div>
                                 <div className="flex-grow max-w-full overflow-hidden" ref={dashboardRef}>
                                     {dashboardTab === 'consolidated' && (
                                         <div className="space-y-8 animate-fade-in p-1">
-                                            <div className="bg-gradient-to-br from-[#4c0519] via-[#630d16] to-[#4c0519] p-12 rounded-[3rem] text-white flex flex-col md:flex-row justify-between items-center relative overflow-hidden shadow-2xl border border-white/5">
+                                            <div className="bg-gradient-to-br from-[#4c0519] via-[#630d16] to-[#4c0519] p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] text-white flex flex-col md:flex-row justify-between items-center relative overflow-hidden shadow-2xl border border-white/5">
                                                 <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/20 rounded-full -mr-40 -mt-40 blur-3xl opacity-30 animate-pulse"></div>
                                                 <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 rounded-full -ml-40 -mb-40 blur-3xl opacity-20"></div>
-                                                <div className="relative z-10">
-                                                    <h2 className="text-4xl font-extrabold uppercase tracking-tight mb-4 border-l-8 border-amber-500 pl-6">CONSOLIDADO GENERAL</h2>
-                                                    <p className="text-rose-100/70 font-medium mb-12 max-sm:max-w-xs max-w-sm leading-relaxed">Reporte ejecutivo centralizado que integra todas las áreas y rubros de inversión patrimonial.</p>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[11px] font-black text-amber-500 uppercase tracking-[0.3em] mb-2">Presupuesto Global Programado</span>
-                                                        <div className="text-7xl font-black text-white leading-none tracking-tighter drop-shadow-lg">
+                                                <div className="relative z-10 w-full">
+                                                    <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-tight mb-4 border-l-8 border-amber-500 pl-4 sm:pl-6 text-center md:text-left">CONSOLIDADO GENERAL</h2>
+                                                    <p className="text-rose-100/70 font-medium mb-8 sm:mb-12 max-w-md mx-auto md:mx-0 text-center md:text-left leading-relaxed">Reporte ejecutivo centralizado que integra todas las áreas y rubros de inversión patrimonial.</p>
+                                                    <div className="flex flex-col items-center md:items-start">
+                                                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] mb-2 text-center md:text-left">Presupuesto Global Programado</span>
+                                                        <div className="text-4xl sm:text-7xl font-black text-white leading-none tracking-tighter drop-shadow-lg text-center md:text-left">
                                                             {formatCurrency(
                                                                 items.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0) +
                                                                 Object.values(locationData).flat().reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0) +
