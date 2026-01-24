@@ -37,13 +37,21 @@
             --glass-border: rgba(67, 52, 34, 0.1);
         }
 
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background-color: #0f172a;
+            /* Fallback sólido */
+        }
+
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-body);
             color: var(--text-main);
             overflow-x: hidden;
             transition: background-color 0.3s ease, color 0.3s ease;
-            width: 100%;
             position: relative;
         }
 
@@ -56,37 +64,29 @@
 
         .glass {
             background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
         }
 
-        .glass:hover {
-            background: var(--glass-bg);
-            border-color: var(--accent);
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        @media (max-width: 640px) {
-            .glass:hover {
-                transform: translateY(-4px);
+        @media (min-width: 768px) {
+            .glass {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
-        }
 
-        body.dark .glass:hover {
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            .glass:hover {
+                transform: translateY(-8px);
+                border-color: var(--accent);
+            }
         }
 
         .bg-gradient-mesh {
             background-color: var(--bg-body);
             background-image:
-                radial-gradient(at 0% 0%, rgba(76, 5, 25, 0.15) 0, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.1) 0, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(30, 58, 138, 0.1) 0, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(76, 5, 25, 0.1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.05) 0, transparent 50%);
             background-attachment: fixed;
+            min-height: 100vh;
         }
 
         .title-gradient {
@@ -97,11 +97,6 @@
             display: inline-block;
         }
 
-        .card-icon {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.05));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         .theme-btn {
             padding: 8px 12px;
             border-radius: 12px;
@@ -109,7 +104,6 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: all 0.2s;
             border: 1px solid transparent;
             white-space: nowrap;
         }
@@ -117,13 +111,12 @@
         .theme-btn.active {
             background: var(--accent);
             color: #433422;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
         }
 
         .theme-btn:not(.active) {
             background: var(--glass-bg);
             color: var(--text-muted);
-            border-color: var(--glass-border);
+            border: 1px solid var(--glass-border);
         }
 
         .theme-btn:hover:not(.active) {
@@ -131,32 +124,45 @@
             color: var(--text-main);
         }
 
-        .animate-in {
-            animation: fadeIn 0.8s ease-out forwards;
+        .card-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
         }
 
-        @keyframes fadeIn {
+        @media (min-width: 768px) {
+            .card-icon {
+                width: 80px;
+                height: 80px;
+                border-radius: 1.25rem;
+            }
+        }
+
+        /* Removiendo opacidad 0 inicial para evitar que se quede en blanco */
+        .animate-in {
+            animation: fadeInSimple 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInSimple {
             from {
+                transform: translateY(10px);
                 opacity: 0;
-                transform: translateY(20px);
             }
 
             to {
-                opacity: 1;
                 transform: translateY(0);
+                opacity: 1;
             }
         }
 
-        .delay-1 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.4s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.6s;
+        .container-fix {
+            z-index: 20;
+            position: relative;
         }
     </style>
 </head>
@@ -301,9 +307,9 @@
     </div>
 
     <!-- Background Elements -->
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[120px]"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]"></div>
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" style="background-color: var(--bg-body);">
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-500/5 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[100px]"></div>
     </div>
 
     <script>
