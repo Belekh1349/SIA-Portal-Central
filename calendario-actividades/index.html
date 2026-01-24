@@ -2133,10 +2133,20 @@
                 doc.setFillColor(255, 255, 255);
                 doc.rect(14, 32, 60, 0.5, "F");
 
-                // Logo institutional - Restaurar posición original a la derecha
+                // Logo institutional - Mejora de legibilidad con aura de contraste sutil
                 const logoImg = document.querySelector('.brand img');
                 if (logoImg) {
                     try {
+                        // Aura de contraste: neblina blanca ultra-sutil para "levantar" el logo del fondo
+                        doc.saveGraphicsState();
+                        doc.setFillColor(255, 255, 255);
+                        for (let i = 1; i <= 3; i++) {
+                            doc.setGState(new doc.GState({ opacity: 0.04 }));
+                            doc.roundedRect(160 - i, 10 - (i / 2), 38 + (i * 2), 10 + i, 3, 3, 'F');
+                        }
+                        doc.restoreGraphicsState();
+
+                        // Dibujado del logo sobre el aura
                         doc.addImage(logoImg, 'PNG', 160, 10, 38, 10);
                     } catch (e) {
                         console.warn("Logo error:", e);
