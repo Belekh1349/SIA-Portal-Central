@@ -121,13 +121,13 @@
         }
 
         .custom-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+            scrollbar-width: auto;
+            scrollbar-color: #d97706 rgba(0, 0, 0, 0.1);
         }
 
         /* Universal Scrollbar Styling */
         .custom-scrollbar::-webkit-scrollbar {
-            width: 10px;
+            width: 8px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
@@ -141,21 +141,39 @@
             border-radius: 10px;
             border: 2px solid transparent;
             background-clip: padding-box;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #f59e0b;
+            /* Amber-500 */
         }
 
         /* Sidebar Specific (Dark Background) */
+        .sidebar-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
         .sidebar-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            /* Very subtle track */
+            border-radius: 10px;
         }
 
         .sidebar-scrollbar::-webkit-scrollbar-thumb {
-            border: 2px solid #0f172a;
-            background: #f59e0b;
+            background: rgba(245, 158, 11, 0.5);
+            /* Clearer Amber */
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 1);
+            /* Solid Amber on hover */
+        }
+
+        /* Indicate scrollability with a subtle shadow at the bottom of the sidebar if possible */
+        .sidebar-container {
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* Main Content Specific (Light Background) */
@@ -169,11 +187,10 @@
             background: #d97706;
         }
 
-        /* Keep scrollbar visible */
+        /* Keep scrollbar visible and functional */
         .custom-scrollbar {
-            overflow-y: scroll !important;
-            scrollbar-width: thin;
-            scrollbar-color: #d97706 transparent;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
         }
 
         .fade-in {

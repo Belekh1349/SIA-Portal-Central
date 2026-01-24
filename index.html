@@ -44,6 +44,7 @@
             width: 100%;
             min-height: 100%;
             background-color: #0f172a;
+            overflow-y: auto !important;
             /* Fallback sólido */
         }
 
@@ -163,6 +164,37 @@
         .container-fix {
             z-index: 20;
             position: relative;
+        }
+
+        /* Premium Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px !important;
+            height: 8px !important;
+            display: block !important;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05) !important;
+            border-radius: 10px !important;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d97706 !important;
+            /* Amber-600 */
+            border-radius: 10px !important;
+            border: 2px solid transparent !important;
+            background-clip: padding-box !important;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f59e0b !important;
+            /* Amber-500 */
+        }
+
+        /* Firefox support */
+        * {
+            scrollbar-width: thin !important;
+            scrollbar-color: #d97706 transparent !important;
         }
     </style>
 </head>

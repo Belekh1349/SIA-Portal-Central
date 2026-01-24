@@ -256,16 +256,21 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: var(--bg-dark);
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
+            background: #d97706;
+            /* Amber-600 */
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-dim);
+            background: #f59e0b;
+            /* Amber-500 */
         }
 
         /* Layout */
@@ -295,14 +300,25 @@
             scrollbar-color: var(--border) transparent;
         }
 
-        /* Ocultar barra de scroll para una estética más limpia pero permitir el scroll */
+        /* Sidebar Scrollbar */
         aside::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
+        }
+
+        aside::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
         }
 
         aside::-webkit-scrollbar-thumb {
-            background: var(--border);
+            background: rgba(245, 158, 11, 0.5);
+            /* Subtle Amber */
             border-radius: 10px;
+        }
+
+        aside::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 1);
+            /* Solid Amber */
         }
 
         .brand {
