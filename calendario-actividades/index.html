@@ -288,6 +288,21 @@
             top: 0;
             height: 100vh;
             z-index: 100;
+            overflow-y: auto;
+            /* Permite desplazamiento si hay muchas opciones */
+            scrollbar-width: thin;
+            /* Para Firefox */
+            scrollbar-color: var(--border) transparent;
+        }
+
+        /* Ocultar barra de scroll para una estética más limpia pero permitir el scroll */
+        aside::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        aside::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
         }
 
         .brand {
@@ -950,11 +965,15 @@
                 left: -280px;
                 top: 0;
                 width: 280px;
+                height: 100vh;
                 background: var(--bg-card);
                 border-right: 1px solid var(--border);
                 transition: transform 0.3s ease;
                 display: flex !important;
-                /* Force display since it's a drawer now */
+                flex-direction: column;
+                overflow-y: auto;
+                /* Crítico para móviles con pantallas pequeñas */
+                z-index: 100;
             }
 
             aside.mobile-active {
