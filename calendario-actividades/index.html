@@ -98,9 +98,10 @@
         }
 
         .theme-top-menu button {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: 44px;
+            /* Aumentado para mejor tacto en móviles */
+            height: 44px;
+            border-radius: 10px;
             border: none;
             background: transparent;
             color: var(--text-dim);
@@ -109,7 +110,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 1.2rem;
+            /* Íconos un poco más grandes */
+            position: relative;
         }
 
         .theme-top-menu button:hover {
@@ -1243,16 +1246,21 @@
                     </div>
                     <p id="currentDateDisplay" style="font-size: 0.9rem; opacity: 0.8;"></p>
                 </div>
-                <!-- Theme Menu at Top -->
-                <div class="theme-top-menu">
+                <!-- Barra de Herramientas Superior: Temas + Configuración -->
+                <div class="theme-top-menu" style="display: flex; align-items: center; gap: 4px;">
                     <button id="btn-dark-top" onclick="applyTheme('dark')" title="Modo Oscuro">
                         <i class="fa-solid fa-moon"></i>
                     </button>
                     <button id="btn-sepia-top" onclick="applyTheme('sepia')" title="Modo Sepia">
-                        <i class="fa-solid fa-leaf"></i>
+                        <i class="fa-solid fa-coffee"></i>
                     </button>
                     <button id="btn-light-top" onclick="applyTheme('light')" title="Modo Claro">
                         <i class="fa-solid fa-sun"></i>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;"></div>
+                    <button id="btn-config-top" onclick="openCloudModal()" title="Configuración de Nube"
+                        style="color: var(--accent);">
+                        <i class="fa-solid fa-gears"></i>
                     </button>
                 </div>
             </header>
@@ -1270,11 +1278,7 @@
                         <input type="text" id="areaAdscripcion" placeholder="Área de adscripción"
                             onchange="saveProfile()">
                     </div>
-                    <div class="input-field" style="justify-content: flex-end;">
-                        <button class="btn btn-outline" onclick="openCloudModal()" style="height: 48px;">
-                            <i class="fa-solid fa-gears"></i> Configuración de Conexión
-                        </button>
-                    </div>
+                    <!-- Los botones se movieron a la barra superior para mayor comodidad -->
                 </section>
 
                 <!-- Calendar Section -->
