@@ -1276,9 +1276,10 @@
                     <button id="btn-light-top" onclick="applyTheme('light')" title="Modo Claro">
                         <i class="fa-solid fa-sun"></i>
                     </button>
-                    <div style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;"></div>
-                    <button id="btn-config-top" onclick="openCloudModal()" title="Configuración de Nube"
-                        style="color: var(--accent);">
+                    <div class="admin-only" style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;">
+                    </div>
+                    <button id="btn-config-top" class="admin-only" onclick="openCloudModal()"
+                        title="Configuración de Nube" style="color: var(--accent);">
                         <i class="fa-solid fa-gears"></i>
                     </button>
                 </div>
