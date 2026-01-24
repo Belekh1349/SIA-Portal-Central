@@ -318,6 +318,7 @@
         function setTheme(theme) {
             document.body.className = 'bg-gradient-mesh ' + theme;
             localStorage.setItem('sia-theme', theme);
+            localStorage.setItem('theme_preference', theme); // Sincronizar con App
 
             // Update buttons
             document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
