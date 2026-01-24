@@ -168,91 +168,104 @@
         </div>
 
         <!-- Header -->
-        <header class="text-center mb-16 animate-in">
-            <div class="flex items-center justify-center gap-4 mb-6">
-                <img src="control-oficios/logo-edomex.png" alt="Edomex"
-                    class="h-16 md:h-20 drop-shadow-lg bg-white/90 p-2 rounded-lg">
-                <div class="h-12 w-[2px] bg-white/20"></div>
-                <div class="text-left">
+        <header class="text-center mb-10 md:mb-16 animate-in w-full">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+                <div class="flex items-center gap-4">
+                    <img src="control-oficios/logo-edomex.png" alt="Edomex"
+                        class="h-14 md:h-20 drop-shadow-lg bg-white/90 p-2 rounded-lg">
+                    <div class="h-10 w-[2px] bg-white/20 md:hidden"></div>
+                    <div class="md:hidden text-left">
+                        <h2 class="text-[10px] font-black tracking-[0.2em] uppercase text-amber-500">Suite</h2>
+                        <h1 class="text-xl font-black title-gradient">GESTIÓN</h1>
+                    </div>
+                </div>
+                <div class="h-12 w-[2px] bg-white/20 hidden md:block"></div>
+                <div class="text-center md:text-left hidden md:block">
                     <h2 class="text-xs font-black tracking-[0.3em] uppercase text-amber-500">Suite Integrada</h2>
                     <h1 class="text-3xl md:text-5xl font-black title-gradient">GESTIÓN ADMINISTRATIVA</h1>
                 </div>
+                <!-- Mobile Title only -->
+                <div class="md:hidden text-center mt-2">
+                    <h1 class="text-2xl font-black title-gradient">GESTIÓN ADMINISTRATIVA</h1>
+                    <h2 class="text-[10px] font-black tracking-[0.3em] uppercase text-amber-500 mt-1">Suite Integrada
+                    </h2>
+                </div>
             </div>
-            <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-lg">
+            <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-lg px-4">
                 Bienvenido al portal central de control y seguimiento. Acceda a los diferentes sistemas institucionales
                 de manera unificada.
             </p>
         </header>
 
         <!-- Apps Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 w-full max-w-4xl">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8 w-full max-w-4xl px-4 md:px-0">
 
             <!-- App 1: Finanzas -->
             <a href="finance-dashboard/index.html"
-                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-1 group">
+                class="glass rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col items-center text-center animate-in delay-1 group">
                 <div
-                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                    <i data-lucide="bar-chart-3" class="w-10 h-10 text-amber-500"></i>
+                    class="card-icon w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="bar-chart-3" class="w-8 h-8 md:w-10 md:h-10 text-amber-500"></i>
                 </div>
-                <h3 class="text-xl font-bold mb-3">Múltiple Empresarial</h3>
-                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3">Múltiple Empresarial</h3>
+                <p class="text-slate-400 text-xs md:text-sm mb-6 md:mb-8 flex-grow">
                     Control Patrimonial y Gestión Financiera de Activos. Monitoreo de inversión a 5 años y reportes
                     ejecutivos.
                 </p>
                 <div
-                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-amber-500 group-hover:text-amber-950 transition-colors">
+                    class="w-full bg-white/5 py-2.5 md:py-3 rounded-xl font-bold text-[10px] md:text-sm tracking-widest uppercase group-hover:bg-amber-500 group-hover:text-amber-950 transition-colors">
                     Ingresar Sistema
                 </div>
             </a>
 
             <!-- App 2: Oficios -->
             <a href="control-oficios/index.html"
-                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-2 group">
+                class="glass rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col items-center text-center animate-in delay-2 group">
                 <div
-                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                    <i data-lucide="file-text" class="w-10 h-10 text-blue-400"></i>
+                    class="card-icon w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="file-text" class="w-8 h-8 md:w-10 md:h-10 text-blue-400"></i>
                 </div>
-                <h3 class="text-xl font-bold mb-3">Control de Oficios</h3>
-                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3">Control de Oficios</h3>
+                <p class="text-slate-400 text-xs md:text-sm mb-6 md:mb-8 flex-grow">
                     Gestión documental de correspondencia, seguimiento de asuntos y base de datos de solicitudes
                     administrativas.
                 </p>
                 <div
-                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-blue-400 group-hover:text-blue-950 transition-colors">
+                    class="w-full bg-white/5 py-2.5 md:py-3 rounded-xl font-bold text-[10px] md:text-sm tracking-widest uppercase group-hover:bg-blue-400 group-hover:text-blue-950 transition-colors">
                     Ingresar Sistema
                 </div>
             </a>
 
             <!-- App 3: Calendario / HR -->
             <a href="calendario-actividades/index.html"
-                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-3 group">
+                class="glass rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col items-center text-center animate-in delay-3 group">
                 <div
-                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                    <i data-lucide="calendar" class="w-10 h-10 text-emerald-400"></i>
+                    class="card-icon w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="calendar" class="w-8 h-8 md:w-10 md:h-10 text-emerald-400"></i>
                 </div>
-                <h3 class="text-xl font-bold mb-3">Actividades Diarias</h3>
-                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3">Actividades Diarias</h3>
+                <p class="text-slate-400 text-xs md:text-sm mb-6 md:mb-8 flex-grow">
                     Registro de actividades diarias, control de asistencia y asistencia por IA.
                 </p>
                 <div
-                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-emerald-400 group-hover:text-emerald-950 transition-colors">
+                    class="w-full bg-white/5 py-2.5 md:py-3 rounded-xl font-bold text-[10px] md:text-sm tracking-widest uppercase group-hover:bg-emerald-400 group-hover:text-emerald-950 transition-colors">
                     Ingresar Sistema
                 </div>
             </a>
 
             <!-- App 4: Pobalines -->
             <a href="pobalines/index.html"
-                class="glass rounded-3xl p-8 flex flex-col items-center text-center animate-in delay-1 group md:col-span-1">
+                class="glass rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col items-center text-center animate-in delay-1 group">
                 <div
-                    class="card-icon w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                    <i data-lucide="book-open" class="w-10 h-10 text-amber-600"></i>
+                    class="card-icon w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-500">
+                    <i data-lucide="book-open" class="w-8 h-8 md:w-10 md:h-10 text-amber-600"></i>
                 </div>
-                <h3 class="text-xl font-bold mb-3">Pobalines</h3>
-                <p class="text-slate-400 text-sm mb-8 flex-grow">
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3">Pobalines</h3>
+                <p class="text-slate-400 text-xs md:text-sm mb-6 md:mb-8 flex-grow">
                     Manual de Normas y Políticas para la Administración de Recursos. Consulta inteligente con IA.
                 </p>
                 <div
-                    class="w-full bg-white/5 py-3 rounded-xl font-bold text-sm tracking-widest uppercase group-hover:bg-amber-600 group-hover:text-amber-950 transition-colors">
+                    class="w-full bg-white/5 py-2.5 md:py-3 rounded-xl font-bold text-[10px] md:text-sm tracking-widest uppercase group-hover:bg-amber-600 group-hover:text-amber-950 transition-colors">
                     Ingresar Sistema
                 </div>
             </a>

@@ -1042,6 +1042,25 @@
             .stats-filter input {
                 flex: 1;
             }
+
+            /* Extra adjustments for small screens */
+            .calendar-grid {
+                font-size: 0.7rem;
+            }
+
+            .day-number {
+                font-size: 0.8rem !important;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+
+            .user-config {
+                padding: 15px;
+                gap: 10px;
+            }
         }
 
         /* Animations */
@@ -1118,6 +1137,11 @@
 
             <div class="nav-section">
                 <span class="nav-label">Navegación</span>
+                <button class="nav-btn" onclick="window.location.href='../index.html'"
+                    style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; font-weight: 700;">
+                    <i class="fa-solid fa-circle-left"></i>
+                    Volver al Portal
+                </button>
                 <button class="nav-btn active" onclick="showSection('main-panel', this)">
                     <i class="fa-solid fa-house"></i>
                     Panel Principal
