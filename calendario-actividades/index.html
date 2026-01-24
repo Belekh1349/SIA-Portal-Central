@@ -2133,13 +2133,11 @@
                 doc.setFillColor(255, 255, 255);
                 doc.rect(14, 32, 60, 0.5, "F");
 
-                // Logo institutional - Visibilidad asegurada sin efectos decorativos
+                // Logo institutional - Integrado directamente al fondo guinda
                 const logoImg = document.querySelector('.brand img');
                 if (logoImg) {
                     try {
-                        // Fondo blanco sólido minimalista para evitar pérdida de contraste
-                        doc.setFillColor(255, 255, 255);
-                        doc.rect(160, 10, 38, 10, 'F');
+                        // Dibujado directo sin fondo para integración total
                         doc.addImage(logoImg, 'PNG', 160, 10, 38, 10);
                     } catch (e) {
                         console.warn("Logo error:", e);
