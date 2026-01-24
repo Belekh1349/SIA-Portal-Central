@@ -2114,49 +2114,47 @@
 
             const drawHeader = (viewType, range) => {
                 const colorGuinda = [139, 26, 45];
-                // Background Header - Guinda institucional (Fondo sólido que coincide con el logo)
+                // Background Header - Guinda institucional
                 doc.setFillColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
-                doc.rect(0, 0, 210, 55, 'F');
+                doc.rect(0, 0, 210, 50, 'F');
 
-                // Logo institutional (Imagen compuesta con sombras de profundidad)
+                // Títulos e información
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(18);
+                doc.setTextColor(255, 255, 255);
+                doc.text("REPORTE DE ACTIVIDADES", 14, 22);
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(235, 235, 235);
+                doc.text("Dirección General de Administración", 14, 29);
+
+                // Línea decorativa
+                doc.setFillColor(255, 255, 255);
+                doc.rect(14, 32, 60, 0.5, "F");
+
+                // Logo institutional - Restaurar posición original a la derecha
                 const logoImg = document.querySelector('.brand img');
                 if (logoImg) {
                     try {
-                        // Posicionamos el logo institucional centrado y con el tamaño adecuado
-                        // La imagen ya trae su fondo guinda y sombras, por lo que se integra perfecto
-                        doc.addImage(logoImg, 'PNG', 45, 5, 120, 30);
+                        doc.addImage(logoImg, 'PNG', 160, 10, 38, 10);
                     } catch (e) {
                         console.warn("Logo error:", e);
                     }
                 }
 
-                // Título del Reporte - Posicionado debajo del logo institucional
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(14);
-                doc.setTextColor(255, 255, 255);
-                doc.text("REPORTE DE ACTIVIDADES", 105, 42, { align: "center" });
-
-                doc.setFontSize(9);
-                doc.setFont("helvetica", "normal");
-                doc.setTextColor(235, 235, 235);
-                doc.text("Dirección General de Administración", 105, 48, { align: "center" });
-
-                // Datos del Personal (Barra inferior del encabezado)
-                doc.setFillColor(255, 255, 255, 0.1);
-                doc.rect(0, 50, 210, 5, 'F');
-
                 doc.setTextColor(255);
-                doc.setFontSize(8);
-                doc.setFont("helvetica", "bold");
-                doc.text(`PERSONAL: ${(profile.servidor || 'SIN NOMBRE').toUpperCase()}`, 14, 53.5);
-                doc.text(`ÁREA: ${(profile.area || 'GENERAL').toUpperCase()}`, 210 - 14, 53.5, { align: "right" });
-
-                // Identificador de periodo
-                const viewLabels = { 'daily': 'REPORTE DIARIO', 'weekly': 'REPORTE SEMANAL', 'monthly': 'REPORTE MENSUAL' };
-                doc.setTextColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "bold");
-                doc.text(`${viewLabels[viewType]}: ${range}`, 14, 65);
+                doc.text(`PERSONAL: ${(profile.servidor || 'SIN NOMBRE').toUpperCase()}`, 14, 45);
+                doc.text(`ÁREA: ${(profile.area || 'GENERAL').toUpperCase()}`, 210 - 14, 45, { align: "right" });
+
+                // Etiquetas de vista (Color Guinda solicitado)
+                const viewLabels = { 'daily': 'DIA', 'weekly': 'SEMANA', 'monthly': 'MES' };
+                doc.setTextColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
+                doc.setFontSize(9);
+                doc.setFont("helvetica", "bold");
+                doc.text(`${viewLabels[viewType]}: ${range}`, 14, 58);
             };
 
             // Filter data based on view and custom selection
@@ -2256,7 +2254,7 @@
             drawHeader(view, rangeText);
 
             doc.autoTable({
-                startY: 75,
+                startY: 65,
                 head: [['FECHA', 'DESCRIPCIÓN', 'ESTATUS', 'REQUERIMIENTOS']],
                 body: dataRows,
                 styles: { fontSize: 9, cellPadding: 4 },
