@@ -2133,23 +2133,13 @@
                 doc.setFillColor(255, 255, 255);
                 doc.rect(14, 32, 60, 0.5, "F");
 
-                // Logo institutional con efecto Liquid Glass para contraste
+                // Logo institutional - Visibilidad asegurada sin efectos decorativos
                 const logoImg = document.querySelector('.brand img');
                 if (logoImg) {
                     try {
-                        // Contenedor tipo "Liquid Glass"
+                        // Fondo blanco sólido minimalista para evitar pérdida de contraste
                         doc.setFillColor(255, 255, 255);
-                        doc.setGState(new doc.GState({ opacity: 0.15 }));
-                        doc.roundedRect(156, 6, 46, 18, 4, 4, 'F');
-
-                        // Borde sutil del cristal
-                        doc.setDrawColor(255, 255, 255);
-                        doc.setGState(new doc.GState({ opacity: 0.3 }));
-                        doc.setLineWidth(0.1);
-                        doc.roundedRect(156, 6, 46, 18, 4, 4, 'S');
-
-                        // Restaurar opacidad y dibujar logo
-                        doc.setGState(new doc.GState({ opacity: 1.0 }));
+                        doc.rect(160, 10, 38, 10, 'F');
                         doc.addImage(logoImg, 'PNG', 160, 10, 38, 10);
                     } catch (e) {
                         console.warn("Logo error:", e);
