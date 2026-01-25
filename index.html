@@ -151,7 +151,7 @@
 
         @keyframes fadeInSimple {
             from {
-                transform: translateY(10px);
+                transform: translateY(20px);
                 opacity: 0;
             }
 
@@ -159,6 +159,26 @@
                 transform: translateY(0);
                 opacity: 1;
             }
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-5 {
+            animation-delay: 0.5s;
         }
 
         .container-fix {
@@ -323,7 +343,7 @@
 
             <!-- App 5: Documentos -->
             <a href="gestion-documentos/index.html"
-                class="glass rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col items-center text-center animate-in delay-1 group">
+                class="glass rounded-2xl md:rounded-3xl p-6 md:p-8 flex flex-col items-center text-center animate-in delay-5 group">
                 <div
                     class="card-icon w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-500">
                     <i data-lucide="file-stack" class="w-8 h-8 md:w-10 md:h-10 text-rose-500"></i>
