@@ -63,6 +63,35 @@
             color: white;
         }
 
+        /* Responsive Sidebar */
+        @media (max-width: 1024px) {
+            aside {
+                position: fixed !important;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 50 !important;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            aside.open {
+                left: 0;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(4px);
+                z-index: 40;
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+        }
+
         .input-premium {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -161,9 +190,11 @@
 </head>
 
 <body class="bg-mesh">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside class="w-72 glass border-r border-white/5 flex flex-col z-20">
+        <aside id="sidebar" class="w-72 glass border-r border-white/5 flex flex-col z-20">
             <div class="p-8">
                 <div class="flex items-center gap-3 mb-10">
                     <div
@@ -174,6 +205,9 @@
                         <h2 class="font-black text-xl tracking-tighter title-gradient">DOCUMENTOS</h2>
                         <p class="text-[10px] font-bold text-amber-500 tracking-[0.2em] uppercase">SIA - PORTAL CENTRAL
                         </p>
+                    </div>
+                    <div class="lg:hidden p-2 rounded-lg bg-white/5" onclick="toggleSidebar()">
+                        <i data-lucide="x" class="w-6 h-6 text-white"></i>
                     </div>
                 </div>
 
@@ -212,11 +246,17 @@
         <main class="flex-1 overflow-y-auto p-6 md:p-12 relative">
             <!-- Header Section -->
             <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-up">
-                <div>
-                    <h1 class="text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
-                    <p class="text-slate-400" id="section-desc">Registro y control de movimientos documentales y
-                        materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.4 (UI-FIX)</span></p>
-                    <!-- Trigger: 2026-01-25 16:44 -->
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="lg:hidden p-3 glass rounded-xl text-white">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
+                        <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
+                            movimientos documentales y
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.5
+                                (MOBILE-FIX)</span></p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
@@ -711,14 +751,21 @@
             doc.save(`Reporte_Movimientos_${Date.now()}.pdf`);
         }
 
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
         // Sidebar Navigation
         function showSection(id) {
             // Update UI Sidebar
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
             document.getElementById(`nav-${id}`).classList.add('active');
 
-            // In the future handle multiple sections here
-            console.log(`Switching to ${id}`);
+            if (window.innerWidth < 1024) toggleSidebar();
         }
 
         // Init
