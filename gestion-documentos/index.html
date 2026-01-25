@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIA - Gestión de Documentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #4c0519;
+            --accent: #f59e0b;
+            --bg-body: #0f172a;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --guinda: #8B1A2D;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .bg-mesh {
+            background-image:
+                radial-gradient(at 0% 0%, rgba(139, 26, 45, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.1) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .sidebar-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(to right, rgba(139, 26, 45, 0.2), transparent);
+            border-left: 4px solid var(--guinda);
+            color: white;
+        }
+
+        .input-premium {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-premium:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        }
+
+        .btn-guinda {
+            background: var(--guinda);
+            transition: all 0.3s ease;
+        }
+
+        .btn-guinda:hover {
+            background: #a31e34;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 26, 45, 0.3);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-up {
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        /* Custom Table */
+        .custom-table th {
+            background: rgba(255, 255, 255, 0.03);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 16px;
+            text-align: left;
+        }
+
+        .custom-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-mesh">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-72 glass border-r border-white/5 flex flex-col z-20">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-10">
+                    <div
+                        class="w-10 h-10 bg-guinda rounded-xl flex items-center justify-center shadow-lg shadow-guinda/20">
+                        <i data-lucide="file-text" class="text-white w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-black text-xl tracking-tighter title-gradient">DOCUMENTOS</h2>
+                        <p class="text-[10px] font-bold text-amber-500 tracking-[0.2em] uppercase">Suite SIA</p>
+                    </div>
+                </div>
+
+                <nav class="space-y-2">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 px-4">Menu Principal
+                    </p>
+                    <button onclick="showSection('entradas-salidas')" id="nav-entradas-salidas"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 active">
+                        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                        <span class="font-semibold">Entradas y Salidas</span>
+                    </button>
+                    <!-- More menus can be added here -->
+                    <button
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                        <span class="font-semibold">Formatos RH</span>
+                    </button>
+                    <button
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
+                        <i data-lucide="archive" class="w-5 h-5"></i>
+                        <span class="font-semibold">Archivo Morto</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="mt-auto p-8 border-t border-white/5">
+                <a href="../index.html"
+                    class="flex items-center gap-3 text-slate-400 hover:text-white transition-colors group">
+                    <i data-lucide="log-out" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                    <span class="font-bold text-sm">Volver al Portal</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-12 relative">
+            <!-- Header Section -->
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-up">
+                <div>
+                    <h1 class="text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
+                    <p class="text-slate-400" id="section-desc">Registro y control de movimientos documentales y
+                        materiales.</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-emerald-500">Sistema Activo</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Entradas y Salidas Section -->
+            <div id="entradas-salidas-section" class="space-y-8 animate-up delay-1">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Form Card -->
+                    <div
+                        class="lg:col-span-1 glass p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <i data-lucide="file-plus" class="w-24 h-24"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                            Nuevo Registro
+                        </h3>
+
+                        <form id="registroForm" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo de
+                                    Movimiento</label>
+                                <select id="tipoMovimiento" class="w-full input-premium">
+                                    <option value="Entrada">Entrada</option>
+                                    <option value="Salida">Salida</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Descripción
+                                    / Concepto</label>
+                                <textarea id="descripcion" class="w-full input-premium h-24 resize-none"
+                                    placeholder="Detalle del movimiento..."></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Referencia</label>
+                                    <input type="text" id="referencia" class="w-full input-premium"
+                                        placeholder="Oficio/ID">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
+                                    <input type="date" id="fecha" class="w-full input-premium">
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Responsable</label>
+                                <input type="text" id="responsable" class="w-full input-premium"
+                                    placeholder="Nombre completo">
+                            </div>
+
+                            <button type="submit"
+                                class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Guardar Registro
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- List Card -->
+                    <div
+                        class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                        <div class="p-8 border-b border-white/5 flex items-center justify-between">
+                            <h3 class="text-xl font-bold flex items-center gap-2">
+                                <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                Historial Reciente
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="exportToPDF()"
+                                    class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+                                    title="Exportar PDF">
+                                    <i data-lucide="download" class="w-5 h-5"></i>
+                                </button>
+                                <button onclick="clearHistory()"
+                                    class="p-2.5 rounded-xl bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all"
+                                    title="Limpiar Todo">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto flex-grow max-h-[600px]">
+                            <table class="w-full custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Descripción</th>
+                                        <th>Referencia</th>
+                                        <th>Responsable</th>
+                                        <th class="text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyBody">
+                                    <!-- Rows will be added here via JS -->
+                                </tbody>
+                            </table>
+                            <div id="emptyState" class="p-20 text-center hidden">
+                                <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
+                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay registros
+                                    almacenados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification"
+        class="fixed bottom-10 right-10 glass px-6 py-4 rounded-2xl border-emerald-500/20 translate-y-20 transition-transform duration-500 z-50 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+        </div>
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-emerald-500">Exito</p>
+            <p class="text-sm text-white font-medium" id="notif-text">Registro guardado con éxito.</p>
+        </div>
+    </div>
+
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        // Data Management
+        const STORAGE_KEY = 'sia_documentos_entradas_salidas';
+        let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+        const form = document.getElementById('registroForm');
+        const historyBody = document.getElementById('historyBody');
+        const emptyState = document.getElementById('emptyState');
+
+        // Set current date as default
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        function saveRecords() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            renderRecords();
+        }
+
+        function renderRecords() {
+            historyBody.innerHTML = '';
+
+            if (records.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+
+                // Sort by date desc
+                const sorted = [...records].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+                sorted.forEach((rec, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-white/5 transition-colors group';
+
+                    const isEntrada = rec.tipo === 'Entrada';
+                    const badgeClass = isEntrada ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500';
+                    const icon = isEntrada ? 'arrow-down-left' : 'arrow-up-right';
+
+                    row.innerHTML = `
+                        <td class="text-sm font-medium text-slate-300">${rec.fecha}</td>
+                        <td>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${badgeClass}">
+                                <i data-lucide="${icon}" class="w-3 h-3"></i>
+                                ${rec.tipo}
+                            </span>
+                        </td>
+                        <td class="text-sm text-slate-400 max-w-xs truncate">${rec.descripcion}</td>
+                        <td class="text-xs font-mono text-slate-500">${rec.referencia || 'N/A'}</td>
+                        <td class="text-sm font-semibold">${rec.responsable}</td>
+                        <td class="text-right">
+                            <button onclick="deleteRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    historyBody.appendChild(row);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const newRecord = {
+                id: Date.now().toString(),
+                tipo: document.getElementById('tipoMovimiento').value,
+                descripcion: document.getElementById('descripcion').value,
+                referencia: document.getElementById('referencia').value,
+                fecha: document.getElementById('fecha').value,
+                responsable: document.getElementById('responsable').value
+            };
+
+            if (!newRecord.descripcion || !newRecord.responsable) {
+                showNotification('Error: Completa los campos obligatorios.', true);
+                return;
+            }
+
+            records.push(newRecord);
+            saveRecords();
+            form.reset();
+            document.getElementById('fecha').valueAsDate = new Date();
+            showNotification('Registro generado correctamente.');
+        });
+
+        function deleteRecord(id) {
+            if (confirm('¿Deseas eliminar este registro?')) {
+                records = records.filter(r => r.id !== id);
+                saveRecords();
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('¿Seguro que deseas borrar TODO el historial? Esta acción no se puede deshacer.')) {
+                records = [];
+                saveRecords();
+            }
+        }
+
+        function showNotification(text, isError = false) {
+            const notif = document.getElementById('notification');
+            const notifText = document.getElementById('notif-text');
+
+            notifText.textContent = text;
+            if (isError) {
+                notif.classList.replace('border-emerald-500/20', 'border-red-500/20');
+                notif.querySelector('div').classList.replace('bg-emerald-500/20', 'bg-red-500/20');
+                notif.querySelector('div').classList.replace('text-emerald-500', 'text-red-400');
+                notif.querySelector('p').textContent = 'Error';
+                notif.querySelector('p').classList.replace('text-emerald-500', 'text-red-400');
+            } else {
+                notif.classList.replace('border-red-500/20', 'border-emerald-500/20');
+                notif.querySelector('div').classList.replace('bg-red-500/20', 'bg-emerald-500/20');
+                notif.querySelector('div').classList.replace('text-red-400', 'text-emerald-500');
+                notif.querySelector('p').textContent = 'Exito';
+                notif.querySelector('p').classList.replace('text-red-400', 'text-emerald-500');
+            }
+
+            notif.classList.remove('translate-y-20');
+            setTimeout(() => {
+                notif.classList.add('translate-y-20');
+            }, 3000);
+        }
+
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header Guinda
+            doc.setFillColor(139, 26, 45);
+            doc.rect(0, 0, 210, 40, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("GESTIÓN DE DOCUMENTOS", 14, 20);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("SIA - Suite Integrada Administrativa", 14, 28);
+
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("REPORTE DE ENTRADAS Y SALIDAS", 14, 55);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Fecha de emisión: ${new Date().toLocaleString()}`, 14, 62);
+
+            const tableData = records.map(r => [
+                r.fecha,
+                r.tipo,
+                r.descripcion,
+                r.referencia || '-',
+                r.responsable
+            ]);
+
+            doc.autoTable({
+                startY: 70,
+                head: [['Fecha', 'Cve', 'Descripción del Movimiento', 'Referencia', 'Responsable']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 4 },
+                columnStyles: {
+                    0: { cellWidth: 25 },
+                    1: { cellWidth: 15 },
+                    2: { cellWidth: 'auto' },
+                    3: { cellWidth: 25 },
+                    4: { cellWidth: 35 }
+                }
+            });
+
+            const finalY = doc.lastAutoTable.finalY + 30;
+            if (finalY < 270) {
+                doc.setDrawColor(139, 26, 45);
+                doc.line(60, finalY, 150, finalY);
+                doc.setFontSize(9);
+                doc.text("FIRMA DE CONTROL Y VALIDACIÓN", 105, finalY + 7, { align: "center" });
+            }
+
+            doc.save(`Reporte_Documentos_${Date.now()}.pdf`);
+        }
+
+        // Sidebar Navigation
+        function showSection(id) {
+            // Update UI Sidebar
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(`nav-${id}`).classList.add('active');
+
+            // In the future handle multiple sections here
+            console.log(`Switching to ${id}`);
+        }
+
+        // Init
+        renderRecords();
+    </script>
+</body>
+
+</html>
