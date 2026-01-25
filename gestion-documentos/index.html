@@ -231,6 +231,28 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Carácter</label>
+                                    <select id="caracter" class="w-full input-premium">
+                                        <option value="Permanente">Permanente</option>
+                                        <option value="Temporal">Temporal</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Concepto
+                                        Específico</label>
+                                    <select id="conceptoEspecífico" class="w-full input-premium">
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Préstamo">Préstamo</option>
+                                        <option value="Reparación">Reparación</option>
+                                        <option value="Baja">Baja</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="space-y-2">
                                 <label
                                     class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
@@ -239,18 +261,55 @@
                                     placeholder="Nombre de la unidad">
                             </div>
 
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Destino
+                                    de los Bienes Muebles</label>
+                                <input type="text" id="destino" class="w-full input-premium"
+                                    placeholder="Nombre de la unidad o área destino">
+                            </div>
+
+                            <!-- Bienes Muebles Dynamic List -->
+                            <div class="space-y-3 pt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lista
+                                        de Bienes a Registrar</label>
+                                    <button type="button" onclick="addItemRow()"
+                                        class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
+                                    </button>
+                                </div>
+                                <div id="itemsContainer" class="space-y-3">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
+                                    <input type="text" id="solicita" class="w-full input-premium"
+                                        placeholder="Nombre de quien solicita">
+                                </div>
                                 <div class="space-y-2">
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puerta</label>
                                     <input type="text" id="puerta" class="w-full input-premium"
                                         placeholder="No. de puerta">
                                 </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
-                                    <input type="text" id="solicita" class="w-full input-premium"
-                                        placeholder="Nombre de quien solicita">
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Retira</label>
+                                    <input type="text" id="retira" class="w-full input-premium"
+                                        placeholder="Nombre de quien retira">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Autorizó</label>
+                                    <input type="text" id="autoriz" class="w-full input-premium"
+                                        placeholder="Nombre de quien autoriza">
                                 </div>
                             </div>
 
@@ -258,14 +317,14 @@
                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
                                     Administrativo</label>
                                 <input type="text" id="puesto" class="w-full input-premium"
-                                    placeholder="Cargo o puesto">
+                                    placeholder="Cargo o puesto de solicitante">
                             </div>
 
                             <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo de
-                                    la Entrada o Salida</label>
-                                <textarea id="motivo" class="w-full input-premium h-24 resize-none"
-                                    placeholder="Descripción del motivo..."></textarea>
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
+                                    Observaciones</label>
+                                <textarea id="motivo" class="w-full input-premium h-20 resize-none"
+                                    placeholder="Descripción adicional..."></textarea>
                             </div>
 
                             <button type="submit"
@@ -303,10 +362,10 @@
                                 <thead>
                                     <tr>
                                         <th>Fecha</th>
-                                        <th>Tipo</th>
-                                        <th>Unidad/Área</th>
+                                        <th>Tipo / Concepto</th>
+                                        <th>Origen / Destino</th>
+                                        <th>Bienes</th>
                                         <th>Solicita</th>
-                                        <th>Motivo</th>
                                         <th class="text-right">Acciones</th>
                                     </tr>
                                 </thead>
@@ -377,20 +436,33 @@
                     const badgeClass = isEntrada ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500';
                     const icon = isEntrada ? 'arrow-down-left' : 'arrow-up-right';
 
+                    const goodsCount = rec.bienes ? rec.bienes.length : 0;
+                    const goodsSummary = rec.bienes && rec.bienes.length > 0
+                        ? `${rec.bienes[0].nombre} ${rec.bienes.length > 1 ? '(+' + (rec.bienes.length - 1) + ')' : ''}`
+                        : 'Sin bienes';
+
                     row.innerHTML = `
-                        <td class="text-sm font-medium text-slate-300">${rec.fecha}</td>
+                        <td class="text-sm font-medium text-slate-300 whitespace-nowrap">${rec.fecha}</td>
                         <td>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${badgeClass}">
-                                <i data-lucide="${icon}" class="w-3 h-3"></i>
-                                ${rec.tipo}
-                            </span>
+                            <div class="flex flex-col gap-1">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider w-fit ${badgeClass}">
+                                    <i data-lucide="${icon}" class="w-3 h-3"></i>
+                                    ${rec.tipo}
+                                </span>
+                                <span class="text-[9px] font-bold text-slate-500 uppercase px-1">${rec.caracter} | ${rec.concepto}</span>
+                            </div>
                         </td>
-                        <td class="text-sm text-slate-400">${rec.unidad}</td>
+                        <td class="text-sm text-slate-400">
+                            <div class="text-white font-bold">${rec.unidad}</div>
+                            <div class="text-[10px] text-amber-500/70">→ ${rec.destino || 'Local'}</div>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <span class="px-2 py-1 bg-white/5 rounded text-[10px] text-blue-400 font-mono">${goodsSummary}</span>
+                        </td>
                         <td class="text-sm text-slate-400">
                             <div class="font-bold text-white">${rec.solicita}</div>
-                            <div class="text-[10px] uppercase tracking-tighter">${rec.puesto}</div>
+                            <div class="text-[10px] uppercase tracking-tighter text-slate-500">${rec.puesto}</div>
                         </td>
-                        <td class="text-sm text-slate-400 max-w-xs truncate" title="${rec.motivo}">${rec.motivo}</td>
                         <td class="text-right">
                             <button onclick="deleteRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -403,28 +475,77 @@
             }
         }
 
+        // Bienes dynamic rows
+        function addItemRow() {
+            const container = document.getElementById('itemsContainer');
+            const rowId = 'row-' + Date.now();
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-12 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 group relative';
+            div.id = rowId;
+            div.innerHTML = `
+                <div class="col-span-7 space-y-1">
+                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white" placeholder="Bien Mueble">
+                </div>
+                <div class="col-span-4 space-y-1">
+                    <input type="text" class="item-inventario w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs font-mono text-amber-500" placeholder="Inventario">
+                </div>
+                <div class="col-span-1 flex items-center justify-center">
+                    <button type="button" onclick="removeItemRow('${rowId}')" class="text-slate-600 hover:text-red-400 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function removeItemRow(id) {
+            document.getElementById(id).remove();
+        }
+
         form.addEventListener('submit', (e) => {
             e.preventDefault();
+
+            const itemsContainer = document.getElementById('itemsContainer');
+            const items = [];
+            itemsContainer.querySelectorAll('.grid').forEach(row => {
+                const nombre = row.querySelector('.item-nombre').value;
+                const inventario = row.querySelector('.item-inventario').value;
+                if (nombre) items.push({ nombre, inventario });
+            });
+
+            if (items.length === 0) {
+                showNotification('Error: Debes agregar al menos un bien mueble.', true);
+                return;
+            }
 
             const newRecord = {
                 id: Date.now().toString(),
                 fecha: document.getElementById('fecha').value,
                 tipo: document.getElementById('tipoMovimiento').value,
+                caracter: document.getElementById('caracter').value,
+                concepto: document.getElementById('conceptoEspecífico').value,
                 unidad: document.getElementById('unidad').value,
+                destino: document.getElementById('destino').value,
+                bienes: items,
                 puerta: document.getElementById('puerta').value,
                 solicita: document.getElementById('solicita').value,
                 puesto: document.getElementById('puesto').value,
+                retira: document.getElementById('retira').value,
+                autoriz: document.getElementById('autoriz').value,
                 motivo: document.getElementById('motivo').value
             };
 
             if (!newRecord.unidad || !newRecord.solicita || !newRecord.motivo) {
-                showNotification('Error: Completa los campos obligatorios (Unidad, Solicita, Motivo).', true);
+                showNotification('Error: Completa los campos obligatorios.', true);
                 return;
             }
 
             records.push(newRecord);
             saveRecords();
             form.reset();
+            itemsContainer.innerHTML = '';
+            addItemRow();
             document.getElementById('fecha').valueAsDate = new Date();
             showNotification('Registro generado correctamente.');
         });
@@ -494,39 +615,64 @@
             doc.setFont("helvetica", "normal");
             doc.text(`Fecha de emisión: ${new Date().toLocaleString()}`, 14, 62);
 
-            const tableData = records.map(r => [
-                r.fecha,
-                r.tipo,
-                `${r.unidad}\n(Puerta: ${r.puerta})`,
-                `${r.solicita}\n${r.puesto}`,
-                r.motivo
-            ]);
+            const tableData = [];
+            records.forEach(r => {
+                // First item
+                tableData.push([
+                    r.fecha,
+                    `${r.tipo}\n(${r.caracter})`,
+                    `${r.unidad}\n→ ${r.destino || 'Local'}`,
+                    `${r.bienes[0].nombre}\nInv: ${r.bienes[0].inventario || 'N/A'}`,
+                    `${r.solicita}\n(Retira: ${r.retira || '-'})`
+                ]);
+
+                // Extra items
+                for (let i = 1; i < r.bienes.length; i++) {
+                    tableData.push([
+                        '', '', '',
+                        `${r.bienes[i].nombre}\nInv: ${r.bienes[i].inventario || 'N/A'}`,
+                        ''
+                    ]);
+                }
+            });
+
 
             doc.autoTable({
                 startY: 70,
-                head: [['Fecha', 'Tipo', 'Unidad / Puerta', 'Solicita / Puesto', 'Motivo del Movimiento']],
+                head: [['Fecha', 'Tipo / Carácter', 'Área Origen / Destino', 'Bienes / Inventario', 'Solicita / Retira']],
                 body: tableData,
                 theme: 'striped',
-                headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
+                headStyles: { fillColor: [139, 26, 45], textColor: [255, 255, 255], fontStyle: 'bold' },
                 styles: { fontSize: 8, cellPadding: 4, overflow: 'linebreak' },
                 columnStyles: {
-                    0: { cellWidth: 22 },
-                    1: { cellWidth: 15 },
+                    0: { cellWidth: 20 },
+                    1: { cellWidth: 25 },
                     2: { cellWidth: 40 },
-                    3: { cellWidth: 40 },
-                    4: { cellWidth: 'auto' }
+                    3: { cellWidth: 'auto' },
+                    4: { cellWidth: 40 }
                 }
             });
 
             const finalY = doc.lastAutoTable.finalY + 30;
             if (finalY < 270) {
+                // Firmas
                 doc.setDrawColor(139, 26, 45);
-                doc.line(60, finalY, 150, finalY);
-                doc.setFontSize(9);
-                doc.text("FIRMA DE CONTROL Y VALIDACIÓN", 105, finalY + 7, { align: "center" });
+
+                // Línea Solicita
+                doc.line(14, finalY, 64, finalY);
+                doc.setFontSize(7);
+                doc.text("SOLICITA", 39, finalY + 5, { align: "center" });
+
+                // Línea Retira
+                doc.line(80, finalY, 130, finalY);
+                doc.text("RETIRA", 105, finalY + 5, { align: "center" });
+
+                // Línea Autoriza
+                doc.line(146, finalY, 196, finalY);
+                doc.text("AUTORIZA", 171, finalY + 5, { align: "center" });
             }
 
-            doc.save(`Reporte_Documentos_${Date.now()}.pdf`);
+            doc.save(`Reporte_Movimientos_${Date.now()}.pdf`);
         }
 
         // Sidebar Navigation
@@ -540,6 +686,7 @@
         }
 
         // Init
+        addItemRow();
         renderRecords();
     </script>
 </body>
