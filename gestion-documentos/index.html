@@ -189,7 +189,7 @@
                 <div>
                     <h1 class="text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                     <p class="text-slate-400" id="section-desc">Registro y control de movimientos documentales y
-                        materiales.</p>
+                        materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.2</span></p>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
@@ -224,7 +224,7 @@
                                 <div class="space-y-2">
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
                                         de Movimiento</label>
-                                    <select id="tipoMovimiento" class="w-full input-premium">
+                                    <select id="tipoMovimiento" class="w-full input-premium bg-slate-800">
                                         <option value="Entrada">Entrada</option>
                                         <option value="Salida">Salida</option>
                                     </select>
@@ -235,7 +235,7 @@
                                 <div class="space-y-2">
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Carácter</label>
-                                    <select id="caracter" class="w-full input-premium">
+                                    <select id="caracter" class="w-full input-premium bg-slate-800">
                                         <option value="Permanente">Permanente</option>
                                         <option value="Temporal">Temporal</option>
                                     </select>
@@ -244,7 +244,7 @@
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Concepto
                                         Específico</label>
-                                    <select id="conceptoEspecífico" class="w-full input-premium">
+                                    <select id="conceptoEspecifico" class="w-full input-premium bg-slate-800">
                                         <option value="Transferencia">Transferencia</option>
                                         <option value="Préstamo">Préstamo</option>
                                         <option value="Reparación">Reparación</option>
@@ -524,7 +524,7 @@
                 fecha: document.getElementById('fecha').value,
                 tipo: document.getElementById('tipoMovimiento').value,
                 caracter: document.getElementById('caracter').value,
-                concepto: document.getElementById('conceptoEspecífico').value,
+                concepto: document.getElementById('conceptoEspecifico').value,
                 unidad: document.getElementById('unidad').value,
                 destino: document.getElementById('destino').value,
                 bienes: items,
