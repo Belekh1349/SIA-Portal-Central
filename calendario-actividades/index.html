@@ -1627,9 +1627,11 @@
         let weeklyChart = null;
         let monthlyChart = null;
 
-        // Storage Keys
-        const STORAGE_KEY_RECORDS = 'admin_flow_records_v1';
-        const STORAGE_KEY_PROFILE = 'admin_flow_profile_v1';
+        // Storage Keys (Actualizadas para evitar colisiones con otras versiones de la app)
+        const STORAGE_KEY_RECORDS = 'sia_daily_activities_records_v1';
+        const STORAGE_KEY_PROFILE = 'sia_daily_activities_profile_v1';
+        const OLD_STORAGE_KEY_RECORDS = 'admin_flow_records_v1';
+        const OLD_STORAGE_KEY_PROFILE = 'admin_flow_profile_v1';
 
         // Holiday Data
         const holidays = {
@@ -1669,6 +1671,7 @@
                 setAdminUI(false);
             }
 
+            migrateLegacyData();
             loadProfile();
             updateDateDisplay();
 
@@ -1800,11 +1803,11 @@
                     </button>
                 </div>
                 <div class="input-field">
-                    <textarea class="item-text" rows="2" placeholder="Descripción de la actividad...">${data.text}</textarea>
+                    <textarea class="item-text" rows="2" placeholder="Descripción de la actividad..." onchange="saveActivity(true)">${data.text}</textarea>
                 </div>
                 <div class="item-grid">
                     <div class="input-field">
-                        <select class="item-status">
+                        <select class="item-status" onchange="saveActivity(true)">
                             <option value="Pendiente" ${data.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                             <option value="Concluida" ${data.status === 'Concluida' ? 'selected' : ''}>Concluida</option>
                             <option value="Cancelada" ${data.status === 'Cancelada' ? 'selected' : ''}>Cancelada</option>
@@ -1813,7 +1816,7 @@
                         </select>
                     </div>
                     <div class="input-field">
-                        <select class="item-reqs">
+                        <select class="item-reqs" onchange="saveActivity(true)">
                             <option value="Ninguno" ${data.reqs === 'Ninguno' ? 'selected' : ''}>Ninguno</option>
                             <option value="Vehículo" ${data.reqs === 'Vehículo' ? 'selected' : ''}>Vehículo</option>
                             <option value="Papelería" ${data.reqs === 'Papelería' ? 'selected' : ''}>Papelería</option>
@@ -1833,7 +1836,10 @@
 
         function removeActivityRow(id) {
             const item = document.getElementById(id);
-            if (item) item.remove();
+            if (item) {
+                item.remove();
+                saveActivity(true); // Auto-save on remove
+            }
         }
 
         function selectDay(dateStr) {
@@ -1874,11 +1880,8 @@
         }
 
         // Form Logic
-        function saveActivity() {
-            if (!selectedDate) {
-                alert("Por favor selecciona un día del calendario.");
-                return;
-            }
+        function saveActivity(isAutoSave = false) {
+            if (!selectedDate) return;
 
             const container = document.getElementById('activityListContainer');
             const rows = container.querySelectorAll('.activity-item');
@@ -1908,13 +1911,21 @@
             updateCharts();
             updateHistory();
 
-            // Feedback
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#10b981', '#8b5cf6']
-            });
+            // Feedback (solo si no es auto-guardado)
+            if (!isAutoSave) {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#10b981', '#8b5cf6']
+                });
+
+                // Mostrar un pequeño indicador de guardado sutil
+                const btn = document.querySelector('button[onclick="saveActivity()"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Guardado!';
+                setTimeout(() => btn.innerHTML = originalText, 2000);
+            }
         }
 
         function clearActiveForm() {
@@ -2337,8 +2348,47 @@
         }
 
         // Utils
-        const getRecords = () => JSON.parse(localStorage.getItem(STORAGE_KEY_RECORDS) || '{}');
-        const getProfile = () => JSON.parse(localStorage.getItem(STORAGE_KEY_PROFILE) || '{}');
+        function getRecords() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY_RECORDS);
+                if (!data) return {};
+
+                // Detectar corrupción por colisión (evitar [object Object])
+                if (data.includes('[object Object]')) {
+                    console.error("Corrupción de datos detectada. Intentando recuperar...");
+                    return {};
+                }
+
+                return JSON.parse(data);
+            } catch (e) {
+                console.error("Error al leer records:", e);
+                return {};
+            }
+        }
+
+        function getProfile() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY_PROFILE);
+                return JSON.parse(data || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function migrateLegacyData() {
+            // Migrar desde llaves antiguas si la nueva está vacía
+            if (!localStorage.getItem(STORAGE_KEY_RECORDS) && localStorage.getItem(OLD_STORAGE_KEY_RECORDS)) {
+                const legacyData = localStorage.getItem(OLD_STORAGE_KEY_RECORDS);
+                // Solo migrar si no parece corrupto
+                if (!legacyData.includes('[object Object]')) {
+                    localStorage.setItem(STORAGE_KEY_RECORDS, legacyData);
+                    console.log("Datos migrados con éxito a la nueva versión.");
+                }
+            }
+            if (!localStorage.getItem(STORAGE_KEY_PROFILE) && localStorage.getItem(OLD_STORAGE_KEY_PROFILE)) {
+                localStorage.setItem(STORAGE_KEY_PROFILE, localStorage.getItem(OLD_STORAGE_KEY_PROFILE));
+            }
+        }
 
         function loadProfile() {
             const profile = getProfile();
