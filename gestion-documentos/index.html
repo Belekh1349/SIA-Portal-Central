@@ -215,42 +215,57 @@
                         </h3>
 
                         <form id="registroForm" class="space-y-4">
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo de
-                                    Movimiento</label>
-                                <select id="tipoMovimiento" class="w-full input-premium">
-                                    <option value="Entrada">Entrada</option>
-                                    <option value="Salida">Salida</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Descripción
-                                    / Concepto</label>
-                                <textarea id="descripcion" class="w-full input-premium h-24 resize-none"
-                                    placeholder="Detalle del movimiento..."></textarea>
-                            </div>
-
                             <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Referencia</label>
-                                    <input type="text" id="referencia" class="w-full input-premium"
-                                        placeholder="Oficio/ID">
-                                </div>
                                 <div class="space-y-2">
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
                                     <input type="date" id="fecha" class="w-full input-premium">
                                 </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
+                                        de Movimiento</label>
+                                    <select id="tipoMovimiento" class="w-full input-premium">
+                                        <option value="Entrada">Entrada</option>
+                                        <option value="Salida">Salida</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="space-y-2">
                                 <label
-                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Responsable</label>
-                                <input type="text" id="responsable" class="w-full input-premium"
-                                    placeholder="Nombre completo">
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
+                                    Administrativa</label>
+                                <input type="text" id="unidad" class="w-full input-premium"
+                                    placeholder="Nombre de la unidad">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puerta</label>
+                                    <input type="text" id="puerta" class="w-full input-premium"
+                                        placeholder="No. de puerta">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
+                                    <input type="text" id="solicita" class="w-full input-premium"
+                                        placeholder="Nombre de quien solicita">
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                    Administrativo</label>
+                                <input type="text" id="puesto" class="w-full input-premium"
+                                    placeholder="Cargo o puesto">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo de
+                                    la Entrada o Salida</label>
+                                <textarea id="motivo" class="w-full input-premium h-24 resize-none"
+                                    placeholder="Descripción del motivo..."></textarea>
                             </div>
 
                             <button type="submit"
@@ -289,9 +304,9 @@
                                     <tr>
                                         <th>Fecha</th>
                                         <th>Tipo</th>
-                                        <th>Descripción</th>
-                                        <th>Referencia</th>
-                                        <th>Responsable</th>
+                                        <th>Unidad/Área</th>
+                                        <th>Solicita</th>
+                                        <th>Motivo</th>
                                         <th class="text-right">Acciones</th>
                                     </tr>
                                 </thead>
@@ -370,9 +385,12 @@
                                 ${rec.tipo}
                             </span>
                         </td>
-                        <td class="text-sm text-slate-400 max-w-xs truncate">${rec.descripcion}</td>
-                        <td class="text-xs font-mono text-slate-500">${rec.referencia || 'N/A'}</td>
-                        <td class="text-sm font-semibold">${rec.responsable}</td>
+                        <td class="text-sm text-slate-400">${rec.unidad}</td>
+                        <td class="text-sm text-slate-400">
+                            <div class="font-bold text-white">${rec.solicita}</div>
+                            <div class="text-[10px] uppercase tracking-tighter">${rec.puesto}</div>
+                        </td>
+                        <td class="text-sm text-slate-400 max-w-xs truncate" title="${rec.motivo}">${rec.motivo}</td>
                         <td class="text-right">
                             <button onclick="deleteRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -390,15 +408,17 @@
 
             const newRecord = {
                 id: Date.now().toString(),
-                tipo: document.getElementById('tipoMovimiento').value,
-                descripcion: document.getElementById('descripcion').value,
-                referencia: document.getElementById('referencia').value,
                 fecha: document.getElementById('fecha').value,
-                responsable: document.getElementById('responsable').value
+                tipo: document.getElementById('tipoMovimiento').value,
+                unidad: document.getElementById('unidad').value,
+                puerta: document.getElementById('puerta').value,
+                solicita: document.getElementById('solicita').value,
+                puesto: document.getElementById('puesto').value,
+                motivo: document.getElementById('motivo').value
             };
 
-            if (!newRecord.descripcion || !newRecord.responsable) {
-                showNotification('Error: Completa los campos obligatorios.', true);
+            if (!newRecord.unidad || !newRecord.solicita || !newRecord.motivo) {
+                showNotification('Error: Completa los campos obligatorios (Unidad, Solicita, Motivo).', true);
                 return;
             }
 
@@ -477,24 +497,24 @@
             const tableData = records.map(r => [
                 r.fecha,
                 r.tipo,
-                r.descripcion,
-                r.referencia || '-',
-                r.responsable
+                `${r.unidad}\n(Puerta: ${r.puerta})`,
+                `${r.solicita}\n${r.puesto}`,
+                r.motivo
             ]);
 
             doc.autoTable({
                 startY: 70,
-                head: [['Fecha', 'Cve', 'Descripción del Movimiento', 'Referencia', 'Responsable']],
+                head: [['Fecha', 'Tipo', 'Unidad / Puerta', 'Solicita / Puesto', 'Motivo del Movimiento']],
                 body: tableData,
                 theme: 'striped',
                 headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' },
-                styles: { fontSize: 8, cellPadding: 4 },
+                styles: { fontSize: 8, cellPadding: 4, overflow: 'linebreak' },
                 columnStyles: {
-                    0: { cellWidth: 25 },
+                    0: { cellWidth: 22 },
                     1: { cellWidth: 15 },
-                    2: { cellWidth: 'auto' },
-                    3: { cellWidth: 25 },
-                    4: { cellWidth: 35 }
+                    2: { cellWidth: 40 },
+                    3: { cellWidth: 40 },
+                    4: { cellWidth: 'auto' }
                 }
             });
 
