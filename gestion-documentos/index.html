@@ -79,6 +79,32 @@
             box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
         }
 
+        /* Fix for native select options in dark mode */
+        select.input-premium option {
+            background-color: #1e293b;
+            /* slate-800 */
+            color: white;
+            padding: 10px;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-20%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--text-muted);
+            pointer-events: none;
+        }
+
         .btn-guinda {
             background: var(--guinda);
             transition: all 0.3s ease;
@@ -189,8 +215,8 @@
                 <div>
                     <h1 class="text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                     <p class="text-slate-400" id="section-desc">Registro y control de movimientos documentales y
-                        materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.3</span></p>
-                    <!-- Trigger: 2026-01-25 16:38 -->
+                        materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.4 (UI-FIX)</span></p>
+                    <!-- Trigger: 2026-01-25 16:44 -->
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
@@ -225,10 +251,13 @@
                                 <div class="space-y-2">
                                     <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
                                         de Movimiento</label>
-                                    <select id="tipoMovimiento" class="w-full input-premium bg-slate-800">
-                                        <option value="Entrada">Entrada</option>
-                                        <option value="Salida">Salida</option>
-                                    </select>
+                                    <div class="select-wrapper">
+                                        <select id="tipoMovimiento"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="Entrada">Entrada</option>
+                                            <option value="Salida">Salida</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -236,21 +265,27 @@
                                 <div class="space-y-2">
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Carácter</label>
-                                    <select id="caracter" class="w-full input-premium bg-slate-800">
-                                        <option value="Permanente">Permanente</option>
-                                        <option value="Temporal">Temporal</option>
-                                    </select>
+                                    <div class="select-wrapper">
+                                        <select id="caracter"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="Permanente">Permanente</option>
+                                            <option value="Temporal">Temporal</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="space-y-2">
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Concepto
                                         Específico</label>
-                                    <select id="conceptoEspecifico" class="w-full input-premium bg-slate-800">
-                                        <option value="Transferencia">Transferencia</option>
-                                        <option value="Préstamo">Préstamo</option>
-                                        <option value="Reparación">Reparación</option>
-                                        <option value="Baja">Baja</option>
-                                    </select>
+                                    <div class="select-wrapper">
+                                        <select id="conceptoEspecifico"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="Transferencia">Transferencia</option>
+                                            <option value="Préstamo">Préstamo</option>
+                                            <option value="Reparación">Reparación</option>
+                                            <option value="Baja">Baja</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
