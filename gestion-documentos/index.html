@@ -190,7 +190,47 @@
 </head>
 
 <body class="bg-mesh">
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div id="sidebarOverlay" onclick="toggleSidebar()"
+        class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40 lg:hidden opacity-0 invisible transition-all duration-300">
+    </div>
+
+    <!-- PDF Preview Modal -->
+    <div id="pdfModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closePDFPreview()"></div>
+        <div class="relative bg-white w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <!-- Modal Header -->
+            <div class="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-rose-500/10 rounded-lg">
+                        <i data-lucide="file-text" class="w-5 h-5 text-rose-500"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold leading-none">Vista Previa del Documento</h3>
+                        <p class="text-slate-400 text-[10px] uppercase tracking-widest mt-1">SIA - Vista de Impresión
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="downloadPdfBtn"
+                        class="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-rose-600/20">
+                        <i data-lucide="download" class="w-4 h-4"></i> Descargar
+                    </button>
+                    <button onclick="closePDFPreview()"
+                        class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body -->
+            <div class="flex-1 bg-slate-100 p-4 relative overflow-hidden">
+                <iframe id="pdfViewer" class="w-full h-full rounded-lg shadow-inner bg-white" frameborder="0"></iframe>
+            </div>
+            <!-- Modal Footer -->
+            <div class="bg-white px-6 py-3 border-t border-slate-100 flex justify-end gap-3 text-xs text-slate-500">
+                <span>Pulsa Esc para cerrar</span>
+            </div>
+        </div>
+    </div>
 
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
@@ -254,8 +294,8 @@
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                         <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
                             movimientos documentales y
-                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.6.2
-                                (PREVIEW-JOBS)</span></p>
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.6.3
+                                (IN-APP-PREVIEW)</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -975,8 +1015,8 @@
             doc.setFontSize(7);
             doc.text(rec.pAutoriz || '', 155, footerY + 9, { align: "center" });
 
-            // Preview instead of SAVE
-            window.open(doc.output('bloburl'), '_blank');
+            // NEW: Open in internal Modal
+            openPDFPreview(doc, `Vale_${rec.folio || rec.id}.pdf`);
         }
 
         async function exportToPDF() {
@@ -1061,17 +1101,36 @@
                 // Línea Retira
                 doc.line(80, finalY, 130, finalY);
                 doc.text("RETIRA", 105, finalY + 5, { align: "center" });
-                // We don't have job titles for the whole report context easily, 
-                // but usually these reports keep generic lines. 
-                // However, I'll update it to open in preview.
 
                 // Línea Autoriza
                 doc.line(146, finalY, 196, finalY);
                 doc.text("AUTORIZA", 171, finalY + 5, { align: "center" });
             }
 
-            // Preview instead of SAVE
-            window.open(doc.output('bloburl'), '_blank');
+            openPDFPreview(doc, `Reporte_Movimientos_${Date.now()}.pdf`);
+        }
+
+        function openPDFPreview(doc, filename) {
+            const modal = document.getElementById('pdfModal');
+            const viewer = document.getElementById('pdfViewer');
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+
+            const blobUrl = doc.output('bloburl');
+            viewer.src = blobUrl;
+
+            downloadBtn.onclick = () => doc.save(filename);
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closePDFPreview() {
+            const modal = document.getElementById('pdfModal');
+            const viewer = document.getElementById('pdfViewer');
+            modal.classList.add('hidden');
+            viewer.src = '';
+            document.body.style.overflow = '';
         }
 
         // Sidebar Toggle
