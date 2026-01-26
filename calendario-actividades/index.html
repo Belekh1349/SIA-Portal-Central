@@ -2355,19 +2355,24 @@
                 }
             });
 
-            // Signature - Guinda según solicitud institutional
-            const finalY = doc.lastAutoTable.finalY + 30;
+            // Signature - Guinda según solicitud institutional (Siempre al final de la hoja)
             const colorGuinda = [139, 26, 45];
+            const pageHeight = doc.internal.pageSize.height || 297;
+            let signatureY = pageHeight - 40; // Posición fija a 40mm del final (aprox 257mm en A4)
 
-            if (finalY < 275) {
-                doc.setDrawColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
-                doc.setLineWidth(0.5);
-                doc.line(65, finalY, 145, finalY);
-                doc.setFontSize(9);
-                doc.setTextColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
-                doc.setFont("helvetica", "bold");
-                doc.text("FIRMA DE REVISIÓN Y CONFORMIDAD", 105, finalY + 6, { align: "center" });
+            // Verificar si la tabla termina muy cerca de la firma para evitar traslape
+            if (doc.lastAutoTable.finalY > signatureY - 15) {
+                doc.addPage();
+                signatureY = pageHeight - 40;
             }
+
+            doc.setDrawColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
+            doc.setLineWidth(0.5);
+            doc.line(65, signatureY, 145, signatureY);
+            doc.setFontSize(9);
+            doc.setTextColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
+            doc.setFont("helvetica", "bold");
+            doc.text("FIRMA DE REVISIÓN Y CONFORMIDAD", 105, signatureY + 6, { align: "center" });
 
             // Vista Previa en lugar de Descarga directa
             const pdfDataUri = doc.output('datauristring');
