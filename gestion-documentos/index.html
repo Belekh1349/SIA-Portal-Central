@@ -12,6 +12,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         :root {
             --primary: #4c0519;
@@ -300,8 +301,8 @@
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                         <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
                             movimientos documentales y
-                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.6.4
-                                (RESPONSIVE)</span></p>
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.7.0
+                                (CLOUD-SYNC)</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -554,13 +555,31 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+
     <script>
+        // --- CONFIGURACIÓN DE FIREBASE ---
+        // PEGA AQUÍ TU firebaseConfig DESDE EL CONSOLA DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AQUI_TU_API_KEY",
+            authDomain: "AQUI_TU_PROYECTO.firebaseapp.com",
+            projectId: "AQUI_TU_PROYECTO_ID",
+            storageBucket: "AQUI_TU_PROYECTO.appspot.com",
+            messagingSenderId: "AQUI_TU_ID",
+            appId: "AQUI_TU_APP_ID"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const recordsCol = db.collection('movimientos');
+
         // Init Lucide
         lucide.createIcons();
 
-        // Data Management
-        const STORAGE_KEY = 'sia_documentos_entradas_salidas';
-        let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        let records = [];
         let currentEditId = null;
         let searchTerm = '';
 
@@ -568,14 +587,21 @@
         const historyBody = document.getElementById('historyBody');
         const emptyState = document.getElementById('emptyState');
 
-        // Set current date as default
-        document.getElementById('fecha').valueAsDate = new Date();
-
-        function saveRecords() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        // Escuchar cambios en tiempo real desde la nube
+        recordsCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            records = [];
+            snapshot.forEach((doc) => {
+                records.push({ id: doc.id, ...doc.data() });
+            });
             renderRecords();
             suggestNextFolio();
-        }
+        }, (error) => {
+            console.error("Error fetching records: ", error);
+            showNotification('Error al cargar registros: ' + error.message, true);
+        });
+
+        // Set current date as default
+        document.getElementById('fecha').valueAsDate = new Date();
 
         function suggestNextFolio() {
             if (currentEditId) return; // Don't suggest if editing
@@ -587,7 +613,7 @@
             }
 
             // Get last folio (sorted by date)
-            const sorted = [...records].sort((a, b) => b.id - a.id);
+            const sorted = [...records].sort((a, b) => b.timestamp - a.timestamp); // Sort by timestamp for most recent
             const lastFolio = sorted[0].folio;
 
             if (lastFolio && lastFolio.includes('-')) {
@@ -607,43 +633,34 @@
 
         function renderRecords() {
             historyBody.innerHTML = '';
-
-            const filteredRecords = records.filter(rec => {
+            const filtered = records.filter(rec => {
                 const searchStr = `${rec.folio} ${rec.unidad} ${rec.solicita} ${rec.tipo} ${rec.bienes.map(b => b.nombre).join(' ')}`.toLowerCase();
                 return searchStr.includes(searchTerm);
             });
 
-            if (filteredRecords.length === 0) {
+            if (filtered.length === 0) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
-
-                // Sort by date desc
-                const sorted = [...filteredRecords].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-                sorted.forEach((rec) => {
+                filtered.forEach(rec => {
                     const row = document.createElement('tr');
                     row.className = 'hover:bg-white/5 transition-colors group';
 
                     const isEntrada = rec.tipo === 'Entrada';
-                    const badgeClass = isEntrada ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500';
-                    const icon = isEntrada ? 'arrow-down-left' : 'arrow-up-right';
+                    const badgeClass = isEntrada ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500';
 
                     const goodsSummary = rec.bienes && rec.bienes.length > 0
                         ? `${rec.bienes[0].nombre} ${rec.bienes.length > 1 ? '(+' + (rec.bienes.length - 1) + ')' : ''}`
                         : 'Sin bienes';
 
                     row.innerHTML = `
-                        <td class="text-sm font-medium text-slate-300 whitespace-nowrap">
-                            <div class="text-[10px] text-amber-500 font-mono font-bold uppercase tracking-tighter">${rec.folio || 'S/F'}</div>
-                            <div>${rec.fecha}</div>
+                        <td class="text-sm">
+                            <div class="font-bold text-white">${rec.folio || 'S/N'}</div>
+                            <div class="text-[10px] text-slate-500">${rec.fecha}</div>
                         </td>
-                        <td>
+                        <td class="text-sm">
                             <div class="flex flex-col gap-1">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider w-fit ${badgeClass}">
-                                    <i data-lucide="${icon}" class="w-3 h-3"></i>
-                                    ${rec.tipo}
-                                </span>
+                                <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase ${badgeClass}">${rec.tipo}</span>
                                 <span class="text-[9px] font-bold text-slate-500 uppercase px-1">${rec.caracter} | ${rec.concepto}</span>
                             </div>
                         </td>
@@ -711,7 +728,7 @@
             }
         }
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const itemsContainer = document.getElementById('itemsContainer');
@@ -743,7 +760,8 @@
                 pRetira: document.getElementById('puestoRetira').value,
                 autoriz: document.getElementById('autoriz').value,
                 pAutoriz: document.getElementById('puestoAutoriz').value,
-                motivo: document.getElementById('motivo').value
+                motivo: document.getElementById('motivo').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Save server time
             };
 
             if (!recordData.unidad || !recordData.solicita || !recordData.motivo) {
@@ -751,27 +769,26 @@
                 return;
             }
 
-            if (currentEditId) {
-                const idx = records.findIndex(r => r.id === currentEditId);
-                records[idx] = { ...records[idx], ...recordData };
-                currentEditId = null;
-                showNotification('Registro actualizado correctamente.');
-                form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Registro`;
-            } else {
-                const newRecord = {
-                    id: Date.now().toString(),
-                    ...recordData
-                };
-                records.push(newRecord);
-                showNotification('Registro generado correctamente.');
-            }
+            try {
+                if (currentEditId) {
+                    await recordsCol.doc(currentEditId).update(recordData);
+                    currentEditId = null;
+                    showNotification('Registro actualizado en la nube.');
+                    form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                } else {
+                    await recordsCol.add(recordData);
+                    showNotification('Registro guardado en la nube.');
+                }
 
-            saveRecords();
-            form.reset();
-            itemsContainer.innerHTML = '';
-            addItemRow();
-            document.getElementById('fecha').valueAsDate = new Date();
-            lucide.createIcons();
+                form.reset();
+                itemsContainer.innerHTML = '';
+                addItemRow();
+                document.getElementById('fecha').valueAsDate = new Date();
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error saving record:", error);
+                showNotification('Error al guardar: ' + error.message, true);
+            }
         });
 
         function editRecord(id) {
@@ -805,30 +822,41 @@
             });
 
             // Update button
-            form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Registro`;
+            form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar en la Nube`;
 
             // Scroll to form
             form.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function deleteRecord(id) {
-            if (confirm('¿Deseas eliminar este registro?')) {
-                records = records.filter(r => r.id !== id);
-                if (currentEditId === id) {
-                    currentEditId = null;
-                    form.reset();
-                    document.getElementById('itemsContainer').innerHTML = '';
-                    addItemRow();
-                    form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+        async function deleteRecord(id) {
+            if (confirm('¿Deseas eliminar este registro de la nube?')) {
+                try {
+                    await recordsCol.doc(id).delete();
+                    showNotification('Registro eliminado.');
+                    if (currentEditId === id) {
+                        currentEditId = null;
+                        form.reset();
+                        document.getElementById('itemsContainer').innerHTML = '';
+                        addItemRow();
+                        form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                    }
+                } catch (error) {
+                    showNotification('Error al eliminar: ' + error.message, true);
                 }
-                saveRecords();
             }
         }
 
-        function clearHistory() {
-            if (confirm('¿Seguro que deseas borrar TODO el historial? Esta acción no se puede deshacer.')) {
-                records = [];
-                saveRecords();
+        async function clearHistory() {
+            if (confirm('¿Seguro que deseas borrar TODO el historial de la nube? Esta acción no se puede deshacer.')) {
+                try {
+                    const snapshot = await recordsCol.get();
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    showNotification('Historial borrado por completo.');
+                } catch (error) {
+                    showNotification('Error al borrar: ' + error.message, true);
+                }
             }
         }
 
