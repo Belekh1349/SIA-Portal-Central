@@ -1228,6 +1228,20 @@
             </div>
 
             <div class="nav-section">
+                <span class="nav-label">Sincronización Cloud</span>
+                <div class="nav-btn"
+                    style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); cursor: default;">
+                    <i class="fa-solid fa-cloud-check" style="color: #10b981;"></i>
+                    <span style="color: #10b981; font-weight: 700;">SIA-CONTROL Activo</span>
+                </div>
+                <button class="nav-btn" onclick="openCloudModal()">
+                    <i class="fa-solid fa-gears"></i>
+                    Configurar Nube
+                </button>
+            </div>
+
+            <div class="nav-section">
+
                 <span class="nav-label">Herramientas</span>
                 <button class="nav-btn admin-only" onclick="exportData()">
                     <i class="fa-solid fa-file-export"></i>
@@ -1258,10 +1272,11 @@
             </div>
 
             <div style="margin-top: auto;">
-                <div class="nav-btn" style="background: var(--glass); opacity: 0.8; font-size: 0.8rem;">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    Datos Almacenados Localmente
-                </div>
+                <a href="https://github.com/Belekh1349/SIA-Portal-Central" target="_blank" class="nav-btn"
+                    style="background: var(--glass); opacity: 0.8; font-size: 0.8rem;">
+                    <i class="fa-brands fa-github"></i>
+                    Repositorio GitHub
+                </a>
             </div>
         </aside>
 
