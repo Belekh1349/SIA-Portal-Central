@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>Gestión de Oficios | Sistema Administrativo</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -69,6 +69,11 @@
             min-height: 100vh;
             transition: var(--transition);
             overflow-x: hidden;
+            /* iOS Safe Areas */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         h1,
@@ -600,7 +605,8 @@
                     <i data-lucide="home"></i> <span>Entrada Principal</span>
                 </a>
                 <button class="btn btn-outline" id="theme-toggle"><i data-lucide="sun" id="theme-icon"></i></button>
-                <button class="btn btn-outline" id="admin-login-btn" title="Acceso Administrativo">
+                <button class="btn btn-outline" id="admin-login-btn" title="Acceso Administrativo"
+                    style="min-width: 44px; min-height: 44px;">
                     <i data-lucide="lock" id="admin-icon"></i>
                 </button>
                 <button class="btn btn-outline" id="view-records-btn"><i data-lucide="scroll-text"></i> <span>Ver

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>SIA - Gestión de Documentos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -31,6 +31,11 @@
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
+            /* iOS Safe Areas */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         h1,
@@ -253,8 +258,9 @@
                         <p class="text-[10px] font-bold text-amber-500 tracking-[0.2em] uppercase">SIA - PORTAL CENTRAL
                         </p>
                     </div>
-                    <div class="lg:hidden p-2 rounded-lg bg-white/5" onclick="toggleSidebar()">
-                        <i data-lucide="x" class="w-6 h-6 text-white"></i>
+                    <div class="lg:hidden p-3 rounded-lg bg-white/10 active:scale-95 transition-transform"
+                        onclick="toggleSidebar()">
+                        <i data-lucide="x" class="w-7 h-7 text-white"></i>
                     </div>
                 </div>
 
@@ -294,8 +300,9 @@
             <!-- Header Section -->
             <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-up">
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="lg:hidden p-3 glass rounded-xl text-white">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    <button onclick="toggleSidebar()"
+                        class="lg:hidden p-4 glass rounded-xl text-white active:scale-95 transition-transform shadow-lg">
+                        <i data-lucide="menu" class="w-7 h-7"></i>
                     </button>
                     <div>
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
