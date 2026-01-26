@@ -254,8 +254,8 @@
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                         <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
                             movimientos documentales y
-                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.5
-                                (MOBILE-FIX)</span></p>
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.7
+                                (ENHANCED)</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -282,6 +282,13 @@
                         </h3>
 
                         <form id="registroForm" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número de
+                                    Folio</label>
+                                <input type="text" id="folio" class="w-full input-premium font-mono text-amber-500"
+                                    placeholder="Ej: 2026-001">
+                            </div>
+
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label
@@ -414,11 +421,22 @@
                     <!-- List Card -->
                     <div
                         class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
-                        <div class="p-8 border-b border-white/5 flex items-center justify-between">
-                            <h3 class="text-xl font-bold flex items-center gap-2">
-                                <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
-                                Historial Reciente
-                            </h3>
+                        <div
+                            class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xl font-bold flex items-center gap-2">
+                                    <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                    Historial Reciente
+                                </h3>
+                            </div>
+                            <!-- Search Bar -->
+                            <div class="flex-1 max-w-md relative">
+                                <i data-lucide="search"
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="searchInput" oninput="handleSearch()"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                    placeholder="Buscar por folio, unidad, solicita o bienes...">
+                            </div>
                             <div class="flex items-center gap-2">
                                 <button onclick="exportToPDF()"
                                     class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
@@ -437,7 +455,7 @@
                             <table class="w-full custom-table">
                                 <thead>
                                     <tr>
-                                        <th>Fecha</th>
+                                        <th>Folio / Fecha</th>
                                         <th>Tipo / Concepto</th>
                                         <th>Origen / Destino</th>
                                         <th>Bienes</th>
@@ -480,6 +498,8 @@
         // Data Management
         const STORAGE_KEY = 'sia_documentos_entradas_salidas';
         let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        let currentEditId = null;
+        let searchTerm = '';
 
         const form = document.getElementById('registroForm');
         const historyBody = document.getElementById('historyBody');
@@ -491,20 +511,54 @@
         function saveRecords() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
             renderRecords();
+            suggestNextFolio();
+        }
+
+        function suggestNextFolio() {
+            if (currentEditId) return; // Don't suggest if editing
+
+            const folioInput = document.getElementById('folio');
+            if (records.length === 0) {
+                folioInput.value = `${new Date().getFullYear()}-001`;
+                return;
+            }
+
+            // Get last folio (sorted by date)
+            const sorted = [...records].sort((a, b) => b.id - a.id);
+            const lastFolio = sorted[0].folio;
+
+            if (lastFolio && lastFolio.includes('-')) {
+                const parts = lastFolio.split('-');
+                const Year = parts[0];
+                const num = parseInt(parts[1]);
+                if (!isNaN(num)) {
+                    folioInput.value = `${Year}-${(num + 1).toString().padStart(3, '0')}`;
+                }
+            }
+        }
+
+        function handleSearch() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            renderRecords();
         }
 
         function renderRecords() {
             historyBody.innerHTML = '';
 
-            if (records.length === 0) {
+            const filteredRecords = records.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.unidad} ${rec.solicita} ${rec.tipo} ${rec.bienes.map(b => b.nombre).join(' ')}`.toLowerCase();
+                return searchStr.includes(searchTerm);
+            });
+
+            if (filteredRecords.length === 0) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
 
                 // Sort by date desc
-                const sorted = [...records].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                const sorted = [...filteredRecords].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-                sorted.forEach((rec, index) => {
+                sorted.forEach((rec) => {
                     const row = document.createElement('tr');
                     row.className = 'hover:bg-white/5 transition-colors group';
 
@@ -512,13 +566,15 @@
                     const badgeClass = isEntrada ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500';
                     const icon = isEntrada ? 'arrow-down-left' : 'arrow-up-right';
 
-                    const goodsCount = rec.bienes ? rec.bienes.length : 0;
                     const goodsSummary = rec.bienes && rec.bienes.length > 0
                         ? `${rec.bienes[0].nombre} ${rec.bienes.length > 1 ? '(+' + (rec.bienes.length - 1) + ')' : ''}`
                         : 'Sin bienes';
 
                     row.innerHTML = `
-                        <td class="text-sm font-medium text-slate-300 whitespace-nowrap">${rec.fecha}</td>
+                        <td class="text-sm font-medium text-slate-300 whitespace-nowrap">
+                            <div class="text-[10px] text-amber-500 font-mono font-bold uppercase tracking-tighter">${rec.folio || 'S/F'}</div>
+                            <div>${rec.fecha}</div>
+                        </td>
                         <td>
                             <div class="flex flex-col gap-1">
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider w-fit ${badgeClass}">
@@ -540,9 +596,14 @@
                             <div class="text-[10px] uppercase tracking-tighter text-slate-500">${rec.puesto}</div>
                         </td>
                         <td class="text-right">
-                            <button onclick="deleteRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="editRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-amber-500 transition-colors" title="Editar">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </td>
                     `;
                     historyBody.appendChild(row);
@@ -552,18 +613,18 @@
         }
 
         // Bienes dynamic rows
-        function addItemRow() {
+        function addItemRow(nombre = '', inventario = '') {
             const container = document.getElementById('itemsContainer');
-            const rowId = 'row-' + Date.now();
+            const rowId = 'row-' + Math.random().toString(36).substr(2, 9);
             const div = document.createElement('div');
             div.className = 'grid grid-cols-12 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 group relative';
             div.id = rowId;
             div.innerHTML = `
                 <div class="col-span-7 space-y-1">
-                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white" placeholder="Bien Mueble">
+                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white" placeholder="Bien Mueble" value="${nombre}">
                 </div>
                 <div class="col-span-4 space-y-1">
-                    <input type="text" class="item-inventario w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs font-mono text-amber-500" placeholder="Inventario">
+                    <input type="text" class="item-inventario w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs font-mono text-amber-500" placeholder="Inventario" value="${inventario}">
                 </div>
                 <div class="col-span-1 flex items-center justify-center">
                     <button type="button" onclick="removeItemRow('${rowId}')" class="text-slate-600 hover:text-red-400 transition-colors">
@@ -576,7 +637,12 @@
         }
 
         function removeItemRow(id) {
-            document.getElementById(id).remove();
+            const rows = document.querySelectorAll('#itemsContainer .grid');
+            if (rows.length > 1) {
+                document.getElementById(id).remove();
+            } else {
+                showNotification('Debe haber al menos un bien.', true);
+            }
         }
 
         form.addEventListener('submit', (e) => {
@@ -595,8 +661,8 @@
                 return;
             }
 
-            const newRecord = {
-                id: Date.now().toString(),
+            const recordData = {
+                folio: document.getElementById('folio').value,
                 fecha: document.getElementById('fecha').value,
                 tipo: document.getElementById('tipoMovimiento').value,
                 caracter: document.getElementById('caracter').value,
@@ -612,23 +678,79 @@
                 motivo: document.getElementById('motivo').value
             };
 
-            if (!newRecord.unidad || !newRecord.solicita || !newRecord.motivo) {
+            if (!recordData.unidad || !recordData.solicita || !recordData.motivo) {
                 showNotification('Error: Completa los campos obligatorios.', true);
                 return;
             }
 
-            records.push(newRecord);
+            if (currentEditId) {
+                const idx = records.findIndex(r => r.id === currentEditId);
+                records[idx] = { ...records[idx], ...recordData };
+                currentEditId = null;
+                showNotification('Registro actualizado correctamente.');
+                form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+            } else {
+                const newRecord = {
+                    id: Date.now().toString(),
+                    ...recordData
+                };
+                records.push(newRecord);
+                showNotification('Registro generado correctamente.');
+            }
+
             saveRecords();
             form.reset();
             itemsContainer.innerHTML = '';
             addItemRow();
             document.getElementById('fecha').valueAsDate = new Date();
-            showNotification('Registro generado correctamente.');
+            lucide.createIcons();
         });
+
+        function editRecord(id) {
+            const rec = records.find(r => r.id === id);
+            if (!rec) return;
+
+            currentEditId = id;
+
+            // Fill form
+            document.getElementById('folio').value = rec.folio || '';
+            document.getElementById('fecha').value = rec.fecha;
+            document.getElementById('tipoMovimiento').value = rec.tipo;
+            document.getElementById('caracter').value = rec.caracter;
+            document.getElementById('conceptoEspecifico').value = rec.concepto;
+            document.getElementById('unidad').value = rec.unidad;
+            document.getElementById('destino').value = rec.destino || '';
+            document.getElementById('puerta').value = rec.puerta || '';
+            document.getElementById('solicita').value = rec.solicita;
+            document.getElementById('puesto').value = rec.puesto || '';
+            document.getElementById('retira').value = rec.retira || '';
+            document.getElementById('autoriz').value = rec.autoriz || '';
+            document.getElementById('motivo').value = rec.motivo;
+
+            // Fill items
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = '';
+            rec.bienes.forEach(item => {
+                addItemRow(item.nombre, item.inventario);
+            });
+
+            // Update button
+            form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Registro`;
+
+            // Scroll to form
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
 
         function deleteRecord(id) {
             if (confirm('¿Deseas eliminar este registro?')) {
                 records = records.filter(r => r.id !== id);
+                if (currentEditId === id) {
+                    currentEditId = null;
+                    form.reset();
+                    document.getElementById('itemsContainer').innerHTML = '';
+                    addItemRow();
+                    form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                }
                 saveRecords();
             }
         }
@@ -691,11 +813,16 @@
             doc.setFont("helvetica", "normal");
             doc.text(`Fecha de emisión: ${new Date().toLocaleString()}`, 14, 62);
 
+            const filteredToExport = records.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.unidad} ${rec.solicita} ${rec.tipo} ${rec.bienes.map(b => b.nombre).join(' ')}`.toLowerCase();
+                return searchStr.includes(searchTerm);
+            });
+
             const tableData = [];
-            records.forEach(r => {
+            filteredToExport.forEach(r => {
                 // First item
                 tableData.push([
-                    r.fecha,
+                    `${r.folio || 'N/A'}\n${r.fecha}`,
                     `${r.tipo}\n(${r.caracter})`,
                     `${r.unidad}\n→ ${r.destino || 'Local'}`,
                     `${r.bienes[0].nombre}\nInv: ${r.bienes[0].inventario || 'N/A'}`,
@@ -715,7 +842,7 @@
 
             doc.autoTable({
                 startY: 70,
-                head: [['Fecha', 'Tipo / Carácter', 'Área Origen / Destino', 'Bienes / Inventario', 'Solicita / Retira']],
+                head: [['Folio / Fecha', 'Tipo / Carácter', 'Área Origen / Destino', 'Bienes / Inventario', 'Solicita / Retira']],
                 body: tableData,
                 theme: 'striped',
                 headStyles: { fillColor: [139, 26, 45], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -771,6 +898,7 @@
         // Init
         addItemRow();
         renderRecords();
+        suggestNextFolio();
     </script>
 </body>
 
