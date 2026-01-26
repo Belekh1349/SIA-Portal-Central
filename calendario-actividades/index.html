@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>Registro de Actividades Administrativas 2026</title>
 
     <!-- SEO & Metadata -->
@@ -47,6 +47,10 @@
             --input-text: #ffffff;
             --input-label: #94a3b8;
             --highlight: rgba(139, 26, 45, 0.2);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
         }
 
         body.light {
@@ -1091,55 +1095,73 @@
 
         @media (max-width: 480px) {
             .calendar-grid {
-                gap: 5px;
+                gap: 4px;
             }
 
             .day-cell {
-                height: 65px;
+                height: 60px;
                 border-radius: 8px;
+                padding: 4px;
             }
 
             .calendar-header {
                 flex-direction: column;
-                gap: 10px;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .month-title {
+                font-size: 1.4rem;
             }
 
             .card-header {
                 flex-direction: column;
                 align-items: flex-start !important;
-                gap: 10px;
+                gap: 8px;
             }
 
             .stats-toolbar {
                 flex-direction: column;
-                gap: 10px;
-            }
-
-            .stats-filter {
-                width: 100%;
-            }
-
-            .stats-filter input {
-                flex: 1;
-            }
-
-            /* Extra adjustments for small screens */
-            .calendar-grid {
-                font-size: 0.7rem;
-            }
-
-            .day-number {
-                font-size: 0.8rem !important;
+                gap: 8px;
             }
 
             .btn {
-                padding: 10px 15px;
-                font-size: 0.85rem;
+                padding: 14px 20px;
+                /* Touch friendly */
+                font-size: 0.9rem;
+                width: 100%;
+                /* Full width buttons on mobile */
+            }
+
+            .btn-group {
+                flex-direction: column;
             }
 
             .user-config {
                 padding: 15px;
-                gap: 10px;
+                gap: 12px;
+                border-radius: 16px;
+            }
+
+            .header-info div {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center;
+                gap: 10px !important;
+            }
+
+            .main-title {
+                font-size: 1.1rem !important;
+            }
+
+            /* Better spacing for iPhone home indicator */
+            main {
+                padding-bottom: calc(40px + var(--safe-bottom));
+            }
+
+            aside {
+                padding-top: calc(24px + var(--safe-top));
+                padding-bottom: calc(24px + var(--safe-bottom));
             }
         }
 
