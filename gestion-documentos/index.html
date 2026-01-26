@@ -254,8 +254,8 @@
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                         <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
                             movimientos documentales y
-                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.6.1
-                                (LAYOUT-FIX)</span></p>
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.6.2
+                                (PREVIEW-JOBS)</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -390,9 +390,26 @@
                                 </div>
                                 <div class="space-y-2">
                                     <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                        Retira</label>
+                                    <input type="text" id="puestoRetira" class="w-full input-premium"
+                                        placeholder="Cargo de quien retira">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Autorizó</label>
                                     <input type="text" id="autoriz" class="w-full input-premium"
                                         placeholder="Nombre de quien autoriza">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                        Autorizó</label>
+                                    <input type="text" id="puestoAutoriz" class="w-full input-premium"
+                                        placeholder="Cargo de quien autoriza">
                                 </div>
                             </div>
 
@@ -677,7 +694,9 @@
                 solicita: document.getElementById('solicita').value,
                 puesto: document.getElementById('puesto').value,
                 retira: document.getElementById('retira').value,
+                pRetira: document.getElementById('puestoRetira').value,
                 autoriz: document.getElementById('autoriz').value,
+                pAutoriz: document.getElementById('puestoAutoriz').value,
                 motivo: document.getElementById('motivo').value
             };
 
@@ -691,7 +710,7 @@
                 records[idx] = { ...records[idx], ...recordData };
                 currentEditId = null;
                 showNotification('Registro actualizado correctamente.');
-                form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Registro`;
             } else {
                 const newRecord = {
                     id: Date.now().toString(),
@@ -727,7 +746,9 @@
             document.getElementById('solicita').value = rec.solicita;
             document.getElementById('puesto').value = rec.puesto || '';
             document.getElementById('retira').value = rec.retira || '';
+            document.getElementById('puestoRetira').value = rec.pRetira || '';
             document.getElementById('autoriz').value = rec.autoriz || '';
+            document.getElementById('puestoAutoriz').value = rec.pAutoriz || '';
             document.getElementById('motivo').value = rec.motivo;
 
             // Fill items
@@ -931,25 +952,31 @@
             });
 
             // --- SIGNATURES AT BOTTOM ---
-            const footerY = 275; // Forced to bottom of A4 page
+            const footerY = 270; // Forced to bottom of A4 page
             doc.setDrawColor(0);
             doc.setFontSize(8);
-            doc.setFont("helvetica", "bold");
 
-            // Label Retira
+            // Retira Section
+            doc.setFont("helvetica", "bold");
             doc.text("Retira", 55, footerY - 15, { align: "center" });
             doc.line(25, footerY, 85, footerY);
             doc.setFont("helvetica", "normal");
             doc.text(rec.retira || '-', 55, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.pRetira || '', 55, footerY + 9, { align: "center" });
 
-            // Label Autorizó
+            // Autorizó Section
+            doc.setFontSize(8);
             doc.setFont("helvetica", "bold");
             doc.text("Autorizó", 155, footerY - 15, { align: "center" });
             doc.line(125, footerY, 185, footerY);
             doc.setFont("helvetica", "normal");
             doc.text(rec.autoriz || '-', 155, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.pAutoriz || '', 155, footerY + 9, { align: "center" });
 
-            doc.save(`Vale_${rec.folio || rec.id}.pdf`);
+            // Preview instead of SAVE
+            window.open(doc.output('bloburl'), '_blank');
         }
 
         async function exportToPDF() {
@@ -1034,13 +1061,17 @@
                 // Línea Retira
                 doc.line(80, finalY, 130, finalY);
                 doc.text("RETIRA", 105, finalY + 5, { align: "center" });
+                // We don't have job titles for the whole report context easily, 
+                // but usually these reports keep generic lines. 
+                // However, I'll update it to open in preview.
 
                 // Línea Autoriza
                 doc.line(146, finalY, 196, finalY);
                 doc.text("AUTORIZA", 171, finalY + 5, { align: "center" });
             }
 
-            doc.save(`Reporte_Movimientos_${Date.now()}.pdf`);
+            // Preview instead of SAVE
+            window.open(doc.output('bloburl'), '_blank');
         }
 
         // Sidebar Toggle
