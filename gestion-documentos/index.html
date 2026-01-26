@@ -254,8 +254,8 @@
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                         <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
                             movimientos documentales y
-                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.9
-                                (FINAL-FIX)</span></p>
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.6.0
+                                (VOUCHER-REFINED)</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -821,21 +821,25 @@
             doc.setFillColor(...guinda);
             doc.rect(0, 0, 210, 35, 'F');
 
-            // Logo Support
+            // White container for Logo (to ensure it doesn't clash with guinda)
+            doc.setFillColor(255, 255, 255);
+            doc.rect(145, 5, 55, 15, 'F');
+
+            // Logo Support - Smaller and uniform
             try {
                 const logoBase64 = await getBase64Image('logo.png');
-                doc.addImage(logoBase64, 'PNG', 140, 5, 60, 18);
+                doc.addImage(logoBase64, 'PNG', 147, 7, 50, 11);
             } catch (e) {
                 console.warn('Logo not found, proceeding without it');
             }
 
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(14);
+            doc.setFontSize(10); // Reduced size
             doc.setFont("helvetica", "bold");
-            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 10, 15);
-            doc.text("Y CONTROL PATRIMONIAL", 10, 22);
+            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 10, 10); // Moved higher to corner
+            doc.text("Y CONTROL PATRIMONIAL", 10, 15);
 
-            doc.setFontSize(12);
+            doc.setFontSize(9); // More reduced than the main title
             doc.text("FORMATO DE CONTROL ENTRADAS Y SALIDAS", 105, 30, { align: "center" });
 
             // --- INFO GRID ---
