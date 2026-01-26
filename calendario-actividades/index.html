@@ -246,6 +246,11 @@
             display: flex;
             flex-direction: column;
             transition: background 0.3s ease;
+            /* iOS Safe Areas */
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            padding-left: var(--safe-left);
+            padding-right: var(--safe-right);
         }
 
         body.light {
