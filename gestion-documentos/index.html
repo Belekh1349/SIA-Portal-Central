@@ -254,8 +254,8 @@
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                         <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
                             movimientos documentales y
-                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.8
-                                (VOUCHER-FIX)</span></p>
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.5.9
+                                (FINAL-FIX)</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -790,6 +790,25 @@
             }, 3000);
         }
 
+        // Helper to convert images to base64
+        function getBase64Image(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.setAttribute('crossOrigin', 'anonymous');
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = canvas.toDataURL("image/png");
+                    resolve(dataURL);
+                };
+                img.onerror = error => reject(error);
+                img.src = url;
+            });
+        }
+
         async function exportRecordPDF(id) {
             const rec = records.find(r => r.id === id);
             if (!rec) return;
@@ -797,23 +816,24 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const guinda = [139, 26, 45];
-            const grayLabel = [148, 163, 184];
-            const grayValue = [241, 245, 249];
 
             // --- HEADER ---
             doc.setFillColor(...guinda);
             doc.rect(0, 0, 210, 35, 'F');
+
+            // Logo Support
+            try {
+                const logoBase64 = await getBase64Image('logo.png');
+                doc.addImage(logoBase64, 'PNG', 140, 5, 60, 18);
+            } catch (e) {
+                console.warn('Logo not found, proceeding without it');
+            }
 
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold");
             doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 10, 15);
             doc.text("Y CONTROL PATRIMONIAL", 10, 22);
-
-            // Placeholder for logos (Text for now as we don't have the assets)
-            doc.setFontSize(8);
-            doc.text("GOBIERNO DEL", 160, 12);
-            doc.text("ESTADO DE MÉXICO", 160, 16);
 
             doc.setFontSize(12);
             doc.text("FORMATO DE CONTROL ENTRADAS Y SALIDAS", 105, 30, { align: "center" });
@@ -822,24 +842,24 @@
             let currentY = 45;
 
             // Row 1: Folio & Fecha
-            // Folio Label
+            // Folio
             doc.setFillColor(180, 180, 180);
             doc.rect(10, currentY, 30, 8, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(9);
             doc.text("Folio", 15, currentY + 5.5);
-            // Folio Value
+
             doc.setFillColor(230, 230, 230);
             doc.rect(40, currentY, 50, 8, 'F');
             doc.setTextColor(0, 0, 0);
             doc.text(rec.folio || 'S/N', 45, currentY + 5.5);
 
-            // Fecha Label
+            // Fecha
             doc.setFillColor(180, 180, 180);
             doc.rect(140, currentY, 30, 8, 'F');
             doc.setTextColor(255, 255, 255);
             doc.text("Fecha", 145, currentY + 5.5);
-            // Fecha Value
+
             doc.setFillColor(230, 230, 230);
             doc.rect(170, currentY, 30, 8, 'F');
             doc.setTextColor(0, 0, 0);
@@ -858,10 +878,10 @@
                 doc.setFillColor(230, 230, 230);
                 doc.rect(x + 40, y, width - 40, 8, 'F');
                 doc.setTextColor(0, 0, 0);
-                doc.text(value || '', x + 42, y + 5.5);
+                doc.text(value ? value.substring(0, 40) : '', x + 42, y + 5.5);
             };
 
-            // Grid Layout
+            // Grid Layout (Matching Image Order)
             drawField(10, currentY, "Área Solicitante", rec.unidad);
             drawField(105, currentY, "Tipo de Movimiento", rec.tipo);
             currentY += 10;
@@ -876,19 +896,19 @@
 
             currentY += 12;
 
-            // Motivo / Observaciones
+            // Motivo / Observaciones (Height matched to 8)
             doc.setFillColor(180, 180, 180);
-            doc.rect(10, currentY, 40, 15, 'F');
+            doc.rect(10, currentY, 40, 8, 'F');
             doc.setTextColor(255, 255, 255);
-            doc.text("Motivo/Observaciones", 12, currentY + 8);
+            doc.text("Motivo/Observaciones", 11, currentY + 5.5);
 
             doc.setFillColor(230, 230, 230);
-            doc.rect(50, currentY, 150, 15, 'F');
+            doc.rect(50, currentY, 150, 8, 'F');
             doc.setTextColor(0, 0, 0);
             const motivoLines = doc.splitTextToSize(rec.motivo || '', 145);
-            doc.text(motivoLines, 52, currentY + 6);
+            doc.text(motivoLines[0] || '', 52, currentY + 5.5); // Only one line if height is 8
 
-            currentY += 25;
+            currentY += 15;
 
             // --- BIENES TABLE ---
             const goodsData = rec.bienes.map((b, i) => [i + 1, b.nombre, b.inventario]);
@@ -907,7 +927,7 @@
             });
 
             // --- SIGNATURES ---
-            const finalY = doc.lastAutoTable.finalY + 40;
+            const finalY = (doc.lastAutoTable.finalY + 40) > 270 ? 250 : doc.lastAutoTable.finalY + 40;
             doc.setDrawColor(0);
             doc.setFontSize(9);
             doc.setFont("helvetica", "bold");
