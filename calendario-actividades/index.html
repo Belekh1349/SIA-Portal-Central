@@ -160,6 +160,14 @@
             display: none !important;
         }
 
+        body.visitor-mode .visitor-only {
+            display: block !important;
+        }
+
+        body:not(.visitor-mode) .visitor-only {
+            display: none !important;
+        }
+
         body.visitor-mode input,
         body.visitor-mode textarea,
         body.visitor-mode select {
@@ -170,7 +178,8 @@
         body.visitor-mode .report-section input,
         body.visitor-mode .report-section select,
         body.visitor-mode .stats-filter input,
-        body.visitor-mode .stats-filter select {
+        body.visitor-mode .stats-filter select,
+        body.visitor-mode #superviseUser {
             pointer-events: auto !important;
             opacity: 1 !important;
         }
@@ -1227,7 +1236,22 @@
                 </button>
             </div>
 
+            <div class="nav-section visitor-only">
+                <span class="nav-label">Supervisión</span>
+                <div class="input-field" style="padding: 0 12px;">
+                    <label style="font-size: 0.65rem; color: var(--text-dim);"><i
+                            class="fa-solid fa-magnifying-glass"></i> Servidor a Supervisar:</label>
+                    <input type="text" id="superviseUser" placeholder="Nombre completo..."
+                        onchange="supervise(this.value)"
+                        style="padding: 8px 12px; font-size: 0.85rem; background: rgba(255,255,255,0.05) !important; border: 1px solid var(--border); margin-top: 5px;">
+                    <p style="font-size: 0.6rem; color: var(--text-dim); margin-top: 5px; line-height: 1.2;">
+                        Escribe el nombre del colaborador para ver sus registros en tiempo real.
+                    </p>
+                </div>
+            </div>
+
             <div class="nav-section">
+
                 <span class="nav-label">Sincronización Cloud</span>
                 <div class="nav-btn"
                     style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); cursor: default;">
@@ -2814,6 +2838,23 @@
                 showLoading(false);
                 alert("Ocurrió un error parcial durante la sincronización masiva.");
             }
+        }
+
+        function supervise(userName) {
+            if (!userName) return;
+
+            const profile = getProfile();
+            profile.servidor = userName;
+            localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
+
+            // Forzar recarga de sincronización con el nuevo nombre
+            initFirebaseSync();
+
+            // Limpiar registros locales actuales para evitar confusiones hasta que bajen los nuevos
+            localStorage.removeItem(STORAGE_KEY_RECORDS);
+
+            alert(`Sincronizando actividades de: ${userName}`);
+            renderCalendar();
         }
 
         // Admin Mode Logic
