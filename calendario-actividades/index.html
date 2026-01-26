@@ -1609,6 +1609,15 @@
                 <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Para sincronizar registros entre
                     dispositivos.</p>
             </div>
+            <div
+                style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                <div
+                    style="display: flex; align-items: center; gap: 10px; color: #10b981; font-weight: 700; font-size: 0.85rem; margin-bottom: 5px;">
+                    <i class="fa-solid fa-cloud-check"></i> Firebase SIA-CONTROL Activo
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-dim);">Tus actividades se sincronizan automáticamente en
+                    tiempo real con la base de datos central de SIA.</p>
+            </div>
             <div class="btn-group">
                 <button class="btn btn-primary" onclick="closeCloudModal()" style="width: 100%;">
                     <i class="fa-solid fa-check"></i> Guardar y Cerrar
@@ -1617,7 +1626,29 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+
     <script>
+        // --- CONFIGURACIÓN DE FIREBASE (SIA-CONTROL) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHI5_yqSRwhLGcXYdvTfZANDt_iWQ-K_M",
+            authDomain: "sia-control.firebaseapp.com",
+            projectId: "sia-control",
+            storageBucket: "sia-control.firebasestorage.app",
+            messagingSenderId: "933718961367",
+            appId: "1:933718961367:web:2cbae344c58b3bbccdd492",
+            measurementId: "G-3XP86VY2B4"
+        };
+
+        // Inicializar Firebase si no se ha hecho
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const activitiesCol = db.collection('actividades_diarias');
+
         // Data & State
         let currentYear = 2026;
         let currentMonth = 0; // 0 = Jan
@@ -1906,10 +1937,15 @@
             }
 
             localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+
+            // --- FIREBASE SYNC ---
+            syncActivityToCloud(selectedDate, activities);
+
             updateStats();
             renderCalendar();
             updateCharts();
             updateHistory();
+
 
             // Feedback (solo si no es auto-guardado)
             if (!isAutoSave) {
@@ -2408,6 +2444,11 @@
             };
             localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
 
+            // Reiniciar sincronización si cambió el servidor
+            if (profile.servidor !== oldProfile.servidor) {
+                initFirebaseSync();
+            }
+
             // Si se detecta una nueva URL y el dispositivo no tiene registros, sugerir descargar
             if (profile.sheetsUrl && profile.sheetsUrl !== oldProfile.sheetsUrl) {
                 const records = getRecords();
@@ -2635,14 +2676,75 @@
             }
         }
 
-        // Cargar tema al inicio
+        // Cargar tema e iniciar Firebase al inicio
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('sia-theme') || localStorage.getItem('theme_preference') || 'dark';
             applyTheme(savedTheme);
 
+            // Iniciar sincronización de Firebase
+            initFirebaseSync();
+
             // Forzar z-index y visibilidad de modales
             document.querySelectorAll('.modal').forEach(m => m.style.zIndex = "10000");
         });
+
+        // --- FUNCIONES DE FIREBASE ---
+        let firebaseUnsubscribe = null;
+
+        function initFirebaseSync() {
+            const profile = getProfile();
+            const servidor = profile.servidor || 'Usuario_SIA';
+
+            if (firebaseUnsubscribe) firebaseUnsubscribe();
+
+            console.log("Iniciando sincronización Firebase para:", servidor);
+
+            firebaseUnsubscribe = activitiesCol
+                .where('servidor', '==', servidor)
+                .onSnapshot(snapshot => {
+                    let cloudRecords = {};
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.date && data.activities) {
+                            cloudRecords[data.date] = data.activities;
+                        }
+                    });
+
+                    // Mezclar con datos locales
+                    if (Object.keys(cloudRecords).length > 0) {
+                        const localRecords = getRecords();
+                        const merged = { ...localRecords, ...cloudRecords };
+                        localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(merged));
+
+                        // Refrescar UI sin recargar página
+                        renderCalendar();
+                        updateStats();
+                        updateCharts();
+                        updateHistory();
+                        if (selectedDate) renderDayDetail(selectedDate);
+                    }
+                }, error => {
+                    console.error("Error en onSnapshot de Firebase:", error);
+                });
+        }
+
+        async function syncActivityToCloud(date, activities) {
+            const profile = getProfile();
+            const servidor = profile.servidor || 'Usuario_SIA';
+            const docId = `${servidor}_${date}`.replace(/[\/.\s]/g, '_');
+
+            try {
+                await activitiesCol.doc(docId).set({
+                    servidor: servidor,
+                    date: date,
+                    activities: activities,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("Sincronizado con Firebase:", date);
+            } catch (error) {
+                console.error("Error sincronizando con Firebase:", error);
+            }
+        }
 
         // Admin Mode Logic
         let isAdmin = false;
