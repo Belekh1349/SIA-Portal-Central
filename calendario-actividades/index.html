@@ -1251,14 +1251,10 @@
                     <i class="fa-solid fa-file-import"></i>
                     Restaurar Datos
                 </button>
-                <button class="nav-btn btn-cloud admin-only" id="syncBtn" onclick="syncWithSheets()">
+                <button class="nav-btn btn-cloud admin-only" id="syncFirebaseBtn" onclick="syncAllToFirebase()"
+                    style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
-                    Sincronizar Nube
-                </button>
-                <button class="nav-btn btn-cloud admin-only" id="pullBtn" onclick="pullFromSheets()"
-                    style="background: rgba(16, 185, 129, 0.1); color: var(--primary); border: 1px solid var(--primary);">
-                    <i class="fa-solid fa-cloud-arrow-down"></i>
-                    Descargar de Nube
+                    Sincronizar Todo (Firebase)
                 </button>
                 <button class="nav-btn admin-only" style="color: #ef4444;" onclick="clearAllData()">
                     <i class="fa-solid fa-trash-can"></i>
@@ -2751,6 +2747,9 @@
         async function syncActivityToCloud(date, activities) {
             const profile = getProfile();
             const servidor = profile.servidor || 'Usuario_SIA';
+            // Validar que el servidor no sea el default para evitar mezcla de datos
+            if (servidor === 'Usuario_SIA') return;
+
             const docId = `${servidor}_${date}`.replace(/[\/.\s]/g, '_');
 
             try {
@@ -2763,6 +2762,57 @@
                 console.log("Sincronizado con Firebase:", date);
             } catch (error) {
                 console.error("Error sincronizando con Firebase:", error);
+            }
+        }
+
+        async function syncAllToFirebase() {
+            const records = getRecords();
+            const profile = getProfile();
+            const servidor = profile.servidor;
+
+            if (!servidor || servidor === 'Usuario_SIA') {
+                alert("Por favor, configura tu nombre de 'Servidor Público' en el perfil antes de sincronizar.");
+                return;
+            }
+
+            const total = Object.keys(records).length;
+            if (total === 0) {
+                alert("No hay registros locales para sincronizar.");
+                return;
+            }
+
+            if (!confirm(`¿Deseas subir los ${total} días de registros a la nube? Esto los hará disponibles en otros dispositivos.`)) {
+                return;
+            }
+
+            showLoading(true, "Subiendo historial a la nube...");
+
+            try {
+                const batchSize = 10;
+                const entries = Object.entries(records);
+
+                for (let i = 0; i < entries.length; i++) {
+                    const [date, activities] = entries[i];
+                    await syncActivityToCloud(date, activities);
+
+                    if (i % batchSize === 0) {
+                        const progress = Math.round((i / total) * 100);
+                        showLoading(true, `Sincronizando... ${progress}%`);
+                    }
+                }
+
+                showLoading(false);
+                confetti({
+                    particleCount: 150,
+                    spread: 100,
+                    origin: { y: 0.6 },
+                    colors: ['#8b5cf6', '#10b981']
+                });
+                alert("¡Historial sincronizado con éxito en Firebase!");
+            } catch (err) {
+                console.error(err);
+                showLoading(false);
+                alert("Ocurrió un error parcial durante la sincronización masiva.");
             }
         }
 
