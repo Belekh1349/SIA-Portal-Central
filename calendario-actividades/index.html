@@ -354,9 +354,11 @@
             width: 100%;
             max-width: 200px;
             height: auto;
-            border-radius: 8px;
-            background: white;
-            padding: 5px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            padding: 8px;
+            border: 1.5px solid var(--accent);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .brand i {
@@ -1337,7 +1339,7 @@
                 <div class="header-info" style="flex: 1;">
                     <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 2px;">
                         <img src="header_logo.png" alt="Logo"
-                            style="height: 50px; background: white; padding: 5px; border-radius: 8px;"
+                            style="height: 55px; background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%); padding: 8px; border-radius: 12px; border: 1.5px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.1);"
                             class="header-logo-img">
                         <h1 style="font-size: 1.8rem;" class="main-title">Actividades Diarias 2026</h1>
                     </div>
@@ -1420,7 +1422,16 @@
                         </div>
 
                         <div class="activity-form" id="activityForm">
-                            <div id="activityListContainer" class="activity-list">
+                            <div class="activity-header-ribbon admin-only"
+                                style="background: var(--accent); color: white; padding: 10px 20px; border-radius: 12px 12px 0 0; display: flex; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: -1px; gap: 15px;">
+                                <div style="flex: 1;">Fecha: <span id="ribbonDate" style="color: #4c0519;">-</span>
+                                </div>
+                                <div style="flex: 3;">Descripción</div>
+                                <div style="flex: 1; text-align: center;">Estatus</div>
+                                <div style="flex: 1; text-align: center;">Requerimientos</div>
+                            </div>
+                            <div id="activityListContainer" class="activity-list"
+                                style="border: 1px solid var(--border); border-top: none; border-radius: 0 0 16px 16px; padding: 20px; background: rgba(15, 23, 42, 0.2);">
                                 <!-- Activities will be rendered here -->
                             </div>
 
@@ -1952,6 +1963,8 @@
             }
 
             document.getElementById('selectedDateLabel').textContent = dateStr;
+            const ribbonDate = document.getElementById('ribbonDate');
+            if (ribbonDate) ribbonDate.textContent = dateStr;
             const container = document.getElementById('activityListContainer');
             container.innerHTML = '';
 
@@ -2252,7 +2265,7 @@
                 doc.setFontSize(11);
                 doc.setFont("helvetica", "normal");
                 doc.setTextColor(235, 235, 235);
-                doc.text("Dirección General de Administración", 14, 29);
+                doc.text("Subcoordinación de Adquisiciones y Control Patrimonial", 14, 29);
 
                 // Línea decorativa
                 doc.setFillColor(255, 255, 255);
@@ -2262,16 +2275,10 @@
                 const logoImg = document.querySelector('.brand img');
                 if (logoImg) {
                     try {
-                        // Aura de contraste: neblina blanca ultra-sutil para "levantar" el logo del fondo
-                        doc.saveGraphicsState();
+                        // Fondo blanco sólido para el logo - Mejora visibilidad sobre el fondo guinda
                         doc.setFillColor(255, 255, 255);
-                        for (let i = 1; i <= 3; i++) {
-                            doc.setGState(new doc.GState({ opacity: 0.04 }));
-                            doc.roundedRect(160 - i, 10 - (i / 2), 38 + (i * 2), 10 + i, 3, 3, 'F');
-                        }
-                        doc.restoreGraphicsState();
-
-                        // Dibujado del logo sobre el aura
+                        doc.roundedRect(158, 8, 42, 14, 2, 2, 'F');
+                        // Dibujado del logo sobre el fondo blanco
                         doc.addImage(logoImg, 'PNG', 160, 10, 38, 10);
                     } catch (e) {
                         console.warn("Logo error:", e);
@@ -2393,7 +2400,7 @@
                 head: [['FECHA', 'DESCRIPCIÓN', 'ESTATUS', 'REQUERIMIENTOS']],
                 body: dataRows,
                 styles: { fontSize: 9, cellPadding: 4 },
-                headStyles: { fillColor: colorSecondary, textColor: 255, halign: 'center' },
+                headStyles: { fillColor: [212, 175, 55], textColor: 255, halign: 'center' },
                 columnStyles: {
                     0: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
                     1: { cellWidth: 'auto' },
@@ -3131,11 +3138,12 @@
             pdf.setFillColor(colorGuinda[0], colorGuinda[1], colorGuinda[2]);
             pdf.rect(0, 0, 297, 30, 'F');
 
-            // Logo institutional (sin fondo blanco, posicionado a la izquierda)
+            // Logo institutional con fondo blanco para contraste
             const logoImg = document.querySelector('.brand img');
             if (logoImg) {
                 try {
-                    // El logo se coloca en la esquina izquierda con un tamaño prudente
+                    pdf.setFillColor(255, 255, 255);
+                    pdf.roundedRect(10, 4, 46, 15, 2, 2, 'F');
                     pdf.addImage(logoImg, 'PNG', 12, 6, 42, 11);
                 } catch (e) { console.error("Logo error", e); }
             }
@@ -3145,9 +3153,9 @@
             pdf.setFont("helvetica", "bold");
             pdf.text("ESTADÍSTICAS DE DESEMPEÑO", 65, 18);
 
-            pdf.setFontSize(11);
+            pdf.setFontSize(10);
             pdf.setFont("helvetica", "normal");
-            pdf.text("Control Patrimonial", 65, 25);
+            pdf.text("Subcoordinación de Adquisiciones y Control Patrimonial", 65, 25);
 
             // Título dinámico a la derecha
             pdf.setFontSize(14);
