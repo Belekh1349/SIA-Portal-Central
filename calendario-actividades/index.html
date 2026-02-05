@@ -1284,6 +1284,7 @@
                 <div id="adminBadge" class="admin-badge badge-visitor">
                     <i class="fa-solid fa-eye"></i> Modo Visitante
                 </div>
+                <div style="font-size: 0.5rem; opacity: 0.4; margin-top: 5px;">Build: 2026.02.04.v3.5.2</div>
             </div>
 
             <div class="nav-section">
@@ -1791,7 +1792,10 @@
         let supervisingUserData = null;
 
         // Storage Keys - Ahora dinámicas por usuario
-        const STORAGE_KEY_PROFILE = 'sia_daily_activities_profile_v1';
+        function getProfileKey() {
+            const name = currentUser ? currentUser.nombre : 'Usuario_SIA';
+            return `sia_profile_${name.replace(/[\/.\s]/g, '_')}`;
+        }
         function getRecordsKey() {
             const name = currentUser ? currentUser.nombre : 'Usuario_SIA';
             return `sia_records_${name.replace(/[\/.\s]/g, '_')}`;
@@ -1908,6 +1912,15 @@
                     };
                     localStorage.setItem('sia_user_session', JSON.stringify(currentUser));
 
+                    // Asegurar que el perfil local esté sincronizado con Firestore al entrar
+                    const profileKey = getProfileKey();
+                    const currentProfile = JSON.parse(localStorage.getItem(profileKey) || '{}');
+                    localStorage.setItem(profileKey, JSON.stringify({
+                        ...currentProfile,
+                        servidor: userData.nombre,
+                        area: userData.area || 'General'
+                    }));
+
                     // Limpiar cualquier residuo de sesión previa
                     document.getElementById('daysGrid').innerHTML = '';
 
@@ -1975,33 +1988,33 @@
         }
 
         async function loadSupervisionList() {
-            console.log("Iniciando carga de lista de supervisión...");
+            console.log("CARGA CRÍTICA: Iniciando consulta de usuarios en Firestore...");
             const select = document.getElementById('superviseSelect');
             if (!select) return;
 
             try {
-                // Forzar lectura de la colección de usuarios
-                const snapshot = await db.collection('usuarios_sia').orderBy('nombre').get();
+                const snapshot = await db.collection('usuarios_sia').get();
+                console.log("Firestore respondió: " + snapshot.size + " documentos encontrados.");
 
                 select.innerHTML = '<option value="">-- Seleccionar Usuario --</option>';
-                if (snapshot.empty) {
-                    console.log("No hay otros usuarios registrados aún.");
-                    return;
-                }
 
                 snapshot.forEach(doc => {
                     const uData = doc.data();
-                    console.log("Evaluando usuario para supervisión:", uData.nombre);
-                    if (uData.nombre && uData.nombre !== currentUser.nombre) {
+                    const uName = (uData.nombre || "").trim();
+                    const currentName = (currentUser ? currentUser.nombre : "").trim();
+
+                    console.log(`Evaluando: [${uName}] vs Actual: [${currentName}]`);
+
+                    if (uName && uName !== currentName) {
                         const opt = document.createElement('option');
-                        opt.value = uData.nombre;
-                        opt.textContent = uData.nombre;
+                        opt.value = uName;
+                        opt.textContent = uName;
                         select.appendChild(opt);
                     }
                 });
-                console.log("Lista de supervisión actualizada. Usuarios: " + snapshot.size);
+                console.log("Lista de supervisión reconstruida.");
             } catch (error) {
-                console.error("Error crítico loading supervision:", error);
+                console.error("Error FATAL cargando lista de supervisión:", error);
             }
         }
 
@@ -2691,7 +2704,7 @@
 
         function getProfile() {
             try {
-                const data = localStorage.getItem(STORAGE_KEY_PROFILE);
+                const data = localStorage.getItem(getProfileKey());
                 return JSON.parse(data || '{}');
             } catch (e) {
                 return {};
@@ -2700,6 +2713,7 @@
 
         function migrateLegacyData() {
             const newKey = getRecordsKey();
+            const profKey = getProfileKey();
             // Migrar desde llaves antiguas si la nueva está vacía
             if (!localStorage.getItem(newKey) && localStorage.getItem('sia_daily_activities_records_v1')) {
                 const legacyData = localStorage.getItem('sia_daily_activities_records_v1');
@@ -2708,8 +2722,8 @@
                     console.log("Datos locales migrados al nuevo sistema multiusuario.");
                 }
             }
-            if (!localStorage.getItem(STORAGE_KEY_PROFILE) && localStorage.getItem(OLD_STORAGE_KEY_PROFILE)) {
-                localStorage.setItem(STORAGE_KEY_PROFILE, localStorage.getItem(OLD_STORAGE_KEY_PROFILE));
+            if (!localStorage.getItem(profKey) && localStorage.getItem('sia_daily_activities_profile_v1')) {
+                localStorage.setItem(profKey, localStorage.getItem('sia_daily_activities_profile_v1'));
             }
         }
 
@@ -2729,23 +2743,11 @@
                 apiKey: document.getElementById('geminiKey').value,
                 sheetsUrl: document.getElementById('sheetsUrl').value
             };
-            localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
+            localStorage.setItem(getProfileKey(), JSON.stringify(profile));
 
             // Reiniciar sincronización si cambió el servidor
             if (profile.servidor !== oldProfile.servidor) {
                 initFirebaseSync();
-            }
-
-            // Si se detecta una nueva URL y el dispositivo no tiene registros, sugerir descargar
-            if (profile.sheetsUrl && profile.sheetsUrl !== oldProfile.sheetsUrl) {
-                const records = getRecords();
-                if (Object.keys(records).length === 0) {
-                    setTimeout(() => {
-                        if (confirm("Se detectó una URL de Google Sheets. ¿Deseas descargar los registros existentes en la nube para este dispositivo?")) {
-                            pullFromSheets();
-                        }
-                    }, 500);
-                }
             }
         }
 
@@ -2776,7 +2778,7 @@
 
                 if (data && data.records) {
                     // Guardar registros
-                    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(data.records));
+                    localStorage.setItem(getRecordsKey(), JSON.stringify(data.records));
 
                     // Restaurar perfil (nombre y área) si existen en la nube y no tenemos locales
                     if (data.profile) {
@@ -2787,7 +2789,7 @@
                             area: localProfile.area || data.profile.area || '',
                             apiKey: localProfile.apiKey || data.profile.apiKey || ''
                         };
-                        localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(updatedProfile));
+                        localStorage.setItem(getProfileKey(), JSON.stringify(updatedProfile));
                     }
 
                     showLoading(false);
@@ -2919,8 +2921,8 @@
                 reader.onload = readerEvent => {
                     try {
                         const content = JSON.parse(readerEvent.target.result);
-                        localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(content.records));
-                        localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(content.profile));
+                        localStorage.setItem(getRecordsKey(), JSON.stringify(content.records));
+                        localStorage.setItem(getProfileKey(), JSON.stringify(content.profile));
                         location.reload();
                     } catch (err) {
                         alert("Error al importar el archivo.");
@@ -2933,8 +2935,8 @@
 
         function clearAllData() {
             if (confirm("¿Estás seguro de borrar todos los datos permanentemente?")) {
-                localStorage.removeItem(STORAGE_KEY_RECORDS);
-                localStorage.removeItem(STORAGE_KEY_PROFILE);
+                localStorage.removeItem(getRecordsKey());
+                localStorage.removeItem(getProfileKey());
                 location.reload();
             }
         }
