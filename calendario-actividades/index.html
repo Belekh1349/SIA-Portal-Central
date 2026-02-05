@@ -1348,20 +1348,20 @@
             <div class="nav-section">
 
                 <span class="nav-label">Herramientas</span>
-                <button class="nav-btn admin-only" onclick="exportData()">
+                <button class="nav-btn" onclick="exportData()">
                     <i class="fa-solid fa-file-export"></i>
                     Respaldar Datos
                 </button>
-                <button class="nav-btn admin-only" onclick="importData()">
+                <button class="nav-btn" onclick="importData()">
                     <i class="fa-solid fa-file-import"></i>
                     Restaurar Datos
                 </button>
-                <button class="nav-btn btn-cloud admin-only" id="syncFirebaseBtn" onclick="syncAllToFirebase()"
+                <button class="nav-btn btn-cloud" id="syncFirebaseBtn" onclick="syncAllToFirebase()"
                     style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     Sincronizar Todo (Firebase)
                 </button>
-                <button class="nav-btn admin-only" style="color: #ef4444;" onclick="clearAllData()">
+                <button class="nav-btn" style="color: #ef4444;" onclick="clearAllData()">
                     <i class="fa-solid fa-trash-can"></i>
                     Borrar Todo
                 </button>
@@ -1410,8 +1410,8 @@
                     </button>
                     <div class="admin-only" style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;">
                     </div>
-                    <button id="btn-config-top" class="admin-only" onclick="openCloudModal()"
-                        title="Configuración de Nube" style="color: var(--accent);">
+                    <button id="btn-config-top" onclick="openCloudModal()" title="Configuración de Nube"
+                        style="color: var(--accent);">
                         <i class="fa-solid fa-gears"></i>
                     </button>
                 </div>
@@ -1419,18 +1419,18 @@
 
             <div id="main-panel" class="app-section">
                 <!-- Configuration Section -->
-                <section class="user-config admin-only">
+                <section class="user-config">
                     <div class="input-field">
                         <label for="servidorPublico"><i class="fa-solid fa-user"></i> Servidor Público</label>
-                        <input type="text" id="servidorPublico" placeholder="Nombre completo" onchange="saveProfile()">
+                        <input type="text" id="servidorPublico" placeholder="Nombre completo" onchange="saveProfile()"
+                            disabled>
                     </div>
                     <div class="input-field">
                         <label for="areaAdscripcion"><i class="fa-solid fa-building-user"></i> Área o
                             Departamento</label>
                         <input type="text" id="areaAdscripcion" placeholder="Área de adscripción"
-                            onchange="saveProfile()">
+                            onchange="saveProfile()" disabled>
                     </div>
-                    <!-- Los botones se movieron a la barra superior para mayor comodidad -->
                 </section>
 
                 <!-- Calendar Section -->
@@ -1474,7 +1474,7 @@
                         </div>
 
                         <div class="activity-form" id="activityForm">
-                            <div class="activity-header-ribbon admin-only"
+                            <div class="activity-header-ribbon"
                                 style="background: var(--accent); color: white; padding: 10px 20px; border-radius: 12px 12px 0 0; display: flex; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: -1px; gap: 15px;">
                                 <div style="flex: 1;">Fecha: <span id="ribbonDate" style="color: #4c0519;">-</span>
                                 </div>
@@ -1487,8 +1487,8 @@
                                 <!-- Activities will be rendered here -->
                             </div>
 
-                            <button class="btn btn-outline admin-only" style="width: 100%; border-style: dashed;"
-                                onclick="addActivityRow()">
+                            <button id="addActivityBtn" class="btn btn-outline"
+                                style="width: 100%; border-style: dashed;" onclick="addActivityRow()">
                                 <i class="fa-solid fa-plus"></i> Agregar Actividad
                             </button>
 
@@ -1517,7 +1517,7 @@
                                 </button>
                             </div>
 
-                            <div class="btn-group admin-only" style="margin-top: 20px;">
+                            <div id="saveActionsGroup" class="btn-group" style="margin-top: 20px;">
                                 <button class="btn btn-primary" style="flex: 2;" onclick="saveActivity()">
                                     <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios del Día
                                 </button>
@@ -1978,19 +1978,31 @@
 
         async function loadSupervisionList() {
             const select = document.getElementById('superviseSelect');
+            if (!select) return;
+
             try {
-                const snapshot = await usersCol.orderBy('nombre').get();
-                select.innerHTML = '<option value="">-- Seleccionar --</option>';
+                // Forzar lectura fresca de Firebase para la lista de usuarios
+                const snapshot = await db.collection('usuarios_sia').orderBy('nombre').get();
+
+                select.innerHTML = '<option value="">-- Seleccionar Usuario --</option>';
+                if (snapshot.empty) {
+                    console.warn("No se encontraron otros usuarios en Firebase.");
+                    return;
+                }
+
                 snapshot.forEach(doc => {
-                    if (doc.data().nombre !== currentUser.nombre) {
+                    const uData = doc.data();
+                    // No mostrarse a sí mismo en la lista
+                    if (uData.nombre !== currentUser.nombre) {
                         const opt = document.createElement('option');
-                        opt.value = doc.data().nombre;
-                        opt.textContent = doc.data().nombre;
+                        opt.value = uData.nombre;
+                        opt.textContent = uData.nombre;
                         select.appendChild(opt);
                     }
                 });
+                console.log("Lista de supervisión cargada con", snapshot.size, "usuarios.");
             } catch (error) {
-                console.error("Error cargando lista:", error);
+                console.error("Error cargando lista de supervisión:", error);
             }
         }
 
@@ -3099,6 +3111,11 @@
             document.getElementById('servidorPublico').value = `REVISANDO: ${userName}`;
             document.getElementById('areaAdscripcion').value = "MODO SUPERVISIÓN";
 
+            // Ocultar botones de edición mientras supervisa
+            document.getElementById('addActivityBtn').style.display = 'none';
+            document.getElementById('saveActionsGroup').style.display = 'none';
+            document.getElementById('improveBtn').style.display = 'none';
+
             initFirebaseSync();
             alert(`Cargando registros de: ${userName}`);
         }
@@ -3136,19 +3153,24 @@
 
             if (active) {
                 body.classList.remove('visitor-mode');
+                body.classList.add('admin-mode');
                 badge.className = 'admin-badge badge-admin';
                 badge.innerHTML = '<i class="fa-solid fa-user-shield"></i> Administrador';
-                loginBtnText.textContent = "Cerrar Sesión";
-                loginBtnIcon.className = "fa-solid fa-right-from-bracket";
-                document.getElementById('loginBtn').onclick = logout;
+
+                // Mostrar panel de supervisión
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             } else {
                 body.classList.add('visitor-mode');
+                body.classList.remove('admin-mode');
                 badge.className = 'admin-badge badge-visitor';
                 badge.innerHTML = '<i class="fa-solid fa-eye"></i> Modo Usuario';
-                loginBtnText.textContent = "Cerrar Sesión";
-                loginBtnIcon.className = "fa-solid fa-right-from-bracket";
-                document.getElementById('loginBtn').onclick = logout;
+
+                // Ocultar panel de supervisión
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             }
+            loginBtnText.textContent = "Cerrar Sesión";
+            loginBtnIcon.className = "fa-solid fa-right-from-bracket";
+            document.getElementById('loginBtn').onclick = logout;
         }
 
         // Charts Logic
