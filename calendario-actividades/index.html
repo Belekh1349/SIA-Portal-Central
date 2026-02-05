@@ -213,6 +213,56 @@
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
+        /* Auth Modal Styles */
+        .auth-modal {
+            background: rgba(15, 23, 42, 0.95) !important;
+            backdrop-filter: blur(20px) !important;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .auth-logo {
+            width: 120px;
+            margin: 0 auto 24px;
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+        }
+
+        .auth-switch {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .auth-switch a {
+            color: var(--accent);
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .user-tag {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 4px 12px;
+            border-radius: 24px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -1265,16 +1315,18 @@
                 </button>
             </div>
 
-            <div class="nav-section visitor-only">
-                <span class="nav-label">Supervisión</span>
+            <div class="nav-section admin-only">
+                <span class="nav-label">Panel de Supervisión</span>
                 <div class="input-field" style="padding: 0 12px;">
-                    <label style="font-size: 0.65rem; color: var(--text-dim);"><i
-                            class="fa-solid fa-magnifying-glass"></i> Servidor a Supervisar:</label>
-                    <input type="text" id="superviseUser" placeholder="Nombre completo..."
-                        onchange="supervise(this.value)"
-                        style="padding: 8px 12px; font-size: 0.85rem; background: rgba(255,255,255,0.05) !important; border: 1px solid var(--border); margin-top: 5px;">
-                    <p style="font-size: 0.6rem; color: var(--text-dim); margin-top: 5px; line-height: 1.2;">
-                        Escribe el nombre del colaborador para ver sus registros en tiempo real.
+                    <label style="font-size: 0.65rem; color: var(--text-dim);"><i class="fa-solid fa-users"></i>
+                        Seleccionar Usuario:</label>
+                    <select id="superviseSelect" onchange="supervise(this.value)"
+                        style="padding: 10px; font-size: 0.85rem; background: rgba(255,255,255,0.05) !important; border: 1px solid var(--border); margin-top: 5px; cursor: pointer; border-radius: 10px; width: 100%;">
+                        <option value="">-- Seleccionar --</option>
+                    </select>
+                    <p style="font-size: 0.6rem; color: var(--text-dim); margin-top: 8px; line-height: 1.3;">
+                        <i class="fa-solid fa-circle-info"></i> Selecciona un usuario para revisar su calendario y
+                        generar reportes.
                     </p>
                 </div>
             </div>
@@ -1622,6 +1674,9 @@
                             <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i>
                             <span>Historial de Registros</span>
                         </div>
+                        <div id="viewingUserBadge" style="display: none;" class="user-tag">
+                            <i class="fa-solid fa-user"></i> Viendo a: <span id="viewingUserName"></span>
+                        </div>
                     </div>
                     <div id="historyList"
                         style="display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 10px;">
@@ -1660,41 +1715,49 @@
         </div>
     </div>
 
-    <div class="modal" id="cloudConfigModal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="font-size: 1.5rem; color: var(--primary);"><i class="fa-solid fa-cloud"></i> Configuración de
-                    Nube</h2>
-                <button class="btn btn-outline" style="padding: 8px;" onclick="closeCloudModal()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="input-field" style="margin-bottom: 20px;">
-                <label for="geminiKey"><i class="fa-solid fa-key"></i> Google Gemini API Key</label>
-                <input type="password" id="geminiKey" placeholder="Pega tu API Key..." onchange="saveProfile()">
-                <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Para el asistente de IA y
-                    resúmenes automáticos.</p>
-            </div>
-            <div class="input-field" style="margin-bottom: 20px;">
-                <label for="sheetsUrl"><i class="fa-solid fa-database"></i> URL Google Sheets (Apps Script)</label>
-                <input type="password" id="sheetsUrl" placeholder="https://script.google.com/macros/s/..."
-                    onchange="saveProfile()">
-                <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Para sincronizar registros entre
-                    dispositivos.</p>
-            </div>
-            <div
-                style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                <div
-                    style="display: flex; align-items: center; gap: 10px; color: #10b981; font-weight: 700; font-size: 0.85rem; margin-bottom: 5px;">
-                    <i class="fa-solid fa-cloud-check"></i> Firebase SIA-CONTROL Activo
+    <div class="modal auth-modal" id="authModal">
+        <div class="auth-card">
+            <img src="header_logo.png" alt="SIA" class="auth-logo">
+            <h2 id="authTitle" style="color: var(--primary); margin-bottom: 8px;">Bienvenido</h2>
+            <p id="authSubtitle" style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 24px;">Ingresa para
+                gestionar tus actividades.</p>
+
+            <div id="loginForm">
+                <div class="input-field" style="margin-bottom: 16px; text-align: left;">
+                    <label>Usuario / Nombre</label>
+                    <input type="text" id="loginUser" placeholder="Nombre completo">
                 </div>
-                <p style="font-size: 0.75rem; color: var(--text-dim);">Tus actividades se sincronizan automáticamente en
-                    tiempo real con la base de datos central de SIA.</p>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="closeCloudModal()" style="width: 100%;">
-                    <i class="fa-solid fa-check"></i> Guardar y Cerrar
+                <div class="input-field" style="margin-bottom: 24px; text-align: left;">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPass" placeholder="••••••••">
+                </div>
+                <button class="btn btn-primary" onclick="handleLogin()" style="width: 100%;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
                 </button>
+                <div class="auth-switch">
+                    ¿Eres nuevo? <a onclick="toggleAuthMode('register')">Regístrate</a>
+                </div>
+            </div>
+
+            <div id="registerForm" style="display: none;">
+                <div class="input-field" style="margin-bottom: 16px; text-align: left;">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="regUser" placeholder="Ej. Juan Pérez">
+                </div>
+                <div class="input-field" style="margin-bottom: 16px; text-align: left;">
+                    <label>Área o Departamento</label>
+                    <input type="text" id="regArea" placeholder="Ej. Control Patrimonial">
+                </div>
+                <div class="input-field" style="margin-bottom: 24px; text-align: left;">
+                    <label>Contraseña</label>
+                    <input type="password" id="regPass" placeholder="Elige una clave">
+                </div>
+                <button class="btn btn-primary" onclick="handleRegister()" style="width: 100%; background: #8b5cf6;">
+                    <i class="fa-solid fa-user-plus"></i> Crear Cuenta
+                </button>
+                <div class="auth-switch">
+                    ¿Ya tienes cuenta? <a onclick="toggleAuthMode('login')">Inicia sesión</a>
+                </div>
             </div>
         </div>
     </div>
@@ -1721,6 +1784,7 @@
         }
         const db = firebase.firestore();
         const activitiesCol = db.collection('actividades_diarias');
+        const usersCol = db.collection('usuarios_sia');
 
         // Data & State
         let currentYear = 2026;
@@ -1730,6 +1794,8 @@
         let aiReportMode = 'institucional';
         let weeklyChart = null;
         let monthlyChart = null;
+        let currentUser = null;
+        let supervisingUser = null;
 
         // Storage Keys (Actualizadas para evitar colisiones con otras versiones de la app)
         const STORAGE_KEY_RECORDS = 'sia_daily_activities_records_v1';
@@ -1767,19 +1833,11 @@
 
         // Initialize App
         document.addEventListener('DOMContentLoaded', () => {
-            // Cargar estado de administrador si existe en la sesión actual
-            const savedAdmin = sessionStorage.getItem('is_admin_active');
-            if (savedAdmin === 'true') {
-                setAdminUI(true);
-            } else {
-                setAdminUI(false);
-            }
-
+            checkAuth();
             migrateLegacyData();
             loadProfile();
             updateDateDisplay();
 
-            // Set default selected date to today (local)
             const today = new Date();
             const dateStr = formatDate(today);
             currentMonth = today.getMonth();
@@ -1792,6 +1850,136 @@
 
             selectDay(dateStr);
         });
+
+        function checkAuth() {
+            const session = localStorage.getItem('sia_user_session');
+            if (session) {
+                currentUser = JSON.parse(session);
+                document.getElementById('authModal').classList.remove('active');
+
+                // Actualizar UI con datos del usuario
+                document.getElementById('servidorPublico').value = currentUser.nombre;
+                document.getElementById('areaAdscripcion').value = currentUser.area;
+
+                // Si es admin, cargar la lista de supervisión
+                if (currentUser.admin) {
+                    setAdminUI(true);
+                    loadSupervisionList();
+                } else {
+                    setAdminUI(false);
+                }
+
+                initFirebaseSync();
+            } else {
+                document.getElementById('authModal').classList.add('active');
+            }
+        }
+
+        function toggleAuthMode(mode) {
+            document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('authTitle').textContent = mode === 'login' ? 'Bienvenido' : 'Crear Cuenta';
+            document.getElementById('authSubtitle').textContent = mode === 'login' ? 'Ingresa para gestionar tus actividades.' : 'Regístrate para vincular tus reportes.';
+        }
+
+        async function handleLogin() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            if (!user || !pass) return alert("Completa todos los campos.");
+
+            showLoading(true, "Verificando...");
+
+            try {
+                const snapshot = await usersCol.where('nombre', '==', user).get();
+                if (snapshot.empty) {
+                    showLoading(false);
+                    return alert("Usuario no encontrado.");
+                }
+
+                const userData = snapshot.docs[0].data();
+                if (userData.password === pass) {
+                    currentUser = {
+                        id: snapshot.docs[0].id,
+                        nombre: userData.nombre,
+                        area: userData.area,
+                        admin: userData.rol === 'admin'
+                    };
+                    localStorage.setItem('sia_user_session', JSON.stringify(currentUser));
+                    checkAuth();
+                    showLoading(false);
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    showLoading(false);
+                    alert("Contraseña incorrecta.");
+                }
+            } catch (error) {
+                console.error(error);
+                showLoading(false);
+                alert("Error de conexión.");
+            }
+        }
+
+        async function handleRegister() {
+            const user = document.getElementById('regUser').value.trim();
+            const area = document.getElementById('regArea').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+
+            if (!user || !area || !pass) return alert("Todos los campos son obligatorios.");
+
+            showLoading(true, "Creando cuenta...");
+
+            try {
+                const exists = await usersCol.where('nombre', '==', user).get();
+                if (!exists.empty) {
+                    showLoading(false);
+                    return alert("Este nombre ya está registrado. Si es tuyo, inicia sesión.");
+                }
+
+                await usersCol.add({
+                    nombre: user,
+                    area: area,
+                    password: pass,
+                    rol: (user === 'David' || user === 'Administrador') ? 'admin' : 'usuario',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showLoading(false);
+                alert("¡Cuenta creada con éxito! Ahora puedes iniciar sesión.");
+                toggleAuthMode('login');
+            } catch (error) {
+                console.error(error);
+                showLoading(false);
+                alert("Error al registrar.");
+            }
+        }
+
+        function logout() {
+            if (confirm("¿Cerrar sesión?")) {
+                localStorage.removeItem('sia_user_session');
+                // Limpiar caché local para que no se mezcle con el siguiente usuario
+                localStorage.removeItem(STORAGE_KEY_RECORDS);
+                location.reload();
+            }
+        }
+
+        async function loadSupervisionList() {
+            const select = document.getElementById('superviseSelect');
+            try {
+                const snapshot = await usersCol.orderBy('nombre').get();
+                select.innerHTML = '<option value="">-- Seleccionar --</option>';
+                snapshot.forEach(doc => {
+                    if (doc.data().nombre !== currentUser.nombre) {
+                        const opt = document.createElement('option');
+                        opt.value = doc.data().nombre;
+                        opt.textContent = doc.data().nombre;
+                        select.appendChild(opt);
+                    }
+                });
+            } catch (error) {
+                console.error("Error cargando lista:", error);
+            }
+        }
 
         function updateDateDisplay() {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -2755,9 +2943,6 @@
             const savedTheme = localStorage.getItem('sia-theme') || localStorage.getItem('theme_preference') || 'dark';
             applyTheme(savedTheme);
 
-            // Iniciar sincronización de Firebase
-            initFirebaseSync();
-
             // Forzar z-index y visibilidad de modales
             document.querySelectorAll('.modal').forEach(m => m.style.zIndex = "10000");
         });
@@ -2766,15 +2951,24 @@
         let firebaseUnsubscribe = null;
 
         function initFirebaseSync() {
-            const profile = getProfile();
-            const servidor = profile.servidor || 'Usuario_SIA';
+            const targetUser = supervisingUser || (currentUser ? currentUser.nombre : 'Usuario_SIA');
 
             if (firebaseUnsubscribe) firebaseUnsubscribe();
 
-            console.log("Iniciando sincronización Firebase para:", servidor);
+            console.log("Sincronización Cloud para:", targetUser);
+
+            // Actualizar el badge de "viendo a"
+            const userBadge = document.getElementById('viewingUserBadge');
+            const userNameSpan = document.getElementById('viewingUserName');
+            if (supervisingUser) {
+                userBadge.style.display = 'inline-flex';
+                userNameSpan.textContent = supervisingUser;
+            } else {
+                userBadge.style.display = 'none';
+            }
 
             firebaseUnsubscribe = activitiesCol
-                .where('servidor', '==', servidor)
+                .where('servidor', '==', targetUser)
                 .onSnapshot(snapshot => {
                     let cloudRecords = {};
                     snapshot.forEach(doc => {
@@ -2784,52 +2978,51 @@
                         }
                     });
 
-                    // Mezclar con datos locales
-                    if (Object.keys(cloudRecords).length > 0) {
+                    // Mezclar con datos locales solo si no estamos supervisando
+                    if (!supervisingUser) {
                         const localRecords = getRecords();
                         const merged = { ...localRecords, ...cloudRecords };
                         localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(merged));
-
-                        // Refrescar UI sin recargar página
-                        renderCalendar();
-                        updateStats();
-                        updateCharts();
-                        updateHistory();
-                        if (selectedDate) renderDayDetail(selectedDate);
+                    } else {
+                        // En modo supervisión, solo mostramos lo de la nube
+                        localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(cloudRecords));
                     }
+
+                    // Refrescar UI
+                    renderCalendar();
+                    updateStats();
+                    updateCharts();
+                    updateHistory();
+                    if (selectedDate) renderDayDetail(selectedDate);
                 }, error => {
-                    console.error("Error en onSnapshot de Firebase:", error);
+                    console.error("Error Firebase:", error);
                 });
         }
 
         async function syncActivityToCloud(date, activities) {
-            const profile = getProfile();
-            const servidor = profile.servidor || 'Usuario_SIA';
-            // Validar que el servidor no sea el default para evitar mezcla de datos
-            if (servidor === 'Usuario_SIA') return;
+            const targetUser = currentUser ? currentUser.nombre : 'Usuario_SIA';
+            if (targetUser === 'Usuario_SIA' || supervisingUser) return; // No guardar si supervisa o es default
 
-            const docId = `${servidor}_${date}`.replace(/[\/.\s]/g, '_');
+            const docId = `${targetUser}_${date}`.replace(/[\/.\s]/g, '_');
 
             try {
                 await activitiesCol.doc(docId).set({
-                    servidor: servidor,
+                    servidor: targetUser,
                     date: date,
                     activities: activities,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                console.log("Sincronizado con Firebase:", date);
             } catch (error) {
-                console.error("Error sincronizando con Firebase:", error);
+                console.error("Error Cloud Save:", error);
             }
         }
 
         async function syncAllToFirebase() {
             const records = getRecords();
-            const profile = getProfile();
-            const servidor = profile.servidor;
+            const targetUser = currentUser ? currentUser.nombre : null;
 
-            if (!servidor || servidor === 'Usuario_SIA') {
-                alert("Por favor, configura tu nombre de 'Servidor Público' en el perfil antes de sincronizar.");
+            if (!targetUser) {
+                alert("Debes iniciar sesión para sincronizar historial.");
                 return;
             }
 
@@ -2875,20 +3068,27 @@
         }
 
         function supervise(userName) {
-            if (!userName) return;
+            if (!userName) {
+                supervisingUser = null;
+                // Al quitar supervisión, volvemos a mostrar los datos locales del usuario logueado
+                const session = localStorage.getItem('sia_user_session');
+                if (session) {
+                    const originalUser = JSON.parse(session);
+                    document.getElementById('servidorPublico').value = originalUser.nombre;
+                    document.getElementById('areaAdscripcion').value = originalUser.area;
+                }
+                initFirebaseSync();
+                return;
+            }
 
-            const profile = getProfile();
-            profile.servidor = userName;
-            localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
+            supervisingUser = userName;
 
-            // Forzar recarga de sincronización con el nuevo nombre
+            // Simular el perfil del usuario supervisado en los inputs (solo visual)
+            document.getElementById('servidorPublico').value = `REVISANDO: ${userName}`;
+            document.getElementById('areaAdscripcion').value = "MODO SUPERVISIÓN";
+
             initFirebaseSync();
-
-            // Limpiar registros locales actuales para evitar confusiones hasta que bajen los nuevos
-            localStorage.removeItem(STORAGE_KEY_RECORDS);
-
-            alert(`Sincronizando actividades de: ${userName}`);
-            renderCalendar();
+            alert(`Cargando registros de: ${userName}`);
         }
 
         // Admin Mode Logic
@@ -2928,14 +3128,14 @@
                 badge.innerHTML = '<i class="fa-solid fa-user-shield"></i> Administrador';
                 loginBtnText.textContent = "Cerrar Sesión";
                 loginBtnIcon.className = "fa-solid fa-right-from-bracket";
-                sessionStorage.setItem('is_admin_active', 'true');
+                document.getElementById('loginBtn').onclick = logout;
             } else {
                 body.classList.add('visitor-mode');
                 badge.className = 'admin-badge badge-visitor';
-                badge.innerHTML = '<i class="fa-solid fa-eye"></i> Modo Visitante';
-                loginBtnText.textContent = "Acceso Administrador";
-                loginBtnIcon.className = "fa-solid fa-key";
-                sessionStorage.setItem('is_admin_active', 'false');
+                badge.innerHTML = '<i class="fa-solid fa-eye"></i> Modo Usuario';
+                loginBtnText.textContent = "Cerrar Sesión";
+                loginBtnIcon.className = "fa-solid fa-right-from-bracket";
+                document.getElementById('loginBtn').onclick = logout;
             }
         }
 
