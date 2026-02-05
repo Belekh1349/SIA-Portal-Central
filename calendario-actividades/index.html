@@ -1286,6 +1286,86 @@
         #historyList::-webkit-scrollbar {
             width: 6px;
         }
+
+        /* Dropdown Menu para Ajustes */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--bg-card);
+            min-width: 220px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            z-index: 1001;
+            margin-top: 8px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .dropdown.show .dropdown-content {
+            display: block;
+            animation: slideInDown 0.2s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .dropdown-item:hover {
+            background: var(--glass);
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        .dropdown-item.danger {
+            color: #ef4444;
+        }
+
+        .dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
     </style>
 </head>
 
@@ -1357,22 +1437,10 @@
             <div class="nav-section">
 
                 <span class="nav-label">Herramientas</span>
-                <button class="nav-btn" onclick="exportData()">
-                    <i class="fa-solid fa-file-export"></i>
-                    Respaldar Datos
-                </button>
-                <button class="nav-btn" onclick="importData()">
-                    <i class="fa-solid fa-file-import"></i>
-                    Restaurar Datos
-                </button>
                 <button class="nav-btn btn-cloud" id="syncFirebaseBtn" onclick="syncAllToFirebase()"
                     style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     Sincronizar Todo (Firebase)
-                </button>
-                <button class="nav-btn" style="color: #ef4444;" onclick="clearAllData()">
-                    <i class="fa-solid fa-trash-can"></i>
-                    Borrar Todo
                 </button>
                 <button class="nav-btn" id="loginBtn" onclick="toggleAdminMode()"
                     style="background: var(--glass); margin-top: 10px;">
@@ -1419,10 +1487,32 @@
                     </button>
                     <div class="admin-only" style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;">
                     </div>
-                    <button id="btn-config-top" onclick="openCloudModal()" title="Configuración de Nube"
-                        style="color: var(--accent);">
-                        <i class="fa-solid fa-gears"></i>
-                    </button>
+                    <div class="dropdown" id="configDropdown">
+                        <button id="btn-config-top" onclick="toggleConfigDropdown(event)" title="Ajustes y Herramientas"
+                            style="color: var(--accent);">
+                            <i class="fa-solid fa-gears"></i>
+                        </button>
+                        <div class="dropdown-content">
+                            <button class="dropdown-item" onclick="openCloudModal()">
+                                <i class="fa-solid fa-cloud"></i>
+                                Configurar Nube
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" onclick="exportData()">
+                                <i class="fa-solid fa-file-export"></i>
+                                Respaldar Datos
+                            </button>
+                            <button class="dropdown-item" onclick="importData()">
+                                <i class="fa-solid fa-file-import"></i>
+                                Restaurar Datos
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item danger" onclick="clearAllData()">
+                                <i class="fa-solid fa-trash-can"></i>
+                                Borrar Todo
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -1439,6 +1529,12 @@
                             Departamento</label>
                         <input type="text" id="areaAdscripcion" placeholder="Área de adscripción"
                             onchange="saveProfile()" disabled>
+                    </div>
+                    <div class="input-field" style="justify-content: flex-end; display: flex;">
+                        <button onclick="exitToPortal()" class="btn btn-outline"
+                            style="border-color: var(--primary); color: var(--primary); font-weight: 700;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Volver al Portal
+                        </button>
                     </div>
                 </section>
 
@@ -3510,6 +3606,20 @@
                 historyList.innerHTML = '<div style="text-align: center; color: var(--text-dim); padding: 40px;">No hay registros previos.</div>';
             }
         }
+
+        function toggleConfigDropdown(e) {
+            if (e) e.stopPropagation();
+            const dropdown = document.getElementById('configDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Cerrar dropdown al hacer click fuera
+        window.addEventListener('click', function (e) {
+            const dropdown = document.getElementById('configDropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         function toggleMobileMenu() {
             const aside = document.querySelector('aside');
