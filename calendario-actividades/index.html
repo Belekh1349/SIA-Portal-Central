@@ -159,7 +159,23 @@
             outline: none;
         }
 
-        /* Supervision Mode Restrictions (Viewing others) */
+        /* Fix visibility for Select Options */
+        select option {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+        }
+
+        #superviseSelect {
+            color: var(--text-main) !important;
+        }
+
+        #superviseSelect option {
+            background-color: #1e293b !important;
+            /* Dark constant to contrast with white text */
+            color: #ffffff !important;
+            padding: 10px;
+        }
+
         body.supervision-mode .restricted-during-supervision {
             display: none !important;
         }
@@ -1289,7 +1305,7 @@
 
             <div class="nav-section">
                 <span class="nav-label">Navegación</span>
-                <button class="nav-btn" onclick="window.location.href='../index.html'"
+                <button class="nav-btn" onclick="exitToPortal()"
                     style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; font-weight: 700;">
                     <i class="fa-solid fa-circle-left"></i>
                     Volver al Portal
@@ -1852,14 +1868,14 @@
         });
 
         function checkAuth() {
-            const session = localStorage.getItem('sia_user_session');
+            const session = sessionStorage.getItem('sia_user_session');
             if (session) {
                 currentUser = JSON.parse(session);
 
                 // Parche de seguridad: Asegurar que 'Gama' sea admin siempre
                 if (currentUser.nombre.toLowerCase().includes('gama') && !currentUser.admin) {
                     currentUser.admin = true;
-                    localStorage.setItem('sia_user_session', JSON.stringify(currentUser));
+                    sessionStorage.setItem('sia_user_session', JSON.stringify(currentUser));
                 }
 
                 document.getElementById('authModal').classList.remove('active');
@@ -1910,7 +1926,7 @@
                         area: userData.area,
                         admin: (userData.rol === 'admin' || userData.nombre.toLowerCase().includes('gama'))
                     };
-                    localStorage.setItem('sia_user_session', JSON.stringify(currentUser));
+                    sessionStorage.setItem('sia_user_session', JSON.stringify(currentUser));
 
                     // Asegurar que el perfil local esté sincronizado con Firestore al entrar
                     const profileKey = getProfileKey();
@@ -1979,12 +1995,14 @@
 
         function logout() {
             if (confirm("¿Cerrar sesión?")) {
-                const key = getRecordsKey();
-                localStorage.removeItem('sia_user_session');
-                // Limpiar caché local del usuario específico
-                localStorage.removeItem(key);
+                sessionStorage.removeItem('sia_user_session');
                 location.reload();
             }
+        }
+
+        function exitToPortal() {
+            sessionStorage.removeItem('sia_user_session');
+            window.location.href = '../index.html';
         }
 
         async function loadSupervisionList() {
