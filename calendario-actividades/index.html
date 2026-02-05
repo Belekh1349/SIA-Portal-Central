@@ -1312,7 +1312,7 @@
                 <div class="input-field" style="padding: 0 12px;">
                     <label style="font-size: 0.65rem; color: var(--text-dim);"><i class="fa-solid fa-users"></i>
                         Seleccionar Usuario:</label>
-                    <select id="superviseSelect" onchange="supervise(this.value)"
+                    <select id="superviseSelect" onchange="supervise(this.value)" onfocus="loadSupervisionList()"
                         style="padding: 10px; font-size: 0.85rem; background: rgba(255,255,255,0.05) !important; border: 1px solid var(--border); margin-top: 5px; cursor: pointer; border-radius: 10px; width: 100%;">
                         <option value="">-- Seleccionar --</option>
                     </select>
@@ -1788,6 +1788,7 @@
         let monthlyChart = null;
         let currentUser = null;
         let supervisingUser = null;
+        let supervisingUserData = null;
 
         // Storage Keys - Ahora dinámicas por usuario
         const STORAGE_KEY_PROFILE = 'sia_daily_activities_profile_v1';
@@ -1990,6 +1991,7 @@
 
                 snapshot.forEach(doc => {
                     const uData = doc.data();
+                    console.log("Evaluando usuario para supervisión:", uData.nombre);
                     if (uData.nombre && uData.nombre !== currentUser.nombre) {
                         const opt = document.createElement('option');
                         opt.value = uData.nombre;
@@ -2448,6 +2450,10 @@
             const profile = getProfile();
             const records = getRecords();
 
+            // Identidad del reporte (Supervisión vs Personal)
+            const reportName = supervisingUserData ? supervisingUserData.nombre : (profile.servidor || 'SIN NOMBRE');
+            const reportArea = supervisingUserData ? (supervisingUserData.area || 'GENERAL') : (profile.area || 'GENERAL');
+
             if (Object.keys(records).length === 0) {
                 alert("No hay registros para exportar.");
                 return;
@@ -2498,8 +2504,8 @@
                 doc.setTextColor(255);
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "bold");
-                doc.text(`PERSONAL: ${(profile.servidor || 'SIN NOMBRE').toUpperCase()}`, 14, 45);
-                doc.text(`ÁREA: ${(profile.area || 'GENERAL').toUpperCase()}`, 210 - 14, 45, { align: "right" });
+                doc.text(`PERSONAL: ${reportName.toUpperCase()}`, 14, 45);
+                doc.text(`ÁREA: ${reportArea.toUpperCase()}`, 210 - 14, 45, { align: "right" });
 
                 // Etiquetas de vista (Color Guinda solicitado)
                 const viewLabels = { 'daily': 'DIA', 'weekly': 'SEMANA', 'monthly': 'MES' };
@@ -3088,9 +3094,10 @@
             }
         }
 
-        function supervise(userName) {
+        async function supervise(userName) {
             if (!userName) {
                 supervisingUser = null;
+                supervisingUserData = null;
                 document.body.classList.remove('supervision-mode');
 
                 // Mostrar botones de edición
@@ -3111,8 +3118,18 @@
             supervisingUser = userName;
             document.body.classList.add('supervision-mode');
 
+            // Obtener datos completos del usuario supervisado para el reporte
+            try {
+                const snap = await usersCol.where('nombre', '==', userName).get();
+                if (!snap.empty) {
+                    supervisingUserData = snap.docs[0].data();
+                }
+            } catch (e) {
+                console.error("Error fetching supervised user data:", e);
+            }
+
             document.getElementById('servidorPublico').value = `REVISANDO: ${userName}`;
-            document.getElementById('areaAdscripcion').value = "MODO SUPERVISIÓN";
+            document.getElementById('areaAdscripcion').value = supervisingUserData ? supervisingUserData.area : "MODO SUPERVISIÓN";
 
             // Ocultar botones de edición mientras supervisa
             document.getElementById('addActivityBtn').style.display = 'none';
