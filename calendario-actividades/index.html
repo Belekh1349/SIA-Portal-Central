@@ -176,13 +176,17 @@
             padding: 10px;
         }
 
-        body.supervision-mode .restricted-during-supervision {
+        body.supervision-mode .restricted-during-supervision,
+        body.role-supervisor .restricted-during-supervision {
             display: none !important;
         }
 
         body.supervision-mode input,
         body.supervision-mode textarea,
-        body.supervision-mode select {
+        body.supervision-mode select,
+        body.role-supervisor .activity-form input,
+        body.role-supervisor .activity-form textarea,
+        body.role-supervisor .activity-form select {
             pointer-events: none !important;
             opacity: 0.8 !important;
         }
@@ -191,7 +195,9 @@
         body.supervision-mode .nav-btn,
         body.supervision-mode .report-section select,
         body.supervision-mode .stats-filter select,
-        body.supervision-mode #superviseSelect {
+        body.supervision-mode #superviseSelect,
+        body.role-supervisor .nav-btn,
+        body.role-supervisor .report-section select {
             pointer-events: auto !important;
             opacity: 1 !important;
         }
@@ -219,6 +225,101 @@
             background: rgba(16, 185, 129, 0.1);
             color: #10b981;
             border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-supervisor {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        /* Supervisor Notes Styles */
+        .supervisor-note-area {
+            background: rgba(251, 191, 36, 0.05);
+            border: 1.5px dashed var(--accent);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 25px;
+            position: relative;
+        }
+
+        .supervisor-note-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .note-bubble {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            border-left: 4px solid #ffeeba;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        body.light .note-bubble {
+            background: #fff9db;
+            color: #664d03;
+        }
+
+        .day-cell.has-note::after {
+            content: "\f075";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.6rem;
+            color: var(--accent);
+        }
+
+        /* Global Stats View */
+        .global-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .ranking-card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ranking-item:last-child {
+            border: none;
+        }
+
+        .ranking-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .ranking-value {
+            background: var(--primary);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
         }
 
         /* Auth Modal Styles */
@@ -1411,7 +1512,20 @@
                 </button>
             </div>
 
-            <div class="nav-section admin-only">
+            <div class="nav-section">
+                <span class="nav-label">General</span>
+                <button class="nav-btn active" onclick="showSection('main-panel', this)">
+                    <i class="fa-solid fa-house"></i> Dashboard
+                </button>
+                <button class="nav-btn" onclick="showSection('history-panel', this)">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial
+                </button>
+                <button class="nav-btn" onclick="showSection('stats-section', this)">
+                    <i class="fa-solid fa-chart-pie"></i> Estadísticas
+                </button>
+            </div>
+
+            <div class="nav-section admin-only" style="display: none;">
                 <span class="nav-label">Panel de Supervisión</span>
                 <div class="input-field" style="padding: 0 12px;">
                     <label style="font-size: 0.65rem; color: var(--text-dim);"><i class="fa-solid fa-users"></i>
@@ -1421,14 +1535,17 @@
                         <option value="">-- Seleccionar --</option>
                     </select>
                     <p style="font-size: 0.6rem; color: var(--text-dim); margin-top: 8px; line-height: 1.3;">
-                        <i class="fa-solid fa-circle-info"></i> Selecciona un usuario para revisar su calendario y
-                        generar reportes.
+                        <i class="fa-solid fa-circle-info"></i> Revisa el calendario y genera reportes de otros
+                        usuarios.
                     </p>
                 </div>
+                <button class="nav-btn" onclick="showSection('global-panel', this)"
+                    style="margin-top: 10px; border: 1px solid rgba(212, 175, 55, 0.3);">
+                    <i class="fa-solid fa-earth-americas" style="color: var(--accent);"></i> Panel Consolidado
+                </button>
             </div>
 
             <div class="nav-section">
-
                 <span class="nav-label">Sincronización Cloud</span>
                 <div class="nav-btn"
                     style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); cursor: default;">
@@ -1442,7 +1559,6 @@
             </div>
 
             <div class="nav-section">
-
                 <span class="nav-label">Herramientas</span>
                 <button class="nav-btn btn-cloud" id="syncFirebaseBtn" onclick="syncAllToFirebase()"
                     style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);">
@@ -1456,7 +1572,11 @@
                 </button>
             </div>
 
-            <div style="margin-top: auto;">
+            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+                <button class="nav-btn logout-btn" onclick="logout()"
+                    style="color: #ef4444; background: rgba(239, 68, 68, 0.1);">
+                    <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+                </button>
                 <a href="https://github.com/Belekh1349/SIA-Portal-Central" target="_blank" class="nav-btn"
                     style="background: var(--glass); opacity: 0.8; font-size: 0.8rem;">
                     <i class="fa-brands fa-github"></i>
@@ -1608,6 +1728,27 @@
                                 <button class="btn btn-outline" style="flex: 1;" onclick="clearActiveForm()">
                                     <i class="fa-solid fa-eraser"></i> Limpiar
                                 </button>
+                            </div>
+
+                            <!-- Supervisor Notes Area -->
+                            <div id="supervisorNoteSection" class="supervisor-note-area">
+                                <div class="supervisor-note-header">
+                                    <i class="fa-solid fa-comments"></i> Observaciones del Supervisor
+                                </div>
+                                <div id="existingNotesContainer" style="margin-bottom: 20px;">
+                                    <!-- Notes list here -->
+                                </div>
+
+                                <div class="admin-only"
+                                    style="display: none; border-top: 1px solid var(--border); padding-top: 15px;">
+                                    <textarea id="newSupervisorNote"
+                                        placeholder="Escribir una observación o retroalimentación técnica..."
+                                        style="width: 100%; height: 80px; padding: 12px; border-radius: 12px; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border); color: white; margin-bottom: 10px;"></textarea>
+                                    <button class="btn btn-primary" id="saveSupervisorNote"
+                                        onclick="saveSupervisorNote()" style="width: 100%; background: var(--accent);">
+                                        <i class="fa-solid fa-paper-plane"></i> Guardar Observación
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -1782,6 +1923,59 @@
                         <!-- History items will be injected here -->
                     </div>
                 </section>
+            </div>
+
+            <!-- Global Panel (Consolidado) -->
+            <div id="global-panel" class="app-section" style="display: none;">
+                <div class="header-info" style="margin-bottom: 30px;">
+                    <h2 style="font-size: 2rem; color: var(--accent); font-family: 'Outfit';">Panel Comparativo
+                        Consolidado</h2>
+                    <p>Análisis de desempeño de todo el personal registrado en el sistema.</p>
+                </div>
+
+                <div class="user-config" style="grid-template-columns: 1fr auto; align-items: center;">
+                    <div class="input-field">
+                        <label>Periodo de Análisis</label>
+                        <input type="month" id="globalMonthFilter" onchange="loadGlobalStats()">
+                    </div>
+                    <button class="btn btn-primary" onclick="loadGlobalStats()">
+                        <i class="fa-solid fa-arrows-rotate"></i> Actualizar Global
+                    </button>
+                </div>
+
+                <div class="global-stats-grid">
+                    <section class="ranking-card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Ranking de
+                                Registros</h3>
+                        </div>
+                        <div id="rankingListContainer">
+                            <!-- Ranking items will be injected here -->
+                            <p style="text-align: center; color: var(--text-dim); padding: 20px;">Cargando datos...</p>
+                        </div>
+                    </section>
+
+                    <section class="ranking-card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-chart-simple"
+                                    style="color: var(--primary);"></i>
+                                Actividades por Área</h3>
+                        </div>
+                        <div style="height: 300px;">
+                            <canvas id="globalAreaChart"></canvas>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="activity-card" style="margin-top: 30px;">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-bullseye" style="color: #10b981;"></i> KPI del
+                            Departamento</h3>
+                    </div>
+                    <div id="globalKpis" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                        <!-- KPIs will be injected here -->
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -2023,6 +2217,7 @@
                 // Parche de seguridad: Asegurar que 'Gama' sea admin siempre
                 if (currentUser.nombre.toLowerCase().includes('gama') && !currentUser.admin) {
                     currentUser.admin = true;
+                    currentUser.rol = 'admin';
                     sessionStorage.setItem('sia_user_session', JSON.stringify(currentUser));
                 }
 
@@ -2031,8 +2226,8 @@
                 document.getElementById('servidorPublico').value = currentUser.nombre;
                 document.getElementById('areaAdscripcion').value = currentUser.area;
 
-                if (currentUser.admin) {
-                    setAdminUI(true);
+                if (currentUser.admin || currentUser.rol === 'admin' || currentUser.rol === 'supervisor') {
+                    setAdminUI(true, currentUser.rol);
                     loadSupervisionList();
                 } else {
                     setAdminUI(false);
@@ -2072,11 +2267,11 @@
                         id: snapshot.docs[0].id,
                         nombre: userData.nombre,
                         area: userData.area,
-                        admin: (userData.rol === 'admin' || userData.nombre.toLowerCase().includes('gama'))
+                        rol: userData.rol || 'usuario',
+                        admin: (userData.rol === 'admin' || userData.nombre.toLowerCase().includes('gama') || userData.rol === 'supervisor')
                     };
                     sessionStorage.setItem('sia_user_session', JSON.stringify(currentUser));
 
-                    // Asegurar que el perfil local esté sincronizado con Firestore al entrar
                     const profileKey = getProfileKey();
                     const currentProfile = JSON.parse(localStorage.getItem(profileKey) || '{}');
                     localStorage.setItem(profileKey, JSON.stringify({
@@ -2085,7 +2280,6 @@
                         area: userData.area || 'General'
                     }));
 
-                    // Limpiar cualquier residuo de sesión previa
                     document.getElementById('daysGrid').innerHTML = '';
 
                     checkAuth();
@@ -2115,24 +2309,28 @@
                 const exists = await usersCol.where('nombre', '==', user).get();
                 if (!exists.empty) {
                     showLoading(false);
-                    return alert("Este nombre ya está registrado. Si es tuyo, inicia sesión.");
+                    return alert("Este nombre ya está registrado.");
                 }
 
                 // Whitelist de Administradores
-                const isAdmin = user.toLowerCase().includes('david') ||
-                    user.toLowerCase().includes('gama') ||
-                    user.toLowerCase() === 'administrador';
+                const lowerUser = user.toLowerCase();
+                let role = 'usuario';
+                if (lowerUser.includes('david') || lowerUser.includes('gama') || lowerUser === 'administrador') {
+                    role = 'admin';
+                } else if (lowerUser.includes('supervisor')) {
+                    role = 'supervisor';
+                }
 
                 await usersCol.add({
                     nombre: user,
                     area: area,
                     password: pass,
-                    rol: isAdmin ? 'admin' : 'usuario',
+                    rol: role,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
                 showLoading(false);
-                alert("¡Cuenta creada con éxito! Ahora puedes iniciar sesión.");
+                alert("¡Cuenta creada! Inicia sesión.");
                 toggleAuthMode('login');
             } catch (error) {
                 console.error(error);
@@ -2233,17 +2431,20 @@
                 const isToday = formatDate(new Date()) === dateStr;
                 const isHoliday = holidays[dateStr];
                 const isVacation = vacations[dateStr];
-                const hasNote = records[dateStr];
+
+                const dayData = records[dateStr];
+                const hasActivities = dayData && (Array.isArray(dayData) ? dayData.length > 0 : (dayData.activities && dayData.activities.length > 0));
+                const hasSupervisorNotes = dayData && !Array.isArray(dayData) && dayData.notes && dayData.notes.length > 0;
 
                 const cell = document.createElement('div');
-                cell.className = `day-cell ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} ${isHoliday ? 'holiday' : ''} ${isVacation ? 'vacation' : ''} ${selectedDate === dateStr ? 'selected' : ''}`;
+                cell.className = `day-cell ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} ${isHoliday ? 'holiday' : ''} ${isVacation ? 'vacation' : ''} ${selectedDate === dateStr ? 'selected' : ''} ${hasSupervisorNotes ? 'has-note' : ''}`;
 
                 let content = `<div class="day-number">${day}</div>`;
                 if (isHoliday) content += `<div class="day-status">${holidays[dateStr]}</div>`;
                 else if (isVacation) content += `<div class="day-status">Vacaciones</div>`;
                 else if (isWeekend) content += `<div class="day-status">Descanso</div>`;
 
-                if (hasNote) content += `<div class="dot-indicator"></div>`;
+                if (hasActivities) content += `<div class="dot-indicator"></div>`;
 
                 cell.innerHTML = content;
                 cell.onclick = () => selectDay(dateStr);
@@ -2340,17 +2541,20 @@
         function selectDay(dateStr) {
             selectedDate = dateStr;
             const records = getRecords();
-            let rawRecord = records[dateStr] || [];
+            let rawData = records[dateStr] || [];
+            let rawRecord = [];
 
-            // Convertir formatos antiguos a array
-            if (!Array.isArray(rawRecord)) {
-                if (typeof rawRecord === 'string') {
-                    rawRecord = [{ text: rawRecord, status: 'Pendiente', reqs: 'Ninguno' }];
-                } else if (typeof rawRecord === 'object' && rawRecord.text) {
-                    rawRecord = [{ text: rawRecord.text, status: rawRecord.status || 'Pendiente', reqs: rawRecord.reqs || 'Ninguno' }];
-                } else {
-                    rawRecord = [];
-                }
+            // Manejar formato híbrido {activities: [], notes: []} o formato antiguo [{}, {}]
+            if (Array.isArray(rawData)) {
+                rawRecord = rawData;
+            } else if (typeof rawData === 'object' && rawData.activities) {
+                rawRecord = rawData.activities;
+                // Si hay notas en el objeto, las renderizamos directamente
+                if (rawData.notes) renderNotes(rawData.notes);
+            } else if (typeof rawData === 'string') {
+                rawRecord = [{ text: rawData, status: 'Pendiente', reqs: 'Ninguno' }];
+            } else if (typeof rawData === 'object' && rawData.text) {
+                rawRecord = [{ text: rawData.text, status: rawData.status || 'Pendiente', reqs: rawData.reqs || 'Ninguno' }];
             }
 
             document.getElementById('selectedDateLabel').textContent = dateStr;
@@ -2372,6 +2576,19 @@
             if (isHoliday) dayInfo.textContent = `Día no laborable: ${isHoliday}`;
             else if (isVacation) dayInfo.textContent = `Periodo vacacional`;
             else dayInfo.textContent = `Día laboral`;
+
+            // Cargar notas desde Firestore
+            const targetUser = supervisingUser || (currentUser ? currentUser.nombre : 'Usuario_SIA');
+            const docId = `${targetUser}_${dateStr}`.replace(/[\\/.\s]/g, '_');
+
+            activitiesCol.doc(docId).get().then(snap => {
+                if (snap.exists) {
+                    const data = snap.data();
+                    renderNotes(data.notes || []);
+                } else {
+                    renderNotes([]);
+                }
+            });
 
             renderCalendar();
         }
@@ -3171,20 +3388,24 @@
                     let cloudRecords = {};
                     snapshot.forEach(doc => {
                         const data = doc.data();
-                        if (data.date && data.activities) {
-                            cloudRecords[data.date] = data.activities;
+                        if (data.date) {
+                            // Almacenamos un objeto híbrido que selectDay sabrá manejar
+                            cloudRecords[data.date] = {
+                                activities: data.activities || [],
+                                notes: data.notes || []
+                            };
                         }
                     });
 
                     // Mezclar con datos locales solo si no estamos supervisando
                     if (!supervisingUser) {
                         const localRecords = getRecords();
+                        // Al mezclar, priorizamos lo que viene de la nube pero mantenemos 
+                        // el formato híbrido para los días detectados
                         const merged = { ...localRecords, ...cloudRecords };
                         localStorage.setItem(getRecordsKey(), JSON.stringify(merged));
                     } else {
-                        // En modo supervisión, no afectamos el localStorage del usuario actual
-                        // Se podría usar una memoria volátil, pero para propósitos de renderizado
-                        // usaremos la llave de records temporalmente mientras dure el onSnapshot
+                        // En modo supervisión, solo mostramos lo del supervisado
                         localStorage.setItem(getRecordsKey(), JSON.stringify(cloudRecords));
                     }
 
@@ -3268,21 +3489,28 @@
         }
 
         async function supervise(userName) {
+            const sectionsToHide = ['addActivityBtn', 'saveActionsGroup', 'improveBtn', 'newSupervisorNote'];
+
             if (!userName) {
                 supervisingUser = null;
                 supervisingUserData = null;
                 document.body.classList.remove('supervision-mode');
 
-                // Mostrar botones de edición
-                document.getElementById('addActivityBtn').style.display = 'block';
-                document.getElementById('saveActionsGroup').style.display = 'flex';
-                document.getElementById('improveBtn').style.display = 'block';
+                // Mostrar botones de edición si el usuario real NO es supervisor
+                const isRealSupervisor = currentUser && currentUser.rol === 'supervisor';
 
-                const session = localStorage.getItem('sia_user_session');
+                if (!isRealSupervisor) {
+                    document.getElementById('addActivityBtn').style.display = 'block';
+                    document.getElementById('saveActionsGroup').style.display = 'flex';
+                    document.getElementById('improveBtn').style.display = 'block';
+                }
+
+                const session = sessionStorage.getItem('sia_user_session');
                 if (session) {
                     const originalUser = JSON.parse(session);
                     document.getElementById('servidorPublico').value = originalUser.nombre;
                     document.getElementById('areaAdscripcion').value = originalUser.area;
+                    document.querySelector('.admin-only').style.display = (originalUser.admin || originalUser.rol === 'admin' || originalUser.rol === 'supervisor') ? 'block' : 'none';
                 }
                 initFirebaseSync();
                 return;
@@ -3309,60 +3537,54 @@
             document.getElementById('saveActionsGroup').style.display = 'none';
             document.getElementById('improveBtn').style.display = 'none';
 
+            // El bloque de notas solo es para el ADMIN/SUPERVISOR real
+            const noteForm = document.querySelector('#supervisorNoteSection .admin-only');
+            if (noteForm) noteForm.style.display = 'block';
+
             initFirebaseSync();
         }
 
-        // Admin Mode Logic
-        let isAdmin = false;
-        const ADMIN_PASSWORD = 'Gam@502';
-
         function toggleAdminMode() {
-            if (isAdmin) {
-                if (confirm("¿Cerrar sesión de administrador?")) {
-                    setAdminUI(false);
+            if (currentUser && (currentUser.admin || currentUser.rol === 'supervisor')) {
+                if (confirm("¿Cerrar sesión actual?")) {
+                    logout();
                 }
             } else {
-                const pass = prompt("Introduce la clave de administrador:");
-                if (pass === ADMIN_PASSWORD) {
-                    setAdminUI(true);
-                    confetti({
-                        particleCount: 100,
-                        spread: 70,
-                        origin: { y: 0.6 }
-                    });
-                } else if (pass !== null) {
-                    alert("Clave incorrecta.");
-                }
+                document.getElementById('authModal').classList.add('active');
             }
         }
 
-        function setAdminUI(active) {
+        function setAdminUI(active, role = 'admin') {
             const body = document.body;
-            const badge = document.getElementById('userRoleBadge'); // Asegurar ID correcto
-            const fallbackBadge = document.getElementById('adminBadge'); // Fallback por si acaso
-            const targetBadge = badge || fallbackBadge;
+            const badge = document.getElementById('userRoleBadge') || document.getElementById('adminBadge');
 
             const loginBtnText = document.getElementById('loginBtnText');
             const loginBtnIcon = document.querySelector('#loginBtn i');
 
             if (active) {
-                body.classList.add('admin-mode');
-                if (targetBadge) {
-                    targetBadge.className = 'admin-badge badge-admin';
-                    targetBadge.innerHTML = '<i class="fa-solid fa-user-shield"></i> Administrador';
+                body.classList.add(role === 'supervisor' ? 'role-supervisor' : 'admin-mode');
+                if (badge) {
+                    if (role === 'supervisor') {
+                        badge.className = 'admin-badge badge-supervisor';
+                        badge.innerHTML = '<i class="fa-solid fa-user-check"></i> Supervisor';
+                    } else {
+                        badge.className = 'admin-badge badge-admin';
+                        badge.innerHTML = '<i class="fa-solid fa-user-shield"></i> Administrador';
+                    }
                 }
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             } else {
-                body.classList.remove('admin-mode');
-                if (targetBadge) {
-                    targetBadge.className = 'admin-badge badge-visitor';
-                    targetBadge.innerHTML = '<i class="fa-solid fa-user"></i> Usuario Estándar';
+                body.classList.remove('admin-mode', 'role-supervisor');
+                if (badge) {
+                    badge.className = 'admin-badge badge-visitor';
+                    badge.innerHTML = '<i class="fa-solid fa-user"></i> Usuario Estándar';
                 }
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             }
-            if (loginBtnText) loginBtnText.textContent = "Cerrar Sesión";
-            if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-right-from-bracket";
-            document.getElementById('loginBtn').onclick = logout;
+
+            if (loginBtnText) {
+                loginBtnText.textContent = active ? "Sesión Activa" : "Modo Administrador";
+            }
         }
 
         // Charts Logic
@@ -3687,6 +3909,171 @@
             aside.classList.toggle('mobile-active');
             overlay.classList.toggle('active');
         }
+        // Supervisor & Stats New Functions
+        function renderNotes(notes) {
+            const container = document.getElementById('existingNotesContainer');
+            if (!notes || notes.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim); font-size: 0.8rem; font-style: italic;">Sin observaciones para este día.</p>';
+                return;
+            }
+
+            container.innerHTML = notes.map(n => `
+                <div class="note-bubble">
+                    <div style="font-weight: 800; font-size: 0.7rem; margin-bottom: 4px;">DE: ${n.author}</div>
+                    <div>${n.text}</div>
+                    <div style="text-align: right; font-size: 0.6rem; opacity: 0.7; margin-top: 5px;">${new Date(n.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        async function saveSupervisorNote() {
+            if (!selectedDate || !supervisingUser) return alert("Selecciona un usuario y un día primero.");
+            const noteText = document.getElementById('newSupervisorNote').value.trim();
+            if (!noteText) return alert("Escribe algo en la nota.");
+
+            showLoading(true, "Guardando observación...");
+
+            try {
+                const targetUser = supervisingUser;
+                const docId = `${targetUser}_${selectedDate}`.replace(/[\\/.\s]/g, '_');
+
+                const docRef = activitiesCol.doc(docId);
+                const snap = await docRef.get();
+
+                if (!snap.exists) {
+                    showLoading(false);
+                    return alert("No hay registros del usuario para este día. No se puede comentar.");
+                }
+
+                const data = snap.data();
+                const notes = data.notes || [];
+                notes.push({
+                    author: currentUser.nombre,
+                    text: noteText,
+                    timestamp: new Date().toISOString()
+                });
+
+                await docRef.update({ notes: notes });
+
+                document.getElementById('newSupervisorNote').value = '';
+                renderNotes(notes);
+                confetti({ particleCount: 50, spread: 50 });
+            } catch (error) {
+                console.error("Error saving note:", error);
+                alert("Error al guardar la nota.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        let globalChart = null;
+
+        async function loadGlobalStats() {
+            const monthInput = document.getElementById('globalMonthFilter');
+            if (!monthInput.value) {
+                const now = new Date();
+                monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            }
+
+            const monthPrefix = monthInput.value;
+            const rankingContainer = document.getElementById('rankingListContainer');
+            const kpiContainer = document.getElementById('globalKpis');
+
+            showLoading(true, "Consolidando datos globales...");
+
+            try {
+                const snapshot = await activitiesCol.get();
+                const usersSnap = await usersCol.get();
+
+                let userMap = {};
+                usersSnap.forEach(u => {
+                    const d = u.data();
+                    userMap[d.nombre] = d;
+                });
+
+                let summary = {};
+                let areaSummary = {};
+                let totalActivities = 0;
+                let activeUsers = new Set();
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.date && data.date.startsWith(monthPrefix)) {
+                        const name = data.servidor;
+                        const count = Array.isArray(data.activities) ? data.activities.length : 0;
+                        if (count > 0) {
+                            summary[name] = (summary[name] || 0) + count;
+                            totalActivities += count;
+                            activeUsers.add(name);
+
+                            const userArea = userMap[name] ? userMap[name].area : 'Sin Área';
+                            areaSummary[userArea] = (areaSummary[userArea] || 0) + count;
+                        }
+                    }
+                });
+
+                // Render Ranking
+                const sorted = Object.entries(summary).sort((a, b) => b[1] - a[1]);
+                rankingContainer.innerHTML = sorted.length ? sorted.map(([name, count]) => `
+                    <div class="ranking-item">
+                        <span class="ranking-name">${name}</span>
+                        <span class="ranking-value">${count} act.</span>
+                    </div>
+                `).join('') : '<p style="text-align: center; color: var(--text-dim); padding: 20px;">No hay datos para este mes.</p>';
+
+                // Render KPIs
+                kpiContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-info"><h4>Usuarios Activos</h4><div class="value">${activeUsers.size}</div></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info"><h4>Total Actividades</h4><div class="value">${totalActivities}</div></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info"><h4>Promedio/Usuario</h4><div class="value">${activeUsers.size ? (totalActivities / activeUsers.size).toFixed(1) : 0}</div></div>
+                    </div>
+                `;
+
+                // Render Chart
+                const ctx = document.getElementById('globalAreaChart').getContext('2d');
+                if (globalChart) globalChart.destroy();
+
+                globalChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(areaSummary),
+                        datasets: [{
+                            data: Object.values(areaSummary),
+                            backgroundColor: ['#d97706', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error loading global stats:", error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showSection(sectionId, btn) {
+            document.querySelectorAll('.app-section').forEach(s => s.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            if (sectionId === 'global-panel') loadGlobalStats();
+
+            // Cerrar menú móvil si está abierto
+            if (window.innerWidth < 768) toggleMobileMenu();
+        }
+
     </script>
 
 </html>
