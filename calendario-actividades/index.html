@@ -3869,15 +3869,25 @@
                     item.style.padding = '15px';
 
                     let contentSummary = "";
-                    let statusLabel = "Varios";
+                    let statusLabel = "N/A";
+                    let acts = [];
 
+                    // Extraer actividades según el formato
                     if (Array.isArray(rec)) {
-                        contentSummary = rec.map(r => `• ${r.text}`).join('\n');
-                        const statuses = [...new Set(rec.map(r => r.status))];
-                        statusLabel = statuses.length === 1 ? statuses[0] : "Mixed";
+                        acts = rec;
+                    } else if (typeof rec === 'object' && rec.activities) {
+                        acts = rec.activities;
+                    } else if (typeof rec === 'object' && rec.text) {
+                        acts = [rec];
+                    }
+
+                    if (acts.length > 0) {
+                        contentSummary = acts.map(r => `• ${r.text}`).join('\n');
+                        const statuses = [...new Set(acts.map(r => r.status))];
+                        statusLabel = statuses.length === 1 ? statuses[0] : "Mixto";
                     } else {
-                        contentSummary = typeof rec === 'string' ? rec : (rec.text || '');
-                        statusLabel = typeof rec === 'string' ? 'N/A' : (rec.status || 'Pendiente');
+                        contentSummary = "Sin detalles de actividades.";
+                        statusLabel = "Vacío";
                     }
 
                     item.innerHTML = `
