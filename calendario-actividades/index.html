@@ -159,31 +159,23 @@
             outline: none;
         }
 
-        /* Admin Mode Restrictions */
-        body.visitor-mode .admin-only {
+        /* Supervision Mode Restrictions (Viewing others) */
+        body.supervision-mode .restricted-during-supervision {
             display: none !important;
         }
 
-        body.visitor-mode .visitor-only {
-            display: block !important;
+        body.supervision-mode input,
+        body.supervision-mode textarea,
+        body.supervision-mode select {
+            pointer-events: none !important;
+            opacity: 0.8 !important;
         }
 
-        body:not(.visitor-mode) .visitor-only {
-            display: none !important;
-        }
-
-        body.visitor-mode input,
-        body.visitor-mode textarea,
-        body.visitor-mode select {
-            pointer-events: none;
-            opacity: 0.8;
-        }
-
-        body.visitor-mode .report-section input,
-        body.visitor-mode .report-section select,
-        body.visitor-mode .stats-filter input,
-        body.visitor-mode .stats-filter select,
-        body.visitor-mode #superviseUser {
+        /* Essential navigation stays active */
+        body.supervision-mode .nav-btn,
+        body.supervision-mode .report-section select,
+        body.supervision-mode .stats-filter select,
+        body.supervision-mode #superviseSelect {
             pointer-events: auto !important;
             opacity: 1 !important;
         }
@@ -1858,13 +1850,18 @@
             const session = localStorage.getItem('sia_user_session');
             if (session) {
                 currentUser = JSON.parse(session);
+
+                // Parche de seguridad: Asegurar que 'Gama' sea admin siempre
+                if (currentUser.nombre.toLowerCase().includes('gama') && !currentUser.admin) {
+                    currentUser.admin = true;
+                    localStorage.setItem('sia_user_session', JSON.stringify(currentUser));
+                }
+
                 document.getElementById('authModal').classList.remove('active');
 
-                // Actualizar UI con datos del usuario
                 document.getElementById('servidorPublico').value = currentUser.nombre;
                 document.getElementById('areaAdscripcion').value = currentUser.area;
 
-                // Si es admin, cargar la lista de supervisión
                 if (currentUser.admin) {
                     setAdminUI(true);
                     loadSupervisionList();
@@ -1977,32 +1974,32 @@
         }
 
         async function loadSupervisionList() {
+            console.log("Iniciando carga de lista de supervisión...");
             const select = document.getElementById('superviseSelect');
             if (!select) return;
 
             try {
-                // Forzar lectura fresca de Firebase para la lista de usuarios
+                // Forzar lectura de la colección de usuarios
                 const snapshot = await db.collection('usuarios_sia').orderBy('nombre').get();
 
                 select.innerHTML = '<option value="">-- Seleccionar Usuario --</option>';
                 if (snapshot.empty) {
-                    console.warn("No se encontraron otros usuarios en Firebase.");
+                    console.log("No hay otros usuarios registrados aún.");
                     return;
                 }
 
                 snapshot.forEach(doc => {
                     const uData = doc.data();
-                    // No mostrarse a sí mismo en la lista
-                    if (uData.nombre !== currentUser.nombre) {
+                    if (uData.nombre && uData.nombre !== currentUser.nombre) {
                         const opt = document.createElement('option');
                         opt.value = uData.nombre;
                         opt.textContent = uData.nombre;
                         select.appendChild(opt);
                     }
                 });
-                console.log("Lista de supervisión cargada con", snapshot.size, "usuarios.");
+                console.log("Lista de supervisión actualizada. Usuarios: " + snapshot.size);
             } catch (error) {
-                console.error("Error cargando lista de supervisión:", error);
+                console.error("Error crítico loading supervision:", error);
             }
         }
 
@@ -3094,7 +3091,13 @@
         function supervise(userName) {
             if (!userName) {
                 supervisingUser = null;
-                // Al quitar supervisión, volvemos a mostrar los datos locales del usuario logueado
+                document.body.classList.remove('supervision-mode');
+
+                // Mostrar botones de edición
+                document.getElementById('addActivityBtn').style.display = 'block';
+                document.getElementById('saveActionsGroup').style.display = 'flex';
+                document.getElementById('improveBtn').style.display = 'block';
+
                 const session = localStorage.getItem('sia_user_session');
                 if (session) {
                     const originalUser = JSON.parse(session);
@@ -3106,8 +3109,8 @@
             }
 
             supervisingUser = userName;
+            document.body.classList.add('supervision-mode');
 
-            // Simular el perfil del usuario supervisado en los inputs (solo visual)
             document.getElementById('servidorPublico').value = `REVISANDO: ${userName}`;
             document.getElementById('areaAdscripcion').value = "MODO SUPERVISIÓN";
 
@@ -3117,7 +3120,6 @@
             document.getElementById('improveBtn').style.display = 'none';
 
             initFirebaseSync();
-            alert(`Cargando registros de: ${userName}`);
         }
 
         // Admin Mode Logic
@@ -3145,31 +3147,31 @@
         }
 
         function setAdminUI(active) {
-            isAdmin = active;
             const body = document.body;
-            const badge = document.getElementById('adminBadge');
+            const badge = document.getElementById('userRoleBadge'); // Asegurar ID correcto
+            const fallbackBadge = document.getElementById('adminBadge'); // Fallback por si acaso
+            const targetBadge = badge || fallbackBadge;
+
             const loginBtnText = document.getElementById('loginBtnText');
             const loginBtnIcon = document.querySelector('#loginBtn i');
 
             if (active) {
-                body.classList.remove('visitor-mode');
                 body.classList.add('admin-mode');
-                badge.className = 'admin-badge badge-admin';
-                badge.innerHTML = '<i class="fa-solid fa-user-shield"></i> Administrador';
-
-                // Mostrar panel de supervisión
+                if (targetBadge) {
+                    targetBadge.className = 'admin-badge badge-admin';
+                    targetBadge.innerHTML = '<i class="fa-solid fa-user-shield"></i> Administrador';
+                }
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             } else {
-                body.classList.add('visitor-mode');
                 body.classList.remove('admin-mode');
-                badge.className = 'admin-badge badge-visitor';
-                badge.innerHTML = '<i class="fa-solid fa-eye"></i> Modo Usuario';
-
-                // Ocultar panel de supervisión
+                if (targetBadge) {
+                    targetBadge.className = 'admin-badge badge-visitor';
+                    targetBadge.innerHTML = '<i class="fa-solid fa-user"></i> Usuario Estándar';
+                }
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             }
-            loginBtnText.textContent = "Cerrar Sesión";
-            loginBtnIcon.className = "fa-solid fa-right-from-bracket";
+            if (loginBtnText) loginBtnText.textContent = "Cerrar Sesión";
+            if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-right-from-bracket";
             document.getElementById('loginBtn').onclick = logout;
         }
 
