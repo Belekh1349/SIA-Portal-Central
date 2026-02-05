@@ -903,6 +903,36 @@
         }
 
         /* Stats & Reports */
+        .stats-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            padding: 15px 25px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stats-filter {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .stats-filter input {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            cursor: pointer;
+        }
+
         .stats-panel {
             display: flex;
             flex-direction: column;
@@ -1355,7 +1385,14 @@
                 <div id="adminBadge" class="admin-badge badge-visitor">
                     <i class="fa-solid fa-eye"></i> Modo Visitante
                 </div>
-                <div style="font-size: 0.5rem; opacity: 0.4; margin-top: 5px;">Build: 2026.02.04.v3.5.2</div>
+                <div style="font-size: 0.5rem; opacity: 0.4; margin-top: 5px;">Build: 2026.02.05.v3.5.3</div>
+            </div>
+
+            <!-- Supervision Global Indicator Header -->
+            <div id="viewingUserBadge" class="admin-badge badge-admin"
+                style="display: none; margin: 10px 24px; font-size: 0.7rem; gap: 8px; background: rgba(139, 92, 246, 0.2); border-color: #8b5cf6;">
+                <i class="fa-solid fa-user-shield"></i> Revisando a: <span id="viewingUserName"
+                    style="font-weight: 800; color: #fff;"></span>
             </div>
 
             <div class="nav-section">
@@ -1657,6 +1694,16 @@
                             <i class="fa-solid fa-file-pdf"></i> PDF
                         </button>
                     </div>
+                    <button class="btn"
+                        style="padding: 12px 24px; font-size: 0.9rem; background: #d4af37; color: #4c0519; border-radius: 12px; font-weight: 800; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); border: none; cursor: pointer; transition: all 0.2s;"
+                        onclick="updateCharts()" title="Actualizar Estadísticas">
+                        <i class="fa-solid fa-arrows-rotate"></i> ACTUALIZAR ESTADÍSTICAS
+                    </button>
+                    <!-- Badge de Supervisión en Estadísticas -->
+                    <div id="statsViewingBadge"
+                        style="display: none; border: 1px solid var(--accent); background: rgba(212, 175, 55, 0.1); color: var(--accent); padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-user-shield"></i> Supervisando a: <span id="statsViewingName"></span>
+                    </div>
                     <div class="stats-filter">
                         <label><i class="fa-solid fa-calendar-days"></i> Mes:</label>
                         <input type="month" id="statsMonthFilter" onchange="updateCharts()" title="Seleccionar mes">
@@ -1699,6 +1746,11 @@
                         <div class="card-title">
                             <i class="fa-solid fa-list-check" style="color: var(--accent);"></i>
                             <span>Resumen de Cumplimiento</span>
+                            <button class="nav-arrow" onclick="updateCharts()"
+                                style="margin-left: 10px; width: 30px; height: 30px; font-size: 0.7rem;"
+                                title="Refrescar">
+                                <i class="fa-solid fa-sync"></i>
+                            </button>
                         </div>
                         <div class="stats-filter"
                             style="margin: 0; background: var(--bg-dark); border: 1px solid var(--border); padding: 4px 8px; border-radius: 10px;">
@@ -1897,12 +1949,14 @@
 
         // Storage Keys - Ahora dinámicas por usuario
         function getProfileKey() {
-            const name = currentUser ? currentUser.nombre : 'Usuario_SIA';
-            return `sia_profile_${name.replace(/[\/.\s]/g, '_')}`;
+            const name = supervisingUser || (currentUser ? currentUser.nombre : 'Usuario_SIA');
+            const prefix = supervisingUser ? 'sia_sup_profile_' : 'sia_profile_';
+            return `${prefix}${name.replace(/[\/.\s]/g, '_')}`;
         }
         function getRecordsKey() {
-            const name = currentUser ? currentUser.nombre : 'Usuario_SIA';
-            return `sia_records_${name.replace(/[\/.\s]/g, '_')}`;
+            const name = supervisingUser || (currentUser ? currentUser.nombre : 'Usuario_SIA');
+            const prefix = supervisingUser ? 'sia_sup_records_' : 'sia_records_';
+            return `${prefix}${name.replace(/[\/.\s]/g, '_')}`;
         }
         const OLD_STORAGE_KEY_RECORDS = 'admin_flow_records_v1';
         const OLD_STORAGE_KEY_PROFILE = 'admin_flow_profile_v1';
@@ -1943,17 +1997,22 @@
             currentMonth = today.getMonth();
             currentYear = today.getFullYear();
 
+            const savedTheme = localStorage.getItem('sia-theme') || localStorage.getItem('theme_preference') || 'dark';
+            applyTheme(savedTheme);
+
             checkAuth();
             migrateLegacyData();
             loadProfile();
             updateDateDisplay();
-
             renderCalendar();
-            updateStats();
             initCharts();
+            updateCharts();
             updateHistory();
 
             selectDay(dateStr);
+
+            // Forzar z-index y visibilidad de modales
+            document.querySelectorAll('.modal').forEach(m => m.style.zIndex = "10000");
         });
 
         function checkAuth() {
@@ -2995,7 +3054,13 @@
 
         function updateStats() {
             const records = getRecords();
-            document.getElementById('statsCount').textContent = Object.keys(records).length;
+            const countEl = document.getElementById('statsCount');
+            if (countEl) countEl.textContent = Object.keys(records).length;
+
+            // Actualizar resumen en la sección de estadísticas si está visible
+            if (document.getElementById('stats-section').style.display !== 'none') {
+                updateCharts();
+            }
             updateHistory();
         }
 
@@ -3072,14 +3137,7 @@
             }
         }
 
-        // Cargar tema e iniciar Firebase al inicio
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('sia-theme') || localStorage.getItem('theme_preference') || 'dark';
-            applyTheme(savedTheme);
-
-            // Forzar z-index y visibilidad de modales
-            document.querySelectorAll('.modal').forEach(m => m.style.zIndex = "10000");
-        });
+        // Note: Consolidado en el listener inicial de DOMContentLoaded
 
         // --- FUNCIONES DE FIREBASE ---
         let firebaseUnsubscribe = null;
@@ -3094,11 +3152,17 @@
             // Actualizar el badge de "viendo a"
             const userBadge = document.getElementById('viewingUserBadge');
             const userNameSpan = document.getElementById('viewingUserName');
+            const statsBadge = document.getElementById('statsViewingBadge');
+            const statsNameSpan = document.getElementById('statsViewingName');
+
             if (supervisingUser) {
-                userBadge.style.display = 'inline-flex';
-                userNameSpan.textContent = supervisingUser;
+                if (userBadge) userBadge.style.display = 'inline-flex';
+                if (userNameSpan) userNameSpan.textContent = supervisingUser;
+                if (statsBadge) statsBadge.style.display = 'inline-flex';
+                if (statsNameSpan) statsNameSpan.textContent = supervisingUser;
             } else {
-                userBadge.style.display = 'none';
+                if (userBadge) userBadge.style.display = 'none';
+                if (statsBadge) statsBadge.style.display = 'none';
             }
 
             firebaseUnsubscribe = activitiesCol
@@ -3126,7 +3190,7 @@
 
                     // Refrescar UI
                     renderCalendar();
-                    updateStats();
+                    // updateStats(); // Removido por redundancia/error de referencia
                     updateCharts();
                     updateHistory();
                     if (selectedDate) renderDayDetail(selectedDate);
@@ -3303,8 +3367,14 @@
 
         // Charts Logic
         function initCharts() {
-            const ctxWeekly = document.getElementById('weeklyChart').getContext('2d');
-            const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+            if (weeklyChart || monthlyChart) return;
+
+            const weeklyCanvas = document.getElementById('weeklyChart');
+            const monthlyCanvas = document.getElementById('monthlyChart');
+            if (!weeklyCanvas || !monthlyCanvas) return;
+
+            const ctxWeekly = weeklyCanvas.getContext('2d');
+            const ctxMonthly = monthlyCanvas.getContext('2d');
 
             const commonOptions = {
                 responsive: true,
@@ -3344,10 +3414,10 @@
             monthlyChart = new Chart(ctxMonthly, {
                 type: 'bar',
                 data: {
-                    labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5'],
+                    labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6'],
                     datasets: [{
                         label: 'Actividades',
-                        data: [0, 0, 0, 0, 0],
+                        data: [0, 0, 0, 0, 0, 0],
                         backgroundColor: '#8b5cf6',
                         borderRadius: 8
                     }]
@@ -3357,7 +3427,10 @@
         }
 
         function updateCharts() {
-            if (!weeklyChart || !monthlyChart) return;
+            if (!weeklyChart || !monthlyChart) {
+                initCharts();
+                if (!weeklyChart || !monthlyChart) return;
+            }
 
             const records = getRecords();
             const weekVal = document.getElementById('statsWeekFilter').value;
@@ -3365,7 +3438,7 @@
             const summaryMonthVal = document.getElementById('summaryMonthFilter').value;
 
             // Colors based on theme
-            const isDark = !document.body.classList.contains('light-mode') && !document.body.classList.contains('sepia-mode');
+            const isDark = !document.body.classList.contains('light') && !document.body.classList.contains('sepia');
             const textColor = isDark ? '#94a3b8' : '#475569';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
 
@@ -3395,6 +3468,7 @@
                 const ds = formatDate(d);
                 if (records[ds]) {
                     const raw = records[ds];
+                    // Asegurar conteo correcto sin importar zona horaria al comparar
                     weeklyData[i] = Array.isArray(raw) ? raw.length : (typeof raw === 'string' ? raw.split('\n').length : 1);
                 }
             }
@@ -3418,14 +3492,14 @@
             }
 
             const firstOfMonth = new Date(targetYear, targetMonth, 1);
-            const monthlyData = [0, 0, 0, 0, 0];
+            const monthlyData = [0, 0, 0, 0, 0, 0];
             const monthPrefix = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`;
 
             Object.entries(records).forEach(([date, rec]) => {
-                const d = new Date(date);
                 if (date.startsWith(monthPrefix)) {
+                    const d = parseLocalDate(date);
                     const weekNum = Math.floor((d.getDate() - 1 + firstOfMonth.getDay()) / 7);
-                    if (weekNum < 5) {
+                    if (weekNum < 6) {
                         monthlyData[weekNum] += Array.isArray(rec) ? rec.length : 1;
                     }
                 }
