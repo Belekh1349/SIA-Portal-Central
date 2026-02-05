@@ -1796,8 +1796,8 @@
         const usersCol = db.collection('usuarios_sia');
 
         // Data & State
-        let currentYear = 2026;
-        let currentMonth = 0; // 0 = Jan
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
         let selectedDate = null;
         let aiMode = 'institucional';
         let aiReportMode = 'institucional';
@@ -1849,15 +1849,16 @@
 
         // Initialize App
         document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            migrateLegacyData();
-            loadProfile();
-            updateDateDisplay();
-
+            // Establecer fecha actual inmediatamente
             const today = new Date();
             const dateStr = formatDate(today);
             currentMonth = today.getMonth();
             currentYear = today.getFullYear();
+
+            checkAuth();
+            migrateLegacyData();
+            loadProfile();
+            updateDateDisplay();
 
             renderCalendar();
             updateStats();
