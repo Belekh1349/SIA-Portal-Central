@@ -1934,40 +1934,40 @@
             <!-- Global Panel (Consolidado) -->
             <div id="global-panel" class="app-section" style="display: none;">
                 <div class="header-info" style="margin-bottom: 30px;">
-                    <h2 style="font-size: 2rem; color: var(--accent); font-family: 'Outfit';">Panel Comparativo
+                    <h2 style="font-size: 2rem; color: var(--accent); font-family: 'Outfit';">Análisis de Desempeño
                         Consolidado</h2>
-                    <p>Análisis de desempeño de todo el personal registrado en el sistema.</p>
+                    <p>Comparativa detallada de actividades y productividad por usuario.</p>
                 </div>
 
-                <div class="user-config" style="grid-template-columns: 1fr auto; align-items: center;">
+                <div class="user-config"
+                    style="grid-template-columns: 1fr auto; align-items: center; margin-bottom: 25px;">
                     <div class="input-field">
-                        <label>Periodo de Análisis</label>
+                        <label>Seleccionar Mes a Evaluar</label>
                         <input type="month" id="globalMonthFilter" onchange="loadGlobalStats()">
                     </div>
                     <button class="btn btn-primary" onclick="loadGlobalStats()">
-                        <i class="fa-solid fa-arrows-rotate"></i> Actualizar Global
+                        <i class="fa-solid fa-arrows-rotate"></i> Recargar Datos
                     </button>
                 </div>
 
                 <div class="global-stats-grid">
                     <section class="ranking-card">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Ranking de
-                                Registros</h3>
+                            <h3 class="card-title"><i class="fa-solid fa-ranking-star" style="color: #f59e0b;"></i>
+                                Tabla de Posiciones</h3>
                         </div>
                         <div id="rankingListContainer">
-                            <!-- Ranking items will be injected here -->
-                            <p style="text-align: center; color: var(--text-dim); padding: 20px;">Cargando datos...</p>
+                            <p style="text-align: center; color: var(--text-dim); padding: 20px;">Cargando ranking...
+                            </p>
                         </div>
                     </section>
 
                     <section class="ranking-card">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fa-solid fa-chart-simple"
-                                    style="color: var(--primary);"></i>
-                                Actividades por Área</h3>
+                            <h3 class="card-title"><i class="fa-solid fa-chart-column"
+                                    style="color: var(--primary);"></i> Comparativa por Usuario</h3>
                         </div>
-                        <div style="height: 300px;">
+                        <div style="height: 350px;">
                             <canvas id="globalAreaChart"></canvas>
                         </div>
                     </section>
@@ -1975,11 +1975,12 @@
 
                 <div class="activity-card" style="margin-top: 30px;">
                     <div class="card-header">
-                        <h3 class="card-title"><i class="fa-solid fa-bullseye" style="color: #10b981;"></i> KPI del
-                            Departamento</h3>
+                        <h3 class="card-title"><i class="fa-solid fa-users-gear" style="color: #10b981;"></i> Desglose
+                            de Productividad por Servidor</h3>
                     </div>
-                    <div id="globalKpis" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-                        <!-- KPIs will be injected here -->
+                    <div id="globalKpis"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; padding: 10px;">
+                        <!-- KPIs rendered by JS -->
                     </div>
                 </div>
             </div>
@@ -3998,7 +3999,7 @@
                 });
 
                 let summary = {};
-                let areaSummary = {};
+                let dayCount = {};
                 let totalActivities = 0;
                 let activeUsers = new Set();
 
@@ -4012,8 +4013,8 @@
                             totalActivities += count;
                             activeUsers.add(name);
 
-                            const userArea = userMap[name] ? userMap[name].area : 'Sin Área';
-                            areaSummary[userArea] = (areaSummary[userArea] || 0) + count;
+                            if (!dayCount[name]) dayCount[name] = new Set();
+                            dayCount[name].add(data.date);
                         }
                     }
                 });
@@ -4025,38 +4026,72 @@
                         <span class="ranking-name">${name}</span>
                         <span class="ranking-value">${count} act.</span>
                     </div>
-                `).join('') : '<p style="text-align: center; color: var(--text-dim); padding: 20px;">No hay datos para este mes.</p>';
+                `).join('') : '<p style="text-align: center; color: var(--text-dim); padding: 20px;">Sin registros para evaluar.</p>';
 
-                // Render KPIs
-                kpiContainer.innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-info"><h4>Usuarios Activos</h4><div class="value">${activeUsers.size}</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-info"><h4>Total Actividades</h4><div class="value">${totalActivities}</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-info"><h4>Promedio/Usuario</h4><div class="value">${activeUsers.size ? (totalActivities / activeUsers.size).toFixed(1) : 0}</div></div>
-                    </div>
-                `;
+                // Render KPIs (Desglose por Usuario)
+                kpiContainer.innerHTML = sorted.length ? sorted.map(([name, count]) => {
+                    const days = dayCount[name] ? dayCount[name].size : 1;
+                    const avg = (count / days).toFixed(1);
+                    return `
+                        <div class="stat-card" style="padding: 15px; border-left: 4px solid var(--primary);">
+                            <div class="stat-info">
+                                <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px;">${name}</h4>
+                                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                    <div>
+                                        <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${count}</div>
+                                        <div style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase;">Total Act.</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent);">${avg}</div>
+                                        <div style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase;">Prom/Día</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('') : '<p style="padding: 20px; color: var(--text-dim);">Selecciona un periodo con datos registrados.</p>';
 
-                // Render Chart
+                // Render Chart (Comparativa por Usuario - Horizontal Bar)
                 const ctx = document.getElementById('globalAreaChart').getContext('2d');
                 if (globalChart) globalChart.destroy();
 
                 globalChart = new Chart(ctx, {
-                    type: 'doughnut',
+                    type: 'bar',
                     data: {
-                        labels: Object.keys(areaSummary),
+                        labels: sorted.map(s => s[0]),
                         datasets: [{
-                            data: Object.values(areaSummary),
-                            backgroundColor: ['#d97706', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#f59e0b']
+                            label: 'Actividades Realizadas',
+                            data: sorted.map(s => s[1]),
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            borderRadius: 5
                         }]
                     },
                     options: {
+                        indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } }
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                titleFont: { family: 'Outfit', size: 14 },
+                                bodyFont: { family: 'Inter', size: 13 },
+                                padding: 12,
+                                cornerRadius: 8
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                                ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: '#cbd5e1', font: { family: 'Outfit', weight: '600' } }
+                            }
+                        }
                     }
                 });
 
