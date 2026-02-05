@@ -15,7 +15,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Toast & Modals -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Supabase Client -->
+    <!-- Firebase SDK (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-storage.js"></script>
+    <!-- Supabase Client (For Migration) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -613,6 +617,10 @@
                         Lista</span></button>
                 <button class="btn btn-primary" id="add-oficio-btn" style="display: none;"><i data-lucide="plus"></i>
                     <span>Nuevo Registro</span></button>
+                <button class="btn btn-outline" id="migrate-btn"
+                    style="display: none; border-color: #8b5cf6; color: #8b5cf6;" title="Migrar desde Supabase">
+                    <i data-lucide="database"></i>
+                </button>
             </div>
         </header>
 
@@ -722,18 +730,27 @@
 
     <script>
         // CRITICAL FIX: Ensure supabase is accessed from window
-        const SUPABASE_URL = 'https://nixqrlwookktqhtvoxgj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5peHFybHdvb2trdHFodHZveGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzAyMzAsImV4cCI6MjA4NDUwNjIzMH0.tV4h3x6vUCfkYAeMtsDFuTUO2RuQoUEJO08rwDKdDvE';
+        // --- CONFIGURACIÓN DE FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHI5_yqSRwhLGcXYdvTfZANDt_iWQ-K_M",
+            authDomain: "sia-control.firebaseapp.com",
+            projectId: "sia-control",
+            storageBucket: "sia-control.firebasestorage.app",
+            messagingSenderId: "933718961367",
+            appId: "1:933718961367:web:2cbae344c58b3bbccdd492",
+            measurementId: "G-3XP86VY2B4"
+        };
+
+        // Inicializar Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const oficiosCol = db.collection('control_oficios');
 
         const ADMIN_PASSWORD = 'Gam@502';
         let isAdmin = false;
-        let client;
-        try {
-            // Using window.supabase to avoid ReferenceError
-            client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch (e) {
-            console.error("Supabase load error", e);
-        }
 
         let oficios = [];
         let query = '', from = '', to = '';
@@ -761,9 +778,8 @@
         async function fetchData() {
             showLoader(true);
             try {
-                const { data, error } = await client.from('oficios').select('*').order('fecha', { ascending: false });
-                if (error) throw error;
-                oficios = data || [];
+                const snapshot = await oficiosCol.orderBy('fecha', 'desc').get();
+                oficios = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 render();
                 updateStats();
             } catch (err) {
@@ -856,14 +872,15 @@
             showLoader(true);
             try {
                 if (id) {
-                    await client.from('oficios').update(data).eq('id', id);
+                    await oficiosCol.doc(id).update(data);
                 } else {
-                    await client.from('oficios').insert([data]);
+                    await oficiosCol.add(data);
                 }
                 closeModal();
                 await fetchData();
                 Swal.fire('Éxito', 'Cambios guardados correctamente.', 'success');
             } catch (e) {
+                console.error(e);
                 Swal.fire('Error', 'Hubo un fallo al guardar.', 'error');
             } finally {
                 showLoader(false);
@@ -890,9 +907,15 @@
             const res = await Swal.fire({ title: '¿Eliminar?', icon: 'warning', showCancelButton: true });
             if (res.isConfirmed) {
                 showLoader(true);
-                await client.from('oficios').delete().eq('id', id);
-                await fetchData();
-                showLoader(false);
+                try {
+                    await oficiosCol.doc(id).delete();
+                    await fetchData();
+                } catch (e) {
+                    console.error(e);
+                    Swal.fire('Error', 'No se pudo eliminar.', 'error');
+                } finally {
+                    showLoader(false);
+                }
             }
         };
 
@@ -911,15 +934,16 @@
             showLoader(true);
             try {
                 const name = `pdf_${id}_${Date.now()}.pdf`;
-                const { error: upErr } = await client.storage.from('oficios-pdfs').upload(name, file);
-                if (upErr) throw upErr;
+                const storageRef = storage.ref().child('oficios-pdfs/' + name);
+                await storageRef.put(file);
+                const publicUrl = await storageRef.getDownloadURL();
 
-                const { data: { publicUrl } } = client.storage.from('oficios-pdfs').getPublicUrl(name);
-                await client.from('oficios').update({ pdf_url: publicUrl }).eq('id', id);
+                await oficiosCol.doc(id).update({ pdf_url: publicUrl });
 
                 await fetchData();
                 Swal.fire('PDF Subido', 'El archivo está seguro en la nube.', 'success');
             } catch (err) {
+                console.error(err);
                 Swal.fire('Error', 'No se pudo subir el PDF.', 'error');
             } finally {
                 showLoader(false);
@@ -1018,7 +1042,79 @@
             }
             lucide.createIcons();
             render(); // Refresh table to show/hide edit buttons
+
+            // Show migration button only for admin
+            const migBtn = document.getElementById('migrate-btn');
+            if (migBtn) migBtn.style.display = isAdmin ? 'inline-flex' : 'none';
         }
+
+        // --- MIGRATION LOGIC ---
+        const SB_URL = 'https://nixqrlwookktqhtvoxgj.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5peHFybHdvb2trdHFodHZveGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MzAyMzAsImV4cCI6MjA4NDUwNjIzMH0.tV4h3x6vUCfkYAeMtsDFuTUO2RuQoUEJO08rwDKdDvE';
+
+        document.getElementById('migrate-btn').onclick = async () => {
+            if (!isAdmin) return;
+
+            const confirm = await Swal.fire({
+                title: '¿Migrar Datos?',
+                text: "Esto traerá los registros desde Supabase a Firebase. Podría duplicar datos si ya existen.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, Migrar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            showLoader(true);
+            try {
+                // 1. Connect to Supabase
+                const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+
+                // 2. Fetch Data
+                const { data: records, error } = await sbClient
+                    .from('oficios')
+                    .select('*');
+
+                if (error) throw error;
+                if (!records || records.length === 0) {
+                    throw new Error("No se encontraron registros en Supabase.");
+                }
+
+                // 3. Insert into Firebase
+                let count = 0;
+                const batchSize = 500; // Firestore limit per batch
+
+                // Simple insert one by one for safety and to avoid batch complexity implementation here
+                // For a small DB this is fine.
+                for (const rec of records) {
+                    // Check existence (optional, but good practice)
+                    const exists = oficios.some(o => o.numero === rec.numero);
+                    if (!exists) {
+                        await oficiosCol.add({
+                            fecha: rec.fecha,
+                            numero: rec.numero,
+                            asunto: rec.asunto,
+                            dirigido: rec.dirigido,
+                            solicita: rec.solicita,
+                            estado: rec.estado,
+                            pdf_url: rec.pdf_url || null,
+                            migrated_at: new Date().toISOString()
+                        });
+                        count++;
+                    }
+                }
+
+                await fetchData();
+                Swal.fire('Migración Completa', `Se importaron ${count} registros nuevos.`, 'success');
+
+            } catch (err) {
+                console.error("Migration Error:", err);
+                Swal.fire('Error de Migración', err.message || 'No se pudo completar la migración.', 'error');
+            } finally {
+                showLoader(false);
+            }
+        };
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
