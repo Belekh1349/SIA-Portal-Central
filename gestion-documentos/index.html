@@ -593,50 +593,13 @@
                                 </div>
                             </div>
 
-                            <!-- Estructura Jerárquica -->
-                            <div class="space-y-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                                <h4
-                                    class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <i data-lucide="layers" class="w-4 h-4 text-amber-500"></i> Estructura
-                                    Organizacional
-                                </h4>
-
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Secretaría</label>
-                                    <div class="select-wrapper">
-                                        <select id="selectSecretariaBienes" onchange="loadUnidadesBienes()"
-                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
-                                            <option value="">Seleccione una Secretaría...</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad
-                                        Administrativa</label>
-                                    <div class="select-wrapper">
-                                        <select id="selectUnidadBienes" onchange="loadAreasBienes()" disabled
-                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50">
-                                            <option value="">Primero seleccione Secretaría...</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-2">
-                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Área
-                                        de Adscripción</label>
-                                    <div class="select-wrapper">
-                                        <select id="selectAreaBienes"
-                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50"
-                                            disabled>
-                                            <option value="">Primero seleccione Unidad...</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <!-- Hidden input to maintain compatibility with existing logic -->
-                                <input type="hidden" id="unidadBienes">
+                            <!-- Estructura Simplificada -->
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
+                                    Administrativa</label>
+                                <input type="text" id="unidadBienes" class="w-full input-premium"
+                                    placeholder="Nombre de la unidad">
                             </div>
 
                             <div class="space-y-2">
