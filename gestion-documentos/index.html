@@ -272,6 +272,11 @@
                         <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
                         <span class="font-semibold">Entradas y Salidas</span>
                     </button>
+                    <button onclick="showSection('movimientos-bienes')" id="nav-movimientos-bienes"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                        <i data-lucide="package" class="w-5 h-5"></i>
+                        <span class="font-semibold">Movimientos de Bienes</span>
+                    </button>
                     <!-- More menus can be added here -->
                     <button
                         class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
@@ -537,7 +542,18 @@
                         </div>
                     </div>
                 </div>
-            </div>
+                <!-- Movimientos de Bienes Muebles Section -->
+                <div id="movimientos-bienes-section" class="space-y-8 animate-up delay-1 hidden">
+                    <div
+                        class="glass p-12 rounded-3xl border-dashed border-white/10 flex flex-col items-center justify-center text-center">
+                        <div class="w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6">
+                            <i data-lucide="package-search" class="w-10 h-10 text-amber-500"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Movimientos de Bienes Muebles</h3>
+                        <p class="text-slate-400 max-w-md">Esta sección está lista para ser configurada con la
+                            estructura de movimientos específica que requieras.</p>
+                    </div>
+                </div>
         </main>
     </div>
 
@@ -1177,9 +1193,30 @@
         function showSection(id) {
             // Update UI Sidebar
             document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-            document.getElementById(`nav-${id}`).classList.add('active');
+            const activeBtn = document.getElementById(`nav-${id}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Toggle Sections visibility
+            document.getElementById('entradas-salidas-section').classList.add('hidden');
+            document.getElementById('movimientos-bienes-section').classList.add('hidden');
+
+            const targetSection = document.getElementById(`${id}-section`);
+            if (targetSection) targetSection.classList.remove('hidden');
+
+            // Update Header titles
+            const title = document.getElementById('section-title');
+            const desc = document.getElementById('section-desc');
+
+            if (id === 'entradas-salidas') {
+                title.textContent = 'Entradas y Salidas';
+                desc.textContent = 'Registro y control de movimientos documentales y materiales.';
+            } else if (id === 'movimientos-bienes') {
+                title.textContent = 'Movimientos de Bienes Muebles';
+                desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
+            }
 
             if (window.innerWidth < 1024) toggleSidebar();
+            lucide.createIcons();
         }
 
         // Init
