@@ -1034,8 +1034,22 @@
             const guinda = [139, 26, 45];
             const fieldHeight = 6;
 
+            // Header
             doc.setFillColor(...guinda);
             doc.rect(0, 0, 210, 35, 'F');
+
+            // Soft guinda container for Logo
+            doc.setFillColor(163, 50, 69);
+            doc.rect(145, 5, 55, 15, 'F');
+
+            // Logo Support
+            try {
+                const logoBase64 = await getBase64Image('logo.png');
+                doc.addImage(logoBase64, 'PNG', 147, 7, 50, 11);
+            } catch (e) {
+                console.warn('Logo not found, proceeding without it');
+            }
+
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
@@ -1047,7 +1061,7 @@
             const drawField = (x, y, label, value, width = 95) => {
                 doc.setFillColor(180, 180, 180);
                 doc.rect(x, y, 35, fieldHeight, 'F');
-                doc.setTextColor(255, 255, 255);
+                doc.setTextColor(0, 0, 0); // Black text for label
                 doc.setFontSize(7);
                 doc.text(label, x + 2, y + 4);
                 doc.setFillColor(230, 230, 230);
@@ -1056,7 +1070,7 @@
                 doc.text(value ? value.substring(0, 50) : '', x + 37, y + 4);
             };
 
-            drawField(10, currentY, "Folio", rec.folio || 'S/N', 50);
+            drawField(10, currentY, "Folio", rec.folio || 'S/N', 90); // Increased width
             drawField(130, currentY, "Fecha", rec.fecha, 70);
             currentY += 10;
             drawField(10, currentY, "Unidad/Área", rec.unidad);
@@ -1067,12 +1081,8 @@
             currentY += 8;
             drawField(10, currentY, "Ejecuta", rec.ejecuta);
             drawField(105, currentY, "Puesto Ejecuta", rec.puesto);
-            currentY += 8;
-            drawField(10, currentY, "Solicita", rec.solicita);
-            drawField(105, currentY, "Puesto Solicita", rec.puestoSolicita);
-            currentY += 8;
-            drawField(10, currentY, "Autorizó", rec.autoriz);
-            drawField(105, currentY, "Puesto Autorizó", rec.pAutoriz);
+            // Removed Solicita and Autorizó fields as requested
+            currentY += 10;
             currentY += 10;
             drawField(10, currentY, "Motivo", rec.motivo, 190);
 
