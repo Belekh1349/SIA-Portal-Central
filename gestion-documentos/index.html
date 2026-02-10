@@ -1038,9 +1038,9 @@
             doc.setFillColor(...guinda);
             doc.rect(0, 0, 210, 35, 'F');
 
-            // Logo Support - White background for better visibility
+            // Logo Support - White background for better visibility, with rounded corners
             doc.setFillColor(255, 255, 255);
-            doc.rect(145, 5, 55, 15, 'F');
+            doc.roundedRect(145, 5, 55, 15, 3, 3, 'F');
 
             try {
                 const logoBase64 = await getBase64Image('logo.png');
@@ -1053,7 +1053,7 @@
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
             doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 10, 15);
-            doc.text("Y CONTROL PATRIMONIAL", 10, 22);
+            doc.text("Y CONTROL PATRIMONIAL", 10, 20); // Reduced spacing
             doc.setFontSize(9);
             doc.text("MOVIMIENTO DE BIENES MUEBLES", 105, 30, { align: "center" });
 
@@ -1093,7 +1093,7 @@
             currentY += 12; // More space before motive
             drawField(10, currentY, "Motivo", rec.motivo, 190, 16); // Increased height to 16
 
-            currentY += 12;
+            currentY += 22; // Adjusted to avoid overlap with Motivo field (16 height + margin)
             doc.autoTable({
                 startY: currentY,
                 head: [['No.', 'Bienes', 'Inventario']],
