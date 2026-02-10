@@ -233,6 +233,8 @@
                     </button>
                 </div>
             </div>
+
+
             <!-- Modal Body -->
             <div class="flex-1 bg-slate-100 p-4 relative overflow-hidden">
                 <iframe id="pdfViewer" class="w-full h-full rounded-lg shadow-inner bg-white" frameborder="0"></iframe>
@@ -278,10 +280,10 @@
                         <span class="font-semibold">Movimientos de Bienes</span>
                     </button>
                     <!-- More menus can be added here -->
-                    <button
-                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
-                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
-                        <span class="font-semibold">Formatos RH</span>
+                    <button onclick="showSection('configuracion')" id="nav-configuracion"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                        <i data-lucide="settings-2" class="w-5 h-5"></i>
+                        <span class="font-semibold">Gestión de Estructura</span>
                     </button>
                     <button
                         class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
@@ -543,7 +545,7 @@
                     </div>
                 </div>
                 <!-- Movimientos de Bienes Muebles Section -->
-                <div id="movimientos-bienes-section" class="space-y-8 animate-up delay-1 hidden">
+                <div id="movimientos-bienes-section" class="space-y-8 hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <!-- Form Card -->
                         <div
@@ -593,12 +595,51 @@
                                     </div>
                                 </div>
 
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
-                                        Administrativa</label>
-                                    <input type="text" id="unidadBienes" class="w-full input-premium"
-                                        placeholder="Nombre de la unidad">
+                                <!-- Estructura Jerárquica -->
+                                <div class="space-y-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                                    <h4
+                                        class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <i data-lucide="layers" class="w-4 h-4 text-amber-500"></i> Estructura
+                                        Organizacional
+                                    </h4>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Secretaría</label>
+                                        <div class="select-wrapper">
+                                            <select id="selectSecretariaBienes" onchange="loadUnidadesBienes()"
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                                <option value="">Seleccione una Secretaría...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad
+                                            Administrativa</label>
+                                        <div class="select-wrapper">
+                                            <select id="selectUnidadBienes" onchange="loadAreasBienes()" disabled
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50">
+                                                <option value="">Primero seleccione Secretaría...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Área
+                                            de Adscripción</label>
+                                        <div class="select-wrapper">
+                                            <select id="selectAreaBienes"
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50"
+                                                disabled>
+                                                <option value="">Primero seleccione Unidad...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Hidden input to maintain compatibility with existing logic -->
+                                    <input type="hidden" id="unidadBienes">
                                 </div>
 
                                 <div class="space-y-2">
@@ -675,7 +716,7 @@
                                 <div class="space-y-2">
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
-                                        Administrativo</label>
+                                        Ejecuta</label>
                                     <input type="text" id="puestoBienes" class="w-full input-premium"
                                         placeholder="Cargo o puesto de ejecutante">
                                 </div>
@@ -740,6 +781,78 @@
                                     <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay
                                         registros
                                         almacenados</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Configuración Section -->
+                <div id="configuracion-section" class="space-y-8 animate-up delay-1 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Secretarías Column -->
+                        <div class="glass p-6 rounded-3xl border-white/10 shadow-2xl flex flex-col h-[600px]">
+                            <h3 class="text-lg font-bold mb-4 text-white flex items-center gap-2">
+                                <i data-lucide="building-2" class="text-rose-500 w-5 h-5"></i>
+                                Secretarías
+                            </h3>
+                            <div class="flex gap-2 mb-4">
+                                <input type="text" id="newSecretariaName" class="w-full input-premium text-sm"
+                                    placeholder="Nueva Secretaría">
+                                <button onclick="addSecretaria()"
+                                    class="bg-rose-600 hover:bg-rose-500 text-white p-2 rounded-lg">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="listSecretarias" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                <!-- Items will be injected here -->
+                                <div class="text-slate-500 text-xs text-center p-4">Cargando...</div>
+                            </div>
+                        </div>
+
+                        <!-- Unidades Column -->
+                        <div class="glass p-6 rounded-3xl border-white/10 shadow-2xl flex flex-col h-[600px]">
+                            <h3 class="text-lg font-bold mb-4 text-white flex items-center gap-2">
+                                <i data-lucide="building" class="text-amber-500 w-5 h-5"></i>
+                                Unidades Administrativas
+                            </h3>
+                            <div id="unidadesContainer"
+                                class="flex flex-col h-full opacity-50 pointer-events-none transition-opacity">
+                                <div class="text-xs text-slate-400 mb-2 font-mono" id="selectedSecretariaLabel">
+                                    Selecciona una Secretaría</div>
+                                <div class="flex gap-2 mb-4">
+                                    <input type="text" id="newUnidadName" class="w-full input-premium text-sm"
+                                        placeholder="Nueva Unidad">
+                                    <button onclick="addUnidad()"
+                                        class="bg-amber-600 hover:bg-amber-500 text-white p-2 rounded-lg">
+                                        <i data-lucide="plus" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                <div id="listUnidades" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                    <!-- Items injected here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Áreas Column -->
+                        <div class="glass p-6 rounded-3xl border-white/10 shadow-2xl flex flex-col h-[600px]">
+                            <h3 class="text-lg font-bold mb-4 text-white flex items-center gap-2">
+                                <i data-lucide="users" class="text-emerald-500 w-5 h-5"></i>
+                                Áreas de Adscripción
+                            </h3>
+                            <div id="areasContainer"
+                                class="flex flex-col h-full opacity-50 pointer-events-none transition-opacity">
+                                <div class="text-xs text-slate-400 mb-2 font-mono" id="selectedUnidadLabel">Selecciona
+                                    una Unidad</div>
+                                <div class="flex gap-2 mb-4">
+                                    <input type="text" id="newAreaName" class="w-full input-premium text-sm"
+                                        placeholder="Nueva Área">
+                                    <button onclick="addArea()"
+                                        class="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg">
+                                        <i data-lucide="plus" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                <div id="listAreas" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                    <!-- Items injected here -->
                                 </div>
                             </div>
                         </div>
@@ -1067,7 +1180,13 @@
             drawField(105, currentY, "Puerta", rec.puerta);
             currentY += 8;
             drawField(10, currentY, "Ejecuta", rec.ejecuta);
-            drawField(105, currentY, "Puesto Ejecutivo", rec.puesto);
+            drawField(105, currentY, "Puesto Ejecuta", rec.puesto);
+            currentY += 8;
+            drawField(10, currentY, "Solicita", rec.solicita);
+            drawField(105, currentY, "Puesto Solicita", rec.puestoSolicita);
+            currentY += 8;
+            drawField(10, currentY, "Autorizó", rec.autoriz);
+            drawField(105, currentY, "Puesto Autorizó", rec.pAutoriz);
             currentY += 10;
             drawField(10, currentY, "Motivo", rec.motivo, 190);
 
@@ -1106,6 +1225,158 @@
 
         // Set current date as default
         document.getElementById('fecha').valueAsDate = new Date();
+
+        // --- ESTRUCTURA ORGANIZACIONAL LOGIC ---
+
+        async function loadSecretariasBienes() {
+            const select = document.getElementById('selectSecretariaBienes');
+            select.innerHTML = '<option value="">Cargando...</option>';
+
+            try {
+                const snapshot = await db.collection('secretarias').orderBy('nombre').get();
+                select.innerHTML = '<option value="">Seleccione una Secretaría...</option>';
+
+                if (snapshot.empty) {
+                    const opt = document.createElement('option');
+                    opt.text = "No hay secretarías registradas";
+                    select.add(opt);
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.text = doc.data().nombre;
+                    select.add(opt);
+                });
+            } catch (error) {
+                console.error("Error loading secretarias:", error);
+                select.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function loadUnidadesBienes() {
+            const secretariaId = document.getElementById('selectSecretariaBienes').value;
+            const selectUnidad = document.getElementById('selectUnidadBienes');
+            const selectArea = document.getElementById('selectAreaBienes');
+
+            // Reset downstream selects
+            selectUnidad.innerHTML = '<option value="">Cargando...</option>';
+            selectUnidad.disabled = true;
+            selectArea.innerHTML = '<option value="">Primero seleccione Unidad...</option>';
+            selectArea.disabled = true;
+            selectArea.classList.add('opacity-50');
+
+            updateHiddenUnidadValue();
+
+            if (!secretariaId) {
+                selectUnidad.innerHTML = '<option value="">Primero seleccione Secretaría...</option>';
+                selectUnidad.classList.add('opacity-50');
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('secretarias').doc(secretariaId).collection('unidades').orderBy('nombre').get();
+                selectUnidad.innerHTML = '<option value="">Seleccione una Unidad...</option>';
+
+                if (snapshot.empty) {
+                    const opt = document.createElement('option');
+                    opt.text = "No hay unidades registradas";
+                    selectUnidad.add(opt);
+                } else {
+                    snapshot.forEach(doc => {
+                        const opt = document.createElement('option');
+                        opt.value = doc.id;
+                        opt.text = doc.data().nombre;
+                        selectUnidad.add(opt);
+                    });
+                    selectUnidad.disabled = false;
+                    selectUnidad.classList.remove('opacity-50');
+                }
+            } catch (error) {
+                console.error("Error loading unidades:", error);
+                selectUnidad.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function loadAreasBienes() {
+            const secretariaId = document.getElementById('selectSecretariaBienes').value;
+            const unidadId = document.getElementById('selectUnidadBienes').value;
+            const selectArea = document.getElementById('selectAreaBienes');
+
+            selectArea.innerHTML = '<option value="">Cargando...</option>';
+            selectArea.disabled = true;
+
+            updateHiddenUnidadValue();
+
+            if (!unidadId) {
+                selectArea.innerHTML = '<option value="">Primero seleccione Unidad...</option>';
+                selectArea.classList.add('opacity-50');
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('secretarias').doc(secretariaId).collection('unidades').doc(unidadId).collection('areas').orderBy('nombre').get();
+                selectArea.innerHTML = '<option value="">Seleccione un Área...</option>';
+
+                if (snapshot.empty) {
+                    const opt = document.createElement('option');
+                    opt.text = "No hay áreas registradas";
+                    selectArea.add(opt);
+                } else {
+                    snapshot.forEach(doc => {
+                        const opt = document.createElement('option');
+                        opt.value = doc.id; // We use name for the value to be consistent with existing logic? No, let's use name in hidden field.
+                        opt.text = doc.data().nombre; // Store name in text
+                        opt.setAttribute('data-name', doc.data().nombre);
+                        selectArea.add(opt);
+                    });
+                    selectArea.disabled = false;
+                    selectArea.classList.remove('opacity-50');
+                }
+            } catch (error) {
+                console.error("Error loading areas:", error);
+                selectArea.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        // Listener for Area change to update hidden input
+        document.getElementById('selectAreaBienes').addEventListener('change', updateHiddenUnidadValue);
+
+        function updateHiddenUnidadValue() {
+            const secSelect = document.getElementById('selectSecretariaBienes');
+            const uniSelect = document.getElementById('selectUnidadBienes');
+            const areaSelect = document.getElementById('selectAreaBienes');
+
+            const secName = secSelect.options[secSelect.selectedIndex]?.text || '';
+            const uniName = uniSelect.options[uniSelect.selectedIndex]?.text || '';
+            const areaName = areaSelect.options[areaSelect.selectedIndex]?.text || '';
+
+            let finalValue = '';
+            if (areaName && areaSelect.value) {
+                finalValue = areaName;
+            } else if (uniName && uniSelect.value) {
+                finalValue = uniName;
+            } else if (secName && secSelect.value) {
+                finalValue = secName;
+            }
+
+            // Set the value to the hidden input
+            // Ideally we want full path: "Secretaría / Unidad / Área" or just the most specific one.
+            // Original code used "Unidad/Área Administrativa" as a single text field.
+            // Let's store the most specific one, but maybe we should store full path for better context?
+            // User asked for "Estructura por secretarias", implying hierarchy.
+            // Let's stick to the specific name for now to match "Unidad", but maybe include hierarchy if useful.
+            // Going with specific name to keep it simple for now, but context might be lost.
+            // Let's try: "Unidad - Área" format if area is selected? No, keeping it simple.
+
+            document.getElementById('unidadBienes').value = finalValue;
+        }
+
+        // Initialize structure on load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSecretariasBienes();
+        });
 
         function suggestNextFolio() {
             if (currentEditId) return; // Don't suggest if editing
@@ -1689,9 +1960,14 @@
             // Toggle Sections visibility
             document.getElementById('entradas-salidas-section').classList.add('hidden');
             document.getElementById('movimientos-bienes-section').classList.add('hidden');
+            const configSec = document.getElementById('configuracion-section');
+            if (configSec) configSec.classList.add('hidden');
 
             const targetSection = document.getElementById(`${id}-section`);
-            if (targetSection) targetSection.classList.remove('hidden');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.style.display = 'block';
+            }
 
             // Update Header titles
             const title = document.getElementById('section-title');
@@ -1703,15 +1979,214 @@
             } else if (id === 'movimientos-bienes') {
                 title.textContent = 'Movimientos de Bienes Muebles';
                 desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
+            } else if (id === 'configuracion') {
+                title.textContent = 'Configuración de Estructura';
+                desc.textContent = 'Gestión de Secretarías, Unidades y Áreas.';
             }
 
             if (window.innerWidth < 1024) toggleSidebar();
             lucide.createIcons();
         }
 
+        // --- GESTIÓN DE ESTRUCTURA (CONFIGURACIÓN) ---
+        let selectedSecretariaConfig = null;
+        let selectedUnidadConfig = null;
+
+        function initConfig() {
+            // Listen for secretarias changes
+            db.collection('secretarias').orderBy('nombre').onSnapshot(snapshot => {
+                const list = document.getElementById('listSecretarias');
+                if (!list) return;
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all ${selectedSecretariaConfig === doc.id ? 'border border-rose-500 bg-rose-500/10' : ''}`;
+                    div.innerHTML = `
+                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
+                        <div class="flex gap-2">
+                             <button onclick="editSecretaria('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteSecretaria('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    div.onclick = () => selectSecretariaConfig(doc.id, data.nombre);
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        function selectSecretariaConfig(id, name) {
+            selectedSecretariaConfig = id;
+            selectedUnidadConfig = null;
+            document.getElementById('selectedSecretariaLabel').textContent = name;
+            document.getElementById('unidadesContainer').classList.remove('opacity-50', 'pointer-events-none');
+
+            // Reset areas
+            document.getElementById('areasContainer').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('listAreas').innerHTML = '';
+            document.getElementById('selectedUnidadLabel').textContent = 'Selecciona una Unidad';
+
+            // Load Unidades
+            loadUnidadesConfig(id);
+            initConfig(); // Re-render to highlight selection
+        }
+
+        async function addSecretaria() {
+            const name = document.getElementById('newSecretariaName').value.trim();
+            if (!name) return;
+            try {
+                await db.collection('secretarias').add({
+                    nombre: name,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('newSecretariaName').value = '';
+                loadSecretariasBienes(); // Refresh dropdowns too
+            } catch (e) { showNotification('Error: ' + e.message, true); }
+        }
+
+        async function editSecretaria(id, currentName, event) {
+            event.stopPropagation();
+            const newName = prompt("Editar nombre de Secretaría:", currentName);
+            if (newName && newName.trim() !== currentName) {
+                await db.collection('secretarias').doc(id).update({ nombre: newName.trim() });
+                loadSecretariasBienes();
+            }
+        }
+
+        async function deleteSecretaria(id, event) {
+            event.stopPropagation();
+            if (!confirm('¿Eliminar esta Secretaría y TODAS sus dependencias?')) return;
+            try {
+                await db.collection('secretarias').doc(id).delete();
+                selectedSecretariaConfig = null;
+                document.getElementById('unidadesContainer').classList.add('opacity-50', 'pointer-events-none');
+                document.getElementById('listUnidades').innerHTML = '';
+                loadSecretariasBienes();
+            } catch (e) { showNotification('Error: ' + e.message, true); }
+        }
+
+        function loadUnidadesConfig(secretariaId) {
+            db.collection('secretarias').doc(secretariaId).collection('unidades').orderBy('nombre').onSnapshot(snapshot => {
+                const list = document.getElementById('listUnidades');
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all ${selectedUnidadConfig === doc.id ? 'border border-amber-500 bg-amber-500/10' : ''}`;
+                    div.innerHTML = `
+                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
+                         <div class="flex gap-2">
+                             <button onclick="editUnidad('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteUnidad('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    div.onclick = () => selectUnidadConfig(doc.id, data.nombre);
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        function selectUnidadConfig(id, name) {
+            selectedUnidadConfig = id;
+            document.getElementById('selectedUnidadLabel').textContent = name;
+            document.getElementById('areasContainer').classList.remove('opacity-50', 'pointer-events-none');
+            loadAreasConfig(selectedSecretariaConfig, id);
+            // Re-render Unidades to highlight
+            loadUnidadesConfig(selectedSecretariaConfig);
+        }
+
+        async function addUnidad() {
+            if (!selectedSecretariaConfig) return;
+            const name = document.getElementById('newUnidadName').value.trim();
+            if (!name) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').add({
+                nombre: name,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById('newUnidadName').value = '';
+        }
+
+        async function editUnidad(id, currentName, event) {
+            event.stopPropagation();
+            const newName = prompt("Editar nombre de Unidad:", currentName);
+            if (newName && newName.trim() !== currentName) {
+                await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(id).update({ nombre: newName.trim() });
+            }
+        }
+
+        async function deleteUnidad(id, event) {
+            event.stopPropagation();
+            if (!confirm('¿Eliminar Unidad?')) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(id).delete();
+        }
+
+        function loadAreasConfig(secretariaId, unidadId) {
+            db.collection('secretarias').doc(secretariaId).collection('unidades').doc(unidadId).collection('areas').orderBy('nombre').onSnapshot(snapshot => {
+                const list = document.getElementById('listAreas');
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all`;
+                    div.innerHTML = `
+                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
+                         <div class="flex gap-2">
+                             <button onclick="editArea('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteArea('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        async function addArea() {
+            if (!selectedSecretariaConfig || !selectedUnidadConfig) return;
+            const name = document.getElementById('newAreaName').value.trim();
+            if (!name) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').add({
+                nombre: name,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById('newAreaName').value = '';
+        }
+
+        async function editArea(id, currentName, event) {
+            event.stopPropagation();
+            const newName = prompt("Editar nombre de Área:", currentName);
+            if (newName && newName.trim() !== currentName) {
+                await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').doc(id).update({ nombre: newName.trim() });
+            }
+        }
+
+        async function deleteArea(id, event) {
+            event.stopPropagation();
+            if (!confirm('¿Eliminar Área?')) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').doc(id).delete();
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', initConfig);
+
         // Init
         addItemRow();
         addItemRowBienes();
+        loadSecretariasBienes(); // Load initial data for dropdowns
         renderRecords();
         renderRecordsBienes();
         suggestNextFolio();
