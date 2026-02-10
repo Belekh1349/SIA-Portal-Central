@@ -544,14 +544,205 @@
                 </div>
                 <!-- Movimientos de Bienes Muebles Section -->
                 <div id="movimientos-bienes-section" class="space-y-8 animate-up delay-1 hidden">
-                    <div
-                        class="glass p-12 rounded-3xl border-dashed border-white/10 flex flex-col items-center justify-center text-center">
-                        <div class="w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6">
-                            <i data-lucide="package-search" class="w-10 h-10 text-amber-500"></i>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Form Card -->
+                        <div
+                            class="lg:col-span-1 glass p-4 sm:p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                            <div
+                                class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                                <i data-lucide="package" class="w-24 h-24"></i>
+                            </div>
+                            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                                <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                                Nuevo Movimiento de Bienes
+                            </h3>
+
+                            <form id="formBienes" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número
+                                        de
+                                        Folio</label>
+                                    <input type="text" id="folioBienes"
+                                        class="w-full input-premium font-mono text-amber-500"
+                                        placeholder="Ej: MB-2026-001">
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
+                                        <input type="date" id="fechaBienes" class="w-full input-premium">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
+                                            de Movimiento</label>
+                                        <div class="select-wrapper">
+                                            <select id="tipoMovBienes"
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                                <option value="MOVIMIENTO">MOVIMIENTO</option>
+                                                <option value="REUBICACIÓN">REUBICACIÓN</option>
+                                                <option value="PARA BAJA">PARA BAJA</option>
+                                                <option value="RETIRO">RETIRO</option>
+                                                <option value="INGRESO">INGRESO</option>
+                                                <option value="RESGUARDO EN ÁREA DE STOCK">RESGUARDO EN ÁREA DE STOCK
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
+                                        Administrativa</label>
+                                    <input type="text" id="unidadBienes" class="w-full input-premium"
+                                        placeholder="Nombre de la unidad">
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Destino
+                                        de los Bienes Muebles</label>
+                                    <input type="text" id="destinoBienes" class="w-full input-premium"
+                                        placeholder="Nombre de la unidad o área destino">
+                                </div>
+
+                                <!-- Bienes Muebles Dynamic List -->
+                                <div class="space-y-3 pt-2">
+                                    <div class="flex items-center justify-between px-1">
+                                        <label
+                                            class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lista
+                                            de Bienes a Registrar</label>
+                                        <button type="button" onclick="addItemRowBienes()"
+                                            class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
+                                            <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
+                                        </button>
+                                    </div>
+                                    <div id="itemsContainerBienes" class="space-y-3">
+                                        <!-- Dynamic rows -->
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Ejecuta</label>
+                                        <input type="text" id="ejecutaBienes" class="w-full input-premium"
+                                            placeholder="Nombre de quien ejecuta">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puerta</label>
+                                        <input type="text" id="puertaBienes" class="w-full input-premium"
+                                            placeholder="No. de puerta">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
+                                        <input type="text" id="solicitaBienes" class="w-full input-premium"
+                                            placeholder="Nombre de quien solicita">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                            Solicita</label>
+                                        <input type="text" id="puestoSolicitaBienes" class="w-full input-premium"
+                                            placeholder="Cargo de quien solicita">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Autorizó</label>
+                                        <input type="text" id="autorizBienes" class="w-full input-premium"
+                                            placeholder="Nombre de quien autoriza">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                            Autorizó</label>
+                                        <input type="text" id="puestoAutorizBienes" class="w-full input-premium"
+                                            placeholder="Cargo de quien autoriza">
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                        Administrativo</label>
+                                    <input type="text" id="puestoBienes" class="w-full input-premium"
+                                        placeholder="Cargo o puesto de ejecutante">
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
+                                        Observaciones</label>
+                                    <textarea id="motivoBienes" class="w-full input-premium h-20 resize-none"
+                                        placeholder="Descripción adicional..."></textarea>
+                                </div>
+
+                                <button type="submit"
+                                    class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
+                                    <i data-lucide="save" class="w-4 h-4"></i>
+                                    Guardar Registro
+                                </button>
+                            </form>
                         </div>
-                        <h3 class="text-2xl font-bold mb-2">Movimientos de Bienes Muebles</h3>
-                        <p class="text-slate-400 max-w-md">Esta sección está lista para ser configurada con la
-                            estructura de movimientos específica que requieras.</p>
+
+                        <!-- List Card -->
+                        <div
+                            class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                            <div
+                                class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-xl font-bold flex items-center gap-2">
+                                        <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                        Historial de Movimientos
+                                    </h3>
+                                </div>
+                                <!-- Search Bar -->
+                                <div class="flex-1 max-w-md relative">
+                                    <i data-lucide="search"
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                    <input type="text" id="searchBienes" oninput="handleSearchBienes()"
+                                        class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                        placeholder="Buscar por folio, unidad, bienes...">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto flex-grow max-h-[600px]">
+                                <table class="w-full custom-table min-w-[1000px]">
+                                    <thead>
+                                        <tr>
+                                            <th>Folio / Fecha</th>
+                                            <th>Tipo de Movimiento</th>
+                                            <th>Origen / Destino</th>
+                                            <th>Bienes</th>
+                                            <th>Ejecuta / Solicita</th>
+                                            <th class="text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyBodyBienes">
+                                        <!-- Rows will be added here via JS -->
+                                    </tbody>
+                                </table>
+                                <div id="emptyStateBienes" class="p-20 text-center hidden">
+                                    <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
+                                    <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay
+                                        registros
+                                        almacenados</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
         </main>
@@ -589,6 +780,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const recordsCol = db.collection('movimientos');
+        const recordsBienesCol = db.collection('movimientos_bienes');
 
         // Init Lucide
         lucide.createIcons();
@@ -613,6 +805,304 @@
             console.error("Error fetching records: ", error);
             showNotification('Error al cargar registros: ' + error.message, true);
         });
+
+        // --- LÓGICA BIENES MUEBLES ---
+        let recordsBienes = [];
+        let currentEditIdBienes = null;
+        let searchTermBienes = '';
+
+        const formBienes = document.getElementById('formBienes');
+        const historyBodyBienes = document.getElementById('historyBodyBienes');
+        const emptyStateBienes = document.getElementById('emptyStateBienes');
+
+        // Escuchar cambios en tiempo real
+        recordsBienesCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            recordsBienes = [];
+            snapshot.forEach((doc) => {
+                recordsBienes.push({ id: doc.id, ...doc.data() });
+            });
+            renderRecordsBienes();
+            suggestNextFolioBienes();
+        }, (error) => {
+            console.error("Error fetching goods records: ", error);
+        });
+
+        function suggestNextFolioBienes() {
+            if (currentEditIdBienes) return;
+            const folioInput = document.getElementById('folioBienes');
+            if (recordsBienes.length === 0) {
+                folioInput.value = `MB-${new Date().getFullYear()}-001`;
+                return;
+            }
+            const sorted = [...recordsBienes].sort((a, b) => b.timestamp - a.timestamp);
+            const lastFolio = sorted[0].folio;
+            if (lastFolio && lastFolio.includes('-')) {
+                const parts = lastFolio.split('-');
+                const Year = parts[1];
+                const num = parseInt(parts[2]);
+                if (!isNaN(num)) {
+                    folioInput.value = `MB-${Year}-${(num + 1).toString().padStart(3, '0')}`;
+                }
+            }
+        }
+
+        function handleSearchBienes() {
+            searchTermBienes = document.getElementById('searchBienes').value.toLowerCase();
+            renderRecordsBienes();
+        }
+
+        function renderRecordsBienes() {
+            historyBodyBienes.innerHTML = '';
+            const filtered = recordsBienes.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.unidad} ${rec.ejecuta} ${rec.tipo} ${rec.bienes.map(b => b.nombre).join(' ')}`.toLowerCase();
+                return searchStr.includes(searchTermBienes);
+            });
+
+            if (filtered.length === 0) {
+                emptyStateBienes.classList.remove('hidden');
+            } else {
+                emptyStateBienes.classList.add('hidden');
+                filtered.forEach(rec => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-white/5 transition-colors group';
+
+                    const goodsSummary = rec.bienes && rec.bienes.length > 0
+                        ? `${rec.bienes[0].nombre} ${rec.bienes.length > 1 ? '(+' + (rec.bienes.length - 1) + ')' : ''}`
+                        : 'Sin bienes';
+
+                    row.innerHTML = `
+                        <td class="text-sm">
+                            <div class="font-bold text-white">${rec.folio || 'S/N'}</div>
+                            <div class="text-[10px] text-slate-500">${rec.fecha}</div>
+                        </td>
+                        <td class="text-sm">
+                            <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase bg-amber-500/10 text-amber-500">${rec.tipo}</span>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <div class="text-white font-bold">${rec.unidad}</div>
+                            <div class="text-[10px] text-amber-500/70">→ ${rec.destino || 'Local'}</div>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <span class="px-2 py-1 bg-white/5 rounded text-[10px] text-blue-400 font-mono">${goodsSummary}</span>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <div class="font-bold text-white">${rec.ejecuta}</div>
+                            <div class="text-[10px] uppercase tracking-tighter text-slate-500">Solicitó: ${rec.solicita}</div>
+                        </td>
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="exportRecordPDFBienes('${rec.id}')" class="p-2 text-slate-600 hover:text-rose-500 transition-colors" title="Descargar Vale">
+                                    <i data-lucide="file-down" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="editRecordBienes('${rec.id}')" class="p-2 text-slate-600 hover:text-amber-500 transition-colors" title="Editar">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteRecordBienes('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    historyBodyBienes.appendChild(row);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        function addItemRowBienes(nombre = '', inventario = '') {
+            const container = document.getElementById('itemsContainerBienes');
+            const rowId = 'row-bienes-' + Math.random().toString(36).substr(2, 9);
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-12 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 group relative items-center';
+            div.id = rowId;
+            div.innerHTML = `
+                <div class="col-span-7 sm:col-span-8 space-y-1">
+                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] sm:text-xs text-white" placeholder="Bien Mueble" value="${nombre}">
+                </div>
+                <div class="col-span-4 sm:col-span-3 space-y-1">
+                    <input type="text" class="item-inventario w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] sm:text-xs font-mono text-amber-500" placeholder="Inventario" value="${inventario}">
+                </div>
+                <div class="col-span-1 flex items-center justify-center">
+                    <button type="button" onclick="removeItemRowBienes('${rowId}')" class="text-slate-600 hover:text-red-400 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function removeItemRowBienes(id) {
+            const rows = document.querySelectorAll('#itemsContainerBienes .grid');
+            if (rows.length > 1) {
+                document.getElementById(id).remove();
+            } else {
+                showNotification('Debe haber al menos un bien.', true);
+            }
+        }
+
+        formBienes.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const items = [];
+            document.querySelectorAll('#itemsContainerBienes .grid').forEach(row => {
+                const nombre = row.querySelector('.item-nombre').value;
+                const inventario = row.querySelector('.item-inventario').value;
+                if (nombre) items.push({ nombre, inventario });
+            });
+
+            if (items.length === 0) {
+                showNotification('Error: Debes agregar al menos un bien mueble.', true);
+                return;
+            }
+
+            const recordData = {
+                folio: document.getElementById('folioBienes').value,
+                fecha: document.getElementById('fechaBienes').value,
+                tipo: document.getElementById('tipoMovBienes').value,
+                unidad: document.getElementById('unidadBienes').value,
+                destino: document.getElementById('destinoBienes').value,
+                bienes: items,
+                puerta: document.getElementById('puertaBienes').value,
+                ejecuta: document.getElementById('ejecutaBienes').value,
+                solicita: document.getElementById('solicitaBienes').value,
+                puestoSolicita: document.getElementById('puestoSolicitaBienes').value,
+                autoriz: document.getElementById('autorizBienes').value,
+                pAutoriz: document.getElementById('puestoAutorizBienes').value,
+                puesto: document.getElementById('puestoBienes').value,
+                motivo: document.getElementById('motivoBienes').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (currentEditIdBienes) {
+                    await recordsBienesCol.doc(currentEditIdBienes).update(recordData);
+                    currentEditIdBienes = null;
+                    showNotification('Movimiento actualizado.');
+                    formBienes.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                } else {
+                    await recordsBienesCol.add(recordData);
+                    showNotification('Movimiento guardado.');
+                }
+                formBienes.reset();
+                document.getElementById('itemsContainerBienes').innerHTML = '';
+                addItemRowBienes();
+                document.getElementById('fechaBienes').valueAsDate = new Date();
+                lucide.createIcons();
+            } catch (error) {
+                showNotification('Error: ' + error.message, true);
+            }
+        });
+
+        function editRecordBienes(id) {
+            const rec = recordsBienes.find(r => r.id === id);
+            if (!rec) return;
+            currentEditIdBienes = id;
+            document.getElementById('folioBienes').value = rec.folio || '';
+            document.getElementById('fechaBienes').value = rec.fecha;
+            document.getElementById('tipoMovBienes').value = rec.tipo;
+            document.getElementById('unidadBienes').value = rec.unidad;
+            document.getElementById('destinoBienes').value = rec.destino || '';
+            document.getElementById('puertaBienes').value = rec.puerta || '';
+            document.getElementById('ejecutaBienes').value = rec.ejecuta || '';
+            document.getElementById('solicitaBienes').value = rec.solicita || '';
+            document.getElementById('puestoSolicitaBienes').value = rec.puestoSolicita || '';
+            document.getElementById('autorizBienes').value = rec.autoriz || '';
+            document.getElementById('puestoAutorizBienes').value = rec.pAutoriz || '';
+            document.getElementById('puestoBienes').value = rec.puesto || '';
+            document.getElementById('motivoBienes').value = rec.motivo;
+
+            const container = document.getElementById('itemsContainerBienes');
+            container.innerHTML = '';
+            rec.bienes.forEach(b => addItemRowBienes(b.nombre, b.inventario));
+
+            formBienes.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Registro`;
+            formBienes.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteRecordBienes(id) {
+            if (confirm('¿Eliminar este movimiento?')) {
+                await recordsBienesCol.doc(id).delete();
+                showNotification('Registro eliminado.');
+            }
+        }
+
+        async function exportRecordPDFBienes(id) {
+            const rec = recordsBienes.find(r => r.id === id);
+            if (!rec) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const guinda = [139, 26, 45];
+            const fieldHeight = 6;
+
+            doc.setFillColor(...guinda);
+            doc.rect(0, 0, 210, 35, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES Y CONTROL PATRIMONIAL", 10, 15);
+            doc.setFontSize(9);
+            doc.text("MOVIMIENTO DE BIENES MUEBLES", 105, 30, { align: "center" });
+
+            let currentY = 40;
+            const drawField = (x, y, label, value, width = 95) => {
+                doc.setFillColor(180, 180, 180);
+                doc.rect(x, y, 35, fieldHeight, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(7);
+                doc.text(label, x + 2, y + 4);
+                doc.setFillColor(230, 230, 230);
+                doc.rect(x + 35, y, width - 35, fieldHeight, 'F');
+                doc.setTextColor(0, 0, 0);
+                doc.text(value ? value.substring(0, 50) : '', x + 37, y + 4);
+            };
+
+            drawField(10, currentY, "Folio", rec.folio || 'S/N', 50);
+            drawField(130, currentY, "Fecha", rec.fecha, 70);
+            currentY += 10;
+            drawField(10, currentY, "Unidad/Área", rec.unidad);
+            drawField(105, currentY, "Tipo Movimiento", rec.tipo);
+            currentY += 8;
+            drawField(10, currentY, "Destino", rec.destino);
+            drawField(105, currentY, "Puerta", rec.puerta);
+            currentY += 8;
+            drawField(10, currentY, "Ejecuta", rec.ejecuta);
+            drawField(105, currentY, "Puesto Ejecutivo", rec.puesto);
+            currentY += 10;
+            drawField(10, currentY, "Motivo", rec.motivo, 190);
+
+            currentY += 12;
+            doc.autoTable({
+                startY: currentY,
+                head: [['No.', 'Bienes', 'Inventario']],
+                body: rec.bienes.map((b, i) => [i + 1, b.nombre, b.inventario]),
+                theme: 'striped',
+                headStyles: { fillColor: guinda, textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 2, halign: 'center' }
+            });
+
+            const footerY = 270;
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+
+            doc.text("Solicita", 55, footerY - 15, { align: "center" });
+            doc.line(25, footerY, 85, footerY);
+            doc.setFont("helvetica", "normal");
+            doc.text(rec.solicita || '-', 55, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.puestoSolicita || '', 55, footerY + 9, { align: "center" });
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text("Autorizó", 155, footerY - 15, { align: "center" });
+            doc.line(125, footerY, 185, footerY);
+            doc.setFont("helvetica", "normal");
+            doc.text(rec.autoriz || '-', 155, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.pAutoriz || '', 155, footerY + 9, { align: "center" });
+
+            openPDFPreview(doc, `Movimiento_${rec.folio || rec.id}.pdf`);
+        }
 
         // Set current date as default
         document.getElementById('fecha').valueAsDate = new Date();
@@ -1221,8 +1711,12 @@
 
         // Init
         addItemRow();
+        addItemRowBienes();
         renderRecords();
+        renderRecordsBienes();
         suggestNextFolio();
+        suggestNextFolioBienes();
+        document.getElementById('fechaBienes').valueAsDate = new Date();
     </script>
 </body>
 
