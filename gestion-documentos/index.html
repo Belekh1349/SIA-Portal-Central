@@ -1096,7 +1096,7 @@
             currentY += 22; // Adjusted to avoid overlap with Motivo field (16 height + margin)
             doc.autoTable({
                 startY: currentY,
-                head: [['No.', 'Bienes', 'Inventario']],
+                head: [['No.', 'BIEN MUEBLE', 'INVENTARIO']],
                 body: rec.bienes.map((b, i) => [i + 1, b.nombre, b.inventario]),
                 theme: 'striped',
                 headStyles: { fillColor: guinda, textColor: [255, 255, 255], fontStyle: 'bold' },

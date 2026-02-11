@@ -226,7 +226,21 @@
 
 <body class="bg-gradient-mesh min-h-screen">
 
-    <div class="relative z-10 w-full mx-auto px-4 py-6 md:py-16 flex flex-col items-center min-h-screen container-fix">
+    <!-- Splash Screen -->
+    <div id="splash-screen"
+        class="fixed inset-0 bg-white flex flex-col items-center justify-center p-8 text-center cursor-pointer z-[100]"
+        onclick="showPortal()">
+        <img src="finance-dashboard/logo-hero.png" class="max-w-md mb-8 animate-in" alt="Logo" />
+        <h1 class="text-6xl font-black uppercase tracking-tighter text-red-900 animate-in delay-1">Control <span
+                class="text-amber-600">Patrimonial</span></h1>
+        <button
+            class="mt-12 bg-[#4c0519] text-white px-10 py-4 rounded-full font-bold flex items-center gap-3 animate-in delay-2 hover:scale-105 transition-transform">
+            Ingresar al Sistema <i data-lucide="trending-up" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <div id="portal-content"
+        class="hidden relative z-10 w-full mx-auto px-4 py-6 md:py-16 flex flex-col items-center min-h-screen container-fix">
 
         <!-- Theme Switcher -->
         <div class="w-full max-w-4xl flex justify-end mb-8 animate-in">
@@ -405,6 +419,21 @@
             document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById('theme-' + theme);
             if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        function showPortal() {
+            const splash = document.getElementById('splash-screen');
+            const portal = document.getElementById('portal-content');
+
+            splash.style.opacity = '0';
+            splash.style.transition = 'opacity 0.5s ease-out';
+
+            setTimeout(() => {
+                splash.classList.add('hidden');
+                portal.classList.remove('hidden');
+                // Trigger re-render of icons in the portal content
+                lucide.createIcons();
+            }, 500);
         }
 
         // Init theme
