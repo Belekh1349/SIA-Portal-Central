@@ -1,0 +1,19 @@
+{
+  "projects": {
+    "default": "sirecoa-pro",
+    "sia": "sia-control"
+  },
+  "targets": {
+    "sirecoa-pro": {
+      "hosting": {
+        "sia": [
+          "sia-control"
+        ],
+        "sirecoa": [
+          "sirecoa-pro"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

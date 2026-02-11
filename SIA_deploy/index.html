@@ -233,8 +233,6 @@
                     </button>
                 </div>
             </div>
-
-
             <!-- Modal Body -->
             <div class="flex-1 bg-slate-100 p-4 relative overflow-hidden">
                 <iframe id="pdfViewer" class="w-full h-full rounded-lg shadow-inner bg-white" frameborder="0"></iframe>
@@ -280,10 +278,10 @@
                         <span class="font-semibold">Movimientos de Bienes</span>
                     </button>
                     <!-- More menus can be added here -->
-                    <button onclick="showSection('configuracion')" id="nav-configuracion"
-                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
-                        <i data-lucide="settings-2" class="w-5 h-5"></i>
-                        <span class="font-semibold">Gestión de Estructura</span>
+                    <button
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                        <span class="font-semibold">Formatos RH</span>
                     </button>
                     <button
                         class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
@@ -544,243 +542,248 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- Movimientos de Bienes Muebles Section -->
-            <div id="movimientos-bienes-section" class="space-y-8 hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Form Card -->
-                    <div
-                        class="lg:col-span-1 glass p-4 sm:p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                <!-- Movimientos de Bienes Muebles Section -->
+                <div id="movimientos-bienes-section" class="space-y-8 animate-up delay-1 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Form Card -->
                         <div
-                            class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                            <i data-lucide="package" class="w-24 h-24"></i>
-                        </div>
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
-                            Nuevo Movimiento de Bienes
-                        </h3>
-
-                        <form id="formBienes" class="space-y-4">
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número
-                                    de
-                                    Folio</label>
-                                <input type="text" id="folioBienes"
-                                    class="w-full input-premium font-mono text-amber-500" placeholder="Ej: MB-2026-001">
+                            class="lg:col-span-1 glass p-4 sm:p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                            <div
+                                class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                                <i data-lucide="package" class="w-24 h-24"></i>
                             </div>
+                            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                                <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                                Nuevo Movimiento de Bienes
+                            </h3>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <form id="formBienes" class="space-y-4">
                                 <div class="space-y-2">
                                     <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
-                                    <input type="date" id="fechaBienes" class="w-full input-premium">
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número
+                                        de
+                                        Folio</label>
+                                    <input type="text" id="folioBienes"
+                                        class="w-full input-premium font-mono text-amber-500"
+                                        placeholder="Ej: MB-2026-001">
                                 </div>
-                                <div class="space-y-2">
-                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
-                                        de Movimiento</label>
-                                    <div class="select-wrapper">
-                                        <select id="tipoMovBienes"
-                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
-                                            <option value="MOVIMIENTO">MOVIMIENTO</option>
-                                            <option value="REUBICACIÓN">REUBICACIÓN</option>
-                                            <option value="PARA BAJA">PARA BAJA</option>
-                                            <option value="RETIRO">RETIRO</option>
-                                            <option value="INGRESO">INGRESO</option>
-                                            <option value="RESGUARDO EN ÁREA DE STOCK">RESGUARDO EN ÁREA DE STOCK
-                                            </option>
-                                        </select>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
+                                        <input type="date" id="fechaBienes" class="w-full input-premium">
                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Estructura Jerárquica -->
-                            <div class="space-y-4 p-4 rounded-xl bg-white/5 border border-white/10">
-                                <h4
-                                    class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <i data-lucide="layers" class="w-4 h-4 text-amber-500"></i> Estructura
-                                    Organizacional
-                                </h4>
-
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Secretaría</label>
-                                    <div class="select-wrapper">
-                                        <select id="selectSecretariaBienes" onchange="loadUnidadesBienes()"
-                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
-                                            <option value="">Seleccione una Secretaría...</option>
-                                        </select>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
+                                            de Movimiento</label>
+                                        <div class="select-wrapper">
+                                            <select id="tipoMovBienes"
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                                <option value="MOVIMIENTO">MOVIMIENTO</option>
+                                                <option value="REUBICACIÓN">REUBICACIÓN</option>
+                                                <option value="PARA BAJA">PARA BAJA</option>
+                                                <option value="RETIRO">RETIRO</option>
+                                                <option value="INGRESO">INGRESO</option>
+                                                <option value="RESGUARDO EN ÁREA DE STOCK">RESGUARDO EN ÁREA DE STOCK
+                                                </option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
+                                <!-- Estructura Jerárquica -->
+                                <div class="space-y-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                                    <h4
+                                        class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <i data-lucide="layers" class="w-4 h-4 text-amber-500"></i> Estructura
+                                        Organizacional
+                                    </h4>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Secretaría</label>
+                                        <div class="select-wrapper">
+                                            <select id="selectSecretariaBienes" onchange="loadUnidadesBienes()"
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                                <option value="">Seleccione una Secretaría...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad
+                                            Administrativa</label>
+                                        <div class="select-wrapper">
+                                            <select id="selectUnidadBienes" onchange="loadAreasBienes()" disabled
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50">
+                                                <option value="">Primero seleccione Secretaría...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Área
+                                            de Adscripción</label>
+                                        <div class="select-wrapper">
+                                            <select id="selectAreaBienes"
+                                                class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50"
+                                                disabled>
+                                                <option value="">Primero seleccione Unidad...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Hidden input to maintain compatibility with existing logic -->
+                                    <input type="hidden" id="unidadBienes">
+                                </div>
+
                                 <div class="space-y-2">
                                     <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad
-                                        Administrativa</label>
-                                    <div class="select-wrapper">
-                                        <select id="selectUnidadBienes" onchange="loadAreasBienes()" disabled
-                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50">
-                                            <option value="">Primero seleccione Secretaría...</option>
-                                        </select>
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Destino
+                                        de los Bienes Muebles</label>
+                                    <input type="text" id="destinoBienes" class="w-full input-premium"
+                                        placeholder="Nombre de la unidad o área destino">
+                                </div>
+
+                                <!-- Bienes Muebles Dynamic List -->
+                                <div class="space-y-3 pt-2">
+                                    <div class="flex items-center justify-between px-1">
+                                        <label
+                                            class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lista
+                                            de Bienes a Registrar</label>
+                                        <button type="button" onclick="addItemRowBienes()"
+                                            class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
+                                            <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
+                                        </button>
+                                    </div>
+                                    <div id="itemsContainerBienes" class="space-y-3">
+                                        <!-- Dynamic rows -->
                                     </div>
                                 </div>
 
-                                <div class="space-y-2">
-                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Área
-                                        de Adscripción</label>
-                                    <div class="select-wrapper">
-                                        <select id="selectAreaBienes"
-                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50"
-                                            disabled>
-                                            <option value="">Primero seleccione Unidad...</option>
-                                        </select>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Ejecuta</label>
+                                        <input type="text" id="ejecutaBienes" class="w-full input-premium"
+                                            placeholder="Nombre de quien ejecuta">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puerta</label>
+                                        <input type="text" id="puertaBienes" class="w-full input-premium"
+                                            placeholder="No. de puerta">
                                     </div>
                                 </div>
-                                <!-- Hidden input to maintain compatibility with existing logic -->
-                                <input type="hidden" id="unidadBienes">
-                            </div>
 
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Destino
-                                    de los Bienes Muebles</label>
-                                <input type="text" id="destinoBienes" class="w-full input-premium"
-                                    placeholder="Nombre de la unidad o área destino">
-                            </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
+                                        <input type="text" id="solicitaBienes" class="w-full input-premium"
+                                            placeholder="Nombre de quien solicita">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                            Solicita</label>
+                                        <input type="text" id="puestoSolicitaBienes" class="w-full input-premium"
+                                            placeholder="Cargo de quien solicita">
+                                    </div>
+                                </div>
 
-                            <!-- Bienes Muebles Dynamic List -->
-                            <div class="space-y-3 pt-2">
-                                <div class="flex items-center justify-between px-1">
-                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lista
-                                        de Bienes a Registrar</label>
-                                    <button type="button" onclick="addItemRowBienes()"
-                                        class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
-                                        <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
-                                    </button>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Autorizó</label>
+                                        <input type="text" id="autorizBienes" class="w-full input-premium"
+                                            placeholder="Nombre de quien autoriza">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                            Autorizó</label>
+                                        <input type="text" id="puestoAutorizBienes" class="w-full input-premium"
+                                            placeholder="Cargo de quien autoriza">
+                                    </div>
                                 </div>
-                                <div id="itemsContainerBienes" class="space-y-3">
-                                    <!-- Dynamic rows -->
-                                </div>
-                            </div>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Ejecuta</label>
-                                    <input type="text" id="ejecutaBienes" class="w-full input-premium"
-                                        placeholder="Nombre de quien ejecuta">
-                                </div>
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puerta</label>
-                                    <input type="text" id="puertaBienes" class="w-full input-premium"
-                                        placeholder="No. de puerta">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
-                                    <input type="text" id="solicitaBienes" class="w-full input-premium"
-                                        placeholder="Nombre de quien solicita">
-                                </div>
                                 <div class="space-y-2">
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
-                                        Solicita</label>
-                                    <input type="text" id="puestoSolicitaBienes" class="w-full input-premium"
-                                        placeholder="Cargo de quien solicita">
+                                        Administrativo</label>
+                                    <input type="text" id="puestoBienes" class="w-full input-premium"
+                                        placeholder="Cargo o puesto de ejecutante">
                                 </div>
-                            </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Autorizó</label>
-                                    <input type="text" id="autorizBienes" class="w-full input-premium"
-                                        placeholder="Nombre de quien autoriza">
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
+                                        Observaciones</label>
+                                    <textarea id="motivoBienes" class="w-full input-premium h-20 resize-none"
+                                        placeholder="Descripción adicional..."></textarea>
                                 </div>
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
-                                        Autorizó</label>
-                                    <input type="text" id="puestoAutorizBienes" class="w-full input-premium"
-                                        placeholder="Cargo de quien autoriza">
-                                </div>
-                            </div>
 
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
-                                    Ejecuta</label>
-                                <input type="text" id="puestoBienes" class="w-full input-premium"
-                                    placeholder="Cargo o puesto de ejecutante">
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
-                                    Observaciones</label>
-                                <textarea id="motivoBienes" class="w-full input-premium h-20 resize-none"
-                                    placeholder="Descripción adicional..."></textarea>
-                            </div>
-
-                            <button type="submit"
-                                class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
-                                <i data-lucide="save" class="w-4 h-4"></i>
-                                Guardar Registro
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- List Card -->
-                    <div
-                        class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
-                        <div
-                            class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-xl font-bold flex items-center gap-2">
-                                    <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
-                                    Historial de Movimientos
-                                </h3>
-                            </div>
-                            <!-- Search Bar -->
-                            <div class="flex-1 max-w-md relative">
-                                <i data-lucide="search"
-                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
-                                <input type="text" id="searchBienes" oninput="handleSearchBienes()"
-                                    class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
-                                    placeholder="Buscar por folio, unidad, bienes...">
-                            </div>
-                            <div class="flex items-center gap-2">
-                            </div>
+                                <button type="submit"
+                                    class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
+                                    <i data-lucide="save" class="w-4 h-4"></i>
+                                    Guardar Registro
+                                </button>
+                            </form>
                         </div>
 
-                        <div class="overflow-x-auto flex-grow max-h-[600px]">
-                            <table class="w-full custom-table min-w-[1000px]">
-                                <thead>
-                                    <tr>
-                                        <th>Folio / Fecha</th>
-                                        <th>Tipo de Movimiento</th>
-                                        <th>Origen / Destino</th>
-                                        <th>Bienes</th>
-                                        <th>Ejecuta / Solicita</th>
-                                        <th class="text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="historyBodyBienes">
-                                    <!-- Rows will be added here via JS -->
-                                </tbody>
-                            </table>
-                            <div id="emptyStateBienes" class="p-20 text-center hidden">
-                                <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
-                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay
-                                    registros
-                                    almacenados</p>
+                        <!-- List Card -->
+                        <div
+                            class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                            <div
+                                class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-xl font-bold flex items-center gap-2">
+                                        <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                        Historial de Movimientos
+                                    </h3>
+                                </div>
+                                <!-- Search Bar -->
+                                <div class="flex-1 max-w-md relative">
+                                    <i data-lucide="search"
+                                        class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                    <input type="text" id="searchBienes" oninput="handleSearchBienes()"
+                                        class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                        placeholder="Buscar por folio, unidad, bienes...">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto flex-grow max-h-[600px]">
+                                <table class="w-full custom-table min-w-[1000px]">
+                                    <thead>
+                                        <tr>
+                                            <th>Folio / Fecha</th>
+                                            <th>Tipo de Movimiento</th>
+                                            <th>Origen / Destino</th>
+                                            <th>Bienes</th>
+                                            <th>Ejecuta / Solicita</th>
+                                            <th class="text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyBodyBienes">
+                                        <!-- Rows will be added here via JS -->
+                                    </tbody>
+                                </table>
+                                <div id="emptyStateBienes" class="p-20 text-center hidden">
+                                    <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
+                                    <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay
+                                        registros
+                                        almacenados</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- Configuración Section -->
-            <!-- Configuración Section Removed -->
         </main>
     </div>
 
@@ -803,13 +806,13 @@
     <script>
         // --- CONFIGURACIÓN DE FIREBASE ---
         const firebaseConfig = {
-            apiKey: "AIzaSyCo_t2pFMtZq5_CgL2i1geFZQSfmYVK2j4",
-            authDomain: "sirecoa-pro.firebaseapp.com",
-            projectId: "sirecoa-pro",
-            storageBucket: "sirecoa-pro.firebasestorage.app",
-            messagingSenderId: "806841040491",
-            appId: "1:806841040491:web:de946568679a34d698bb2e",
-            measurementId: "G-6TBNH2ZYS0"
+            apiKey: "AIzaSyAHI5_yqSRwhLGcXYdvTfZANDt_iWQ-K_M",
+            authDomain: "sia-control.firebaseapp.com",
+            projectId: "sia-control",
+            storageBucket: "sia-control.firebasestorage.app",
+            messagingSenderId: "933718961367",
+            appId: "1:933718961367:web:2cbae344c58b3bbccdd492",
+            measurementId: "G-3XP86VY2B4"
         };
 
         // Inicializar Firebase
@@ -1078,7 +1081,7 @@
             doc.setFont("helvetica", "bold");
             doc.text("SUBCOORDINACIÓN DE ADQUISICIONES Y CONTROL PATRIMONIAL", 10, 15);
             doc.setFontSize(9);
-            doc.text("FORMATO DE MOVIMIENTO DE BIENES MUEBLES", 105, 30, { align: "center" });
+            doc.text("MOVIMIENTO DE BIENES MUEBLES", 105, 30, { align: "center" });
 
             let currentY = 40;
             const drawField = (x, y, label, value, width = 95) => {
@@ -1103,13 +1106,7 @@
             drawField(105, currentY, "Puerta", rec.puerta);
             currentY += 8;
             drawField(10, currentY, "Ejecuta", rec.ejecuta);
-            drawField(105, currentY, "Puesto Ejecuta", rec.puesto);
-            currentY += 8;
-            drawField(10, currentY, "Solicita", rec.solicita);
-            drawField(105, currentY, "Puesto Solicita", rec.puestoSolicita);
-            currentY += 8;
-            drawField(10, currentY, "Autorizó", rec.autoriz);
-            drawField(105, currentY, "Puesto Autorizó", rec.pAutoriz);
+            drawField(105, currentY, "Puesto Ejecutivo", rec.puesto);
             currentY += 10;
             drawField(10, currentY, "Motivo", rec.motivo, 190);
 
@@ -1883,14 +1880,9 @@
             // Toggle Sections visibility
             document.getElementById('entradas-salidas-section').classList.add('hidden');
             document.getElementById('movimientos-bienes-section').classList.add('hidden');
-            const configSec = document.getElementById('configuracion-section');
-            if (configSec) configSec.classList.add('hidden');
 
             const targetSection = document.getElementById(`${id}-section`);
-            if (targetSection) {
-                targetSection.classList.remove('hidden');
-                targetSection.style.display = 'block';
-            }
+            if (targetSection) targetSection.classList.remove('hidden');
 
             // Update Header titles
             const title = document.getElementById('section-title');
@@ -1902,214 +1894,15 @@
             } else if (id === 'movimientos-bienes') {
                 title.textContent = 'Movimientos de Bienes Muebles';
                 desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
-            } else if (id === 'configuracion') {
-                title.textContent = 'Configuración de Estructura';
-                desc.textContent = 'Gestión de Secretarías, Unidades y Áreas.';
             }
 
             if (window.innerWidth < 1024) toggleSidebar();
             lucide.createIcons();
         }
 
-        // --- GESTIÓN DE ESTRUCTURA (CONFIGURACIÓN) ---
-        let selectedSecretariaConfig = null;
-        let selectedUnidadConfig = null;
-
-        function initConfig() {
-            // Listen for secretarias changes
-            db.collection('secretarias').orderBy('nombre').onSnapshot(snapshot => {
-                const list = document.getElementById('listSecretarias');
-                if (!list) return;
-                list.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const div = document.createElement('div');
-                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all ${selectedSecretariaConfig === doc.id ? 'border border-rose-500 bg-rose-500/10' : ''}`;
-                    div.innerHTML = `
-                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
-                        <div class="flex gap-2">
-                             <button onclick="editSecretaria('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="deleteSecretaria('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    `;
-                    div.onclick = () => selectSecretariaConfig(doc.id, data.nombre);
-                    list.appendChild(div);
-                });
-                lucide.createIcons();
-            });
-        }
-
-        function selectSecretariaConfig(id, name) {
-            selectedSecretariaConfig = id;
-            selectedUnidadConfig = null;
-            document.getElementById('selectedSecretariaLabel').textContent = name;
-            document.getElementById('unidadesContainer').classList.remove('opacity-50', 'pointer-events-none');
-
-            // Reset areas
-            document.getElementById('areasContainer').classList.add('opacity-50', 'pointer-events-none');
-            document.getElementById('listAreas').innerHTML = '';
-            document.getElementById('selectedUnidadLabel').textContent = 'Selecciona una Unidad';
-
-            // Load Unidades
-            loadUnidadesConfig(id);
-            initConfig(); // Re-render to highlight selection
-        }
-
-        async function addSecretaria() {
-            const name = document.getElementById('newSecretariaName').value.trim();
-            if (!name) return;
-            try {
-                await db.collection('secretarias').add({
-                    nombre: name,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                document.getElementById('newSecretariaName').value = '';
-                loadSecretariasBienes(); // Refresh dropdowns too
-            } catch (e) { showNotification('Error: ' + e.message, true); }
-        }
-
-        async function editSecretaria(id, currentName, event) {
-            event.stopPropagation();
-            const newName = prompt("Editar nombre de Secretaría:", currentName);
-            if (newName && newName.trim() !== currentName) {
-                await db.collection('secretarias').doc(id).update({ nombre: newName.trim() });
-                loadSecretariasBienes();
-            }
-        }
-
-        async function deleteSecretaria(id, event) {
-            event.stopPropagation();
-            if (!confirm('¿Eliminar esta Secretaría y TODAS sus dependencias?')) return;
-            try {
-                await db.collection('secretarias').doc(id).delete();
-                selectedSecretariaConfig = null;
-                document.getElementById('unidadesContainer').classList.add('opacity-50', 'pointer-events-none');
-                document.getElementById('listUnidades').innerHTML = '';
-                loadSecretariasBienes();
-            } catch (e) { showNotification('Error: ' + e.message, true); }
-        }
-
-        function loadUnidadesConfig(secretariaId) {
-            db.collection('secretarias').doc(secretariaId).collection('unidades').orderBy('nombre').onSnapshot(snapshot => {
-                const list = document.getElementById('listUnidades');
-                list.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const div = document.createElement('div');
-                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all ${selectedUnidadConfig === doc.id ? 'border border-amber-500 bg-amber-500/10' : ''}`;
-                    div.innerHTML = `
-                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
-                         <div class="flex gap-2">
-                             <button onclick="editUnidad('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="deleteUnidad('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    `;
-                    div.onclick = () => selectUnidadConfig(doc.id, data.nombre);
-                    list.appendChild(div);
-                });
-                lucide.createIcons();
-            });
-        }
-
-        function selectUnidadConfig(id, name) {
-            selectedUnidadConfig = id;
-            document.getElementById('selectedUnidadLabel').textContent = name;
-            document.getElementById('areasContainer').classList.remove('opacity-50', 'pointer-events-none');
-            loadAreasConfig(selectedSecretariaConfig, id);
-            // Re-render Unidades to highlight
-            loadUnidadesConfig(selectedSecretariaConfig);
-        }
-
-        async function addUnidad() {
-            if (!selectedSecretariaConfig) return;
-            const name = document.getElementById('newUnidadName').value.trim();
-            if (!name) return;
-            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').add({
-                nombre: name,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            document.getElementById('newUnidadName').value = '';
-        }
-
-        async function editUnidad(id, currentName, event) {
-            event.stopPropagation();
-            const newName = prompt("Editar nombre de Unidad:", currentName);
-            if (newName && newName.trim() !== currentName) {
-                await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(id).update({ nombre: newName.trim() });
-            }
-        }
-
-        async function deleteUnidad(id, event) {
-            event.stopPropagation();
-            if (!confirm('¿Eliminar Unidad?')) return;
-            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(id).delete();
-        }
-
-        function loadAreasConfig(secretariaId, unidadId) {
-            db.collection('secretarias').doc(secretariaId).collection('unidades').doc(unidadId).collection('areas').orderBy('nombre').onSnapshot(snapshot => {
-                const list = document.getElementById('listAreas');
-                list.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const div = document.createElement('div');
-                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all`;
-                    div.innerHTML = `
-                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
-                         <div class="flex gap-2">
-                             <button onclick="editArea('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="deleteArea('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-                lucide.createIcons();
-            });
-        }
-
-        async function addArea() {
-            if (!selectedSecretariaConfig || !selectedUnidadConfig) return;
-            const name = document.getElementById('newAreaName').value.trim();
-            if (!name) return;
-            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').add({
-                nombre: name,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            document.getElementById('newAreaName').value = '';
-        }
-
-        async function editArea(id, currentName, event) {
-            event.stopPropagation();
-            const newName = prompt("Editar nombre de Área:", currentName);
-            if (newName && newName.trim() !== currentName) {
-                await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').doc(id).update({ nombre: newName.trim() });
-            }
-        }
-
-        async function deleteArea(id, event) {
-            event.stopPropagation();
-            if (!confirm('¿Eliminar Área?')) return;
-            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').doc(id).delete();
-        }
-
-        // Init
-        document.addEventListener('DOMContentLoaded', initConfig);
-
         // Init
         addItemRow();
         addItemRowBienes();
-        loadSecretariasBienes(); // Load initial data for dropdowns
         renderRecords();
         renderRecordsBienes();
         suggestNextFolio();
