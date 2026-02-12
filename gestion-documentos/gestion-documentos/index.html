@@ -2335,12 +2335,12 @@
             doc.setFillColor(...dorado);
             doc.rect(0, 35, 210, 1.5, 'F');
 
-            // Header Text Left
+            // Header Text Left (Contra esquina del logo)
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(10);
+            doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
-            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 15, 14);
-            doc.text("Y CONTROL PATRIMONIAL", 15, 20);
+            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 15, 15);
+            doc.text("Y CONTROL PATRIMONIAL", 15, 21);
 
             // --- Rounded Gold Logo Container (Right Side) ---
             const logoW = 55;
@@ -2372,11 +2372,11 @@
                 console.warn('Logo not found', e);
             }
 
-            // Title below bar
+            // Title below header (Asymmetrically centered and smaller)
             doc.setTextColor(50, 50, 50);
-            doc.setFontSize(13);
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text('SOLICITUD DE MOVIMIENTO DE BIENES MUEBLES', 105, 45, { align: 'center' });
+            doc.text('SOLICITUD DE MOVIMIENTO DE BIENES MUEBLES', 105, 42, { align: 'center' });
 
             // Info Body
             doc.setTextColor(50, 50, 50);
