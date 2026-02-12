@@ -748,13 +748,133 @@
             </div>
             <!-- Solicitud de Movimiento de Bienes Muebles Section -->
             <div id="solicitud-movimiento-section" class="space-y-8 hidden">
-                <div class="glass p-8 rounded-3xl border-white/10 shadow-2xl">
-                    <div class="flex flex-col items-center justify-center p-20 text-center">
-                        <i data-lucide="construction" class="w-16 h-16 text-amber-500 mb-6 animate-bounce"></i>
-                        <h3 class="text-2xl font-black text-white mb-2 uppercase tracking-tighter">Sección en
-                            Construcción</h3>
-                        <p class="text-slate-400 max-w-md">Estamos integrando el formato de solicitud para que combine
-                            perfectamente con el diseño premium de SIA.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Form Card -->
+                    <div
+                        class="lg:col-span-1 glass p-4 sm:p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <i data-lucide="file-signature" class="w-24 h-24"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                            Nueva Solicitud
+                        </h3>
+
+                        <form id="formSolicitud" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número de
+                                    Folio</label>
+                                <input type="text" id="folioSolicitud"
+                                    class="w-full input-premium font-mono text-amber-500"
+                                    placeholder="Ej: SOL-2026-001">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha de
+                                    Solicitud</label>
+                                <input type="date" id="fechaSolicitud" class="w-full input-premium">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Área
+                                    Solicitante</label>
+                                <input type="text" id="areaSolicitante" class="w-full input-premium"
+                                    placeholder="Ej: Coordinación Administrativa">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Nombre
+                                    del Solicitante</label>
+                                <input type="text" id="nombreSolicitante" class="w-full input-premium"
+                                    placeholder="Nombre completo">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Movimiento a
+                                    Realizar</label>
+                                <div class="select-wrapper">
+                                    <select id="tipoMovSolicitud"
+                                        class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                        <option value="Entrada">Entrada</option>
+                                        <option value="Reubicación">Reubicación</option>
+                                        <option value="Retiro">Retiro</option>
+                                        <option value="Para Baja">Para Baja</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
+                                    Detalle</label>
+                                <textarea id="motivoSolicitud" class="w-full input-premium h-20 resize-none"
+                                    placeholder="Descripción del movimiento..."></textarea>
+                            </div>
+
+                            <!-- Dynamic Items List -->
+                            <div class="space-y-3 pt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label
+                                        class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Bienes
+                                        en Solicitud</label>
+                                    <button type="button" onclick="addItemRowSolicitud()"
+                                        class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
+                                    </button>
+                                </div>
+                                <div id="itemsContainerSolicitud" class="space-y-3">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Guardar Solicitud
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- List Card -->
+                    <div
+                        class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                        <div
+                            class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <h3 class="text-xl font-bold flex items-center gap-2">
+                                <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                Historial de Solicitudes
+                            </h3>
+                            <div class="flex-1 max-w-md relative">
+                                <i data-lucide="search"
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="searchSolicitud" oninput="handleSearchSolicitud()"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                    placeholder="Buscar por folio, solicitante, área...">
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto flex-grow max-h-[600px]">
+                            <table class="w-full custom-table min-w-[1000px]">
+                                <thead>
+                                    <tr>
+                                        <th>Folio / Fecha</th>
+                                        <th>Tipo / Área</th>
+                                        <th>Solicitante</th>
+                                        <th>Bienes</th>
+                                        <th class="text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyBodySolicitud">
+                                    <!-- Rows added via JS -->
+                                </tbody>
+                            </table>
+                            <div id="emptyStateSolicitud" class="p-20 text-center hidden">
+                                <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
+                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay solicitudes
+                                    registradas</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -864,17 +984,28 @@
         const db = firebase.firestore();
         const recordsCol = db.collection('movimientos');
         const recordsBienesCol = db.collection('movimientos_bienes');
+        const recordsSolicitudCol = db.collection('solicitudes_movimiento');
 
         // Init Lucide
         lucide.createIcons();
 
         let records = [];
+        let recordsBienes = [];
+        let recordsSolicitud = [];
         let currentEditId = null;
         let searchTerm = '';
+        let searchTermBienes = '';
+        let searchTermSolicitud = '';
 
         const form = document.getElementById('registroForm');
+        const formBienes = document.getElementById('formBienes');
+        const formSolicitud = document.getElementById('formSolicitud');
         const historyBody = document.getElementById('historyBody');
+        const historyBodyBienes = document.getElementById('historyBodyBienes');
+        const historyBodySolicitud = document.getElementById('historyBodySolicitud');
         const emptyState = document.getElementById('emptyState');
+        const emptyStateBienes = document.getElementById('emptyStateBienes');
+        const emptyStateSolicitud = document.getElementById('emptyStateSolicitud');
 
         // Escuchar cambios en tiempo real desde la nube
         recordsCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
@@ -890,13 +1021,8 @@
         });
 
         // --- LÓGICA BIENES MUEBLES ---
-        let recordsBienes = [];
         let currentEditIdBienes = null;
-        let searchTermBienes = '';
 
-        const formBienes = document.getElementById('formBienes');
-        const historyBodyBienes = document.getElementById('historyBodyBienes');
-        const emptyStateBienes = document.getElementById('emptyStateBienes');
 
         // Escuchar cambios en tiempo real
         recordsBienesCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
@@ -2004,17 +2130,260 @@
             await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').doc(id).delete();
         }
 
+        // --- GESTIÓN DE SOLICITUDES DE MOVIMIENTO ---
+
+        recordsSolicitudCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            recordsSolicitud = [];
+            snapshot.forEach((doc) => {
+                recordsSolicitud.push({ id: doc.id, ...doc.data() });
+            });
+            renderHistorySolicitud();
+            suggestNextFolioSolicitud();
+        });
+
+        function suggestNextFolioSolicitud() {
+            const folioInput = document.getElementById('folioSolicitud');
+            if (!folioInput || recordsSolicitud.length === 0) {
+                if (folioInput) folioInput.value = `SOL-2026-001`;
+                return;
+            }
+            const sorted = [...recordsSolicitud].sort((a, b) => b.timestamp - a.timestamp);
+            const lastFolio = sorted[0].folio;
+            if (lastFolio && lastFolio.includes('-')) {
+                const parts = lastFolio.split('-');
+                const Year = parts[1];
+                const num = parseInt(parts[2]);
+                if (!isNaN(num)) {
+                    folioInput.value = `SOL-${Year}-${(num + 1).toString().padStart(3, '0')}`;
+                }
+            }
+        }
+
+        formSolicitud.onsubmit = async (e) => {
+            e.preventDefault();
+            const items = [];
+            document.querySelectorAll('#itemsContainerSolicitud > div').forEach(row => {
+                items.push({
+                    nombre: row.querySelector('.item-nombre').value,
+                    inventario: row.querySelector('.item-inv').value
+                });
+            });
+
+            const data = {
+                folio: document.getElementById('folioSolicitud').value,
+                fecha: document.getElementById('fechaSolicitud').value,
+                area: document.getElementById('areaSolicitante').value,
+                solicitante: document.getElementById('nombreSolicitante').value,
+                tipo: document.getElementById('tipoMovSolicitud').value,
+                motivo: document.getElementById('motivoSolicitud').value,
+                items: items,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (currentEditId) {
+                    await recordsSolicitudCol.doc(currentEditId).update(data);
+                    currentEditId = null;
+                } else {
+                    await recordsSolicitudCol.add(data);
+                }
+                showNotification('Exito', 'Solicitud guardada correctamente.');
+                formSolicitud.reset();
+                document.getElementById('itemsContainerSolicitud').innerHTML = '';
+                addItemRowSolicitud();
+                suggestNextFolioSolicitud();
+            } catch (error) {
+                console.error("Error saving solicitud:", error);
+                showNotification('Error', 'No se pudo guardar la solicitud.');
+            }
+        };
+
+        function addItemRowSolicitud(nombre = '', inventario = '') {
+            const container = document.getElementById('itemsContainerSolicitud');
+            const rowId = 'row-sol-' + Math.random().toString(36).substr(2, 9);
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-12 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 group relative items-center';
+            div.id = rowId;
+            div.innerHTML = `
+                <div class="col-span-7 sm:col-span-8">
+                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white" placeholder="Bien Mueble" value="${nombre}">
+                </div>
+                <div class="col-span-4 sm:col-span-3">
+                    <input type="text" class="item-inv w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs font-mono text-amber-500" placeholder="Inventario" value="${inventario}">
+                </div>
+                <div class="col-span-1 flex justify-center">
+                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-slate-600 hover:text-red-400 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function handleSearchSolicitud() {
+            searchTermSolicitud = document.getElementById('searchSolicitud').value.toLowerCase();
+            renderHistorySolicitud();
+        }
+
+        function renderHistorySolicitud() {
+            historyBodySolicitud.innerHTML = '';
+            const filtered = recordsSolicitud.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.area} ${rec.solicitante} ${rec.tipo}`.toLowerCase();
+                return searchStr.includes(searchTermSolicitud);
+            });
+
+            if (filtered.length === 0) {
+                emptyStateSolicitud.classList.remove('hidden');
+            } else {
+                emptyStateSolicitud.classList.add('hidden');
+                filtered.forEach(rec => {
+                    const row = document.createElement('tr');
+                    const itemsText = rec.items && rec.items.length > 0 ? `${rec.items[0].nombre} (+${rec.items.length - 1})` : 'Sin bienes';
+                    row.innerHTML = `
+                        <td class="text-sm">
+                            <div class="font-bold text-white">${rec.folio}</div>
+                            <div class="text-[10px] text-slate-500">${rec.fecha}</div>
+                        </td>
+                        <td class="text-sm">
+                            <span class="px-2 py-1 bg-amber-500/10 text-amber-500 rounded text-[10px] uppercase font-bold">${rec.tipo}</span>
+                            <div class="text-[10px] text-slate-500 mt-1">${rec.area}</div>
+                        </td>
+                        <td class="text-sm text-white font-medium">${rec.solicitante}</td>
+                        <td class="text-xs text-slate-400 font-mono">${itemsText}</td>
+                        <td class="text-right">
+                            <div class="flex justify-end gap-1">
+                                <button onclick="exportSolicitudPDF('${rec.id}')" class="p-2 text-slate-400 hover:text-rose-500"><i data-lucide="file-text" class="w-4 h-4"></i></button>
+                                <button onclick="deleteSolicitud('${rec.id}')" class="p-2 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    historyBodySolicitud.appendChild(row);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        async function deleteSolicitud(id) {
+            if (confirm('¿Eliminar esta solicitud?')) {
+                await recordsSolicitudCol.doc(id).delete();
+                showNotification('Exito', 'Solicitud eliminada.');
+            }
+        }
+
+        function exportSolicitudPDF(id) {
+            const rec = recordsSolicitud.find(r => r.id === id);
+            if (!rec) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const guinda = [139, 26, 45];
+            const dorado = [212, 175, 55];
+
+            // Header Premium
+            doc.setFillColor(...guinda);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setFillColor(...dorado);
+            doc.rect(0, 40, 210, 2, 'F');
+
+            // Logo Local
+            const logo = document.querySelector('img[src="logo.png"]');
+            if (logo) {
+                doc.addImage(logo, 'PNG', 15, 8, 24, 24);
+            }
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont('Outfit', 'light');
+            doc.text('GOBIERNO DEL ESTADO DE MÉXICO', 110, 15, { align: 'center' });
+            doc.setFontSize(16);
+            doc.setFont('Outfit', 'bold');
+            doc.text('SOLICITUD DE MOVIMIENTO', 110, 25, { align: 'center' });
+            doc.text('DE BIENES MUEBLES', 110, 33, { align: 'center' });
+
+            // Body Data
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('FECHA:', 150, 55);
+            doc.setFont(undefined, 'normal');
+            doc.text(rec.fecha, 168, 55);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('FOLIO:', 150, 62);
+            doc.setTextColor(...guinda);
+            doc.text(rec.folio, 168, 62);
+            doc.setTextColor(50, 50, 50);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('ÁREA SOLICITANTE:', 20, 75);
+            doc.setFont(undefined, 'normal');
+            doc.text(rec.area.toUpperCase(), 20, 80);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('SOLICITANTE:', 20, 90);
+            doc.setFont(undefined, 'normal');
+            doc.text(rec.solicitante.toUpperCase(), 20, 95);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('MOVIMIENTO:', 20, 105);
+            doc.setFont(undefined, 'normal');
+            doc.text(rec.tipo.toUpperCase(), 48, 105);
+
+            doc.setFont(undefined, 'bold');
+            doc.text('MOTIVO / DETALLE:', 20, 115);
+            const motivoLines = doc.splitTextToSize(rec.motivo || 'Sin detalles adicionales', 170);
+            doc.setFont(undefined, 'normal');
+            doc.text(motivoLines, 20, 120);
+
+            // Table of items
+            const tableData = rec.items.map((item, index) => [
+                index + 1,
+                item.nombre.toUpperCase(),
+                item.inventario || 'S/N'
+            ]);
+
+            doc.autoTable({
+                startY: 140,
+                head: [['No.', 'BIEN MUEBLE', 'INVENTARIO']],
+                body: tableData,
+                styles: { fontSize: 8, font: 'Montserrat', cellPadding: 3 },
+                headStyles: { fillColor: guinda, textColor: 255, halign: 'center' },
+                columnStyles: {
+                    0: { halign: 'center', cellWidth: 15 },
+                    2: { halign: 'center', cellWidth: 40 }
+                }
+            });
+
+            // Signatures
+            const finalY = doc.lastAutoTable.finalY + 30;
+            doc.setDrawColor(200);
+            doc.line(30, finalY, 90, finalY);
+            doc.line(120, finalY, 180, finalY);
+            doc.text('SOLICITA', 60, finalY + 5, { align: 'center' });
+            doc.text('AUTORIZA', 150, finalY + 5, { align: 'center' });
+
+            const pdfBlob = doc.output('bloburl');
+            document.getElementById('pdfViewer').src = pdfBlob;
+            document.getElementById('pdfModal').classList.remove('hidden');
+            document.getElementById('downloadPdfBtn').onclick = () => doc.save(`Solicitud_${rec.folio}.pdf`);
+        }
+
         // Init
         document.addEventListener('DOMContentLoaded', initConfig);
 
         // Init
         addItemRow();
         addItemRowBienes();
+        addItemRowSolicitud();
         renderRecords();
         renderRecordsBienes();
+        renderHistorySolicitud();
         suggestNextFolio();
         suggestNextFolioBienes();
+        suggestNextFolioSolicitud();
         document.getElementById('fechaBienes').valueAsDate = new Date();
+        document.getElementById('fechaSolicitud').valueAsDate = new Date();
     </script>
 </body>
 
