@@ -2355,7 +2355,7 @@
 
             // Logo Centered in Container
             try {
-                const logoBase64 = await getBase64Image('logo_institucional.png');
+                const logoBase64 = await getBase64Image('logo.png');
                 const imgProps = doc.getImageProperties(logoBase64);
                 const ratio = imgProps.width / imgProps.height;
 
@@ -2372,11 +2372,11 @@
                 console.warn('Logo not found', e);
             }
 
-            // Title below header (Asymmetrically centered and smaller)
-            doc.setTextColor(50, 50, 50);
-            doc.setFontSize(10);
+            // Title INSIDE header (Centered at the bottom of the guinda area)
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
-            doc.text('SOLICITUD DE MOVIMIENTO DE BIENES MUEBLES', 105, 42, { align: 'center' });
+            doc.text('SOLICITUD DE MOVIMIENTO DE BIENES MUEBLES', 105, 31, { align: 'center' });
 
             // Info Body
             doc.setTextColor(50, 50, 50);
