@@ -2343,11 +2343,11 @@
             doc.text("Y CONTROL PATRIMONIAL", 15, 21);
 
             // --- Rounded Gold Logo Container (Right Side) ---
-            const logoW = 55;
-            const logoH = 22;
+            const logoW = 45;
+            const logoH = 18;
             const logoX = 200 - logoW; // Right aligned
-            const logoY = 6;
-            const radius = 2;
+            const logoY = 8.5;
+            const radius = 1.5;
 
             // Dorado Discreto (Creamy Elegant Gold)
             doc.setFillColor(245, 235, 210);
@@ -2359,9 +2359,9 @@
                 const imgProps = doc.getImageProperties(logoBase64);
                 const ratio = imgProps.width / imgProps.height;
 
-                let finalW = (logoW - 10) * 0.8; // Reduced by 20%
+                let finalW = logoW - 8; // Internal padding
                 let finalH = finalW / ratio;
-                const maxHeight = (logoH - 6) * 0.8; // Reduced by 20%
+                const maxHeight = logoH - 4;
 
                 if (finalH > maxHeight) {
                     finalH = maxHeight;
