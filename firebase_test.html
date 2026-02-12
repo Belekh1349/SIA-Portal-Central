@@ -279,11 +279,6 @@
                         <i data-lucide="package" class="w-5 h-5"></i>
                         <span class="font-semibold">Movimientos de Bienes</span>
                     </button>
-                    <button onclick="showSection('solicitud-movimiento')" id="nav-solicitud-movimiento"
-                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
-                        <i data-lucide="file-signature" class="w-5 h-5"></i>
-                        <span class="font-semibold text-left">Solicitud de Movimiento</span>
-                    </button>
                     <!-- More menus can be added here -->
                     <button onclick="showSection('configuracion')" id="nav-configuracion"
                         class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
@@ -320,8 +315,8 @@
                         <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
                         <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
                             movimientos documentales y
-                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.7.3
-                                (CLEAN-UI)</span></p>
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.7.2
+                                (FORCED-DEPLOY)</span></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
@@ -598,12 +593,50 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
-                                    Administrativa</label>
-                                <input type="text" id="unidadBienes" class="w-full input-premium"
-                                    placeholder="Nombre de la unidad">
+                            <!-- Estructura Jerárquica -->
+                            <div class="space-y-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                                <h4
+                                    class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <i data-lucide="layers" class="w-4 h-4 text-amber-500"></i> Estructura
+                                    Organizacional
+                                </h4>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Secretaría</label>
+                                    <div class="select-wrapper">
+                                        <select id="selectSecretariaBienes" onchange="loadUnidadesBienes()"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="">Seleccione una Secretaría...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad
+                                        Administrativa</label>
+                                    <div class="select-wrapper">
+                                        <select id="selectUnidadBienes" onchange="loadAreasBienes()" disabled
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50">
+                                            <option value="">Primero seleccione Secretaría...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Área
+                                        de Adscripción</label>
+                                    <div class="select-wrapper">
+                                        <select id="selectAreaBienes"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10 opacity-50"
+                                            disabled>
+                                            <option value="">Primero seleccione Unidad...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Hidden input to maintain compatibility with existing logic -->
+                                <input type="hidden" id="unidadBienes">
                             </div>
 
                             <div class="space-y-2">
@@ -746,19 +779,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Solicitud de Movimiento de Bienes Muebles Section -->
-            <div id="solicitud-movimiento-section" class="space-y-8 hidden">
-                <div class="glass p-8 rounded-3xl border-white/10 shadow-2xl">
-                    <div class="flex flex-col items-center justify-center p-20 text-center">
-                        <i data-lucide="construction" class="w-16 h-16 text-amber-500 mb-6 animate-bounce"></i>
-                        <h3 class="text-2xl font-black text-white mb-2 uppercase tracking-tighter">Sección en
-                            Construcción</h3>
-                        <p class="text-slate-400 max-w-md">Estamos integrando el formato de solicitud para que combine
-                            perfectamente con el diseño premium de SIA.</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Configuración Section -->
             <div id="configuracion-section" class="space-y-8 hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -1198,6 +1218,155 @@
 
         // --- ESTRUCTURA ORGANIZACIONAL LOGIC ---
 
+        async function loadSecretariasBienes() {
+            const select = document.getElementById('selectSecretariaBienes');
+            select.innerHTML = '<option value="">Cargando...</option>';
+
+            try {
+                const snapshot = await db.collection('secretarias').orderBy('nombre').get();
+                select.innerHTML = '<option value="">Seleccione una Secretaría...</option>';
+
+                if (snapshot.empty) {
+                    const opt = document.createElement('option');
+                    opt.text = "No hay secretarías registradas";
+                    select.add(opt);
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.text = doc.data().nombre;
+                    select.add(opt);
+                });
+            } catch (error) {
+                console.error("Error loading secretarias:", error);
+                select.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function loadUnidadesBienes() {
+            const secretariaId = document.getElementById('selectSecretariaBienes').value;
+            const selectUnidad = document.getElementById('selectUnidadBienes');
+            const selectArea = document.getElementById('selectAreaBienes');
+
+            // Reset downstream selects
+            selectUnidad.innerHTML = '<option value="">Cargando...</option>';
+            selectUnidad.disabled = true;
+            selectArea.innerHTML = '<option value="">Primero seleccione Unidad...</option>';
+            selectArea.disabled = true;
+            selectArea.classList.add('opacity-50');
+
+            updateHiddenUnidadValue();
+
+            if (!secretariaId) {
+                selectUnidad.innerHTML = '<option value="">Primero seleccione Secretaría...</option>';
+                selectUnidad.classList.add('opacity-50');
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('secretarias').doc(secretariaId).collection('unidades').orderBy('nombre').get();
+                selectUnidad.innerHTML = '<option value="">Seleccione una Unidad...</option>';
+
+                if (snapshot.empty) {
+                    const opt = document.createElement('option');
+                    opt.text = "No hay unidades registradas";
+                    selectUnidad.add(opt);
+                } else {
+                    snapshot.forEach(doc => {
+                        const opt = document.createElement('option');
+                        opt.value = doc.id;
+                        opt.text = doc.data().nombre;
+                        selectUnidad.add(opt);
+                    });
+                    selectUnidad.disabled = false;
+                    selectUnidad.classList.remove('opacity-50');
+                }
+            } catch (error) {
+                console.error("Error loading unidades:", error);
+                selectUnidad.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function loadAreasBienes() {
+            const secretariaId = document.getElementById('selectSecretariaBienes').value;
+            const unidadId = document.getElementById('selectUnidadBienes').value;
+            const selectArea = document.getElementById('selectAreaBienes');
+
+            selectArea.innerHTML = '<option value="">Cargando...</option>';
+            selectArea.disabled = true;
+
+            updateHiddenUnidadValue();
+
+            if (!unidadId) {
+                selectArea.innerHTML = '<option value="">Primero seleccione Unidad...</option>';
+                selectArea.classList.add('opacity-50');
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection('secretarias').doc(secretariaId).collection('unidades').doc(unidadId).collection('areas').orderBy('nombre').get();
+                selectArea.innerHTML = '<option value="">Seleccione un Área...</option>';
+
+                if (snapshot.empty) {
+                    const opt = document.createElement('option');
+                    opt.text = "No hay áreas registradas";
+                    selectArea.add(opt);
+                } else {
+                    snapshot.forEach(doc => {
+                        const opt = document.createElement('option');
+                        opt.value = doc.id; // We use name for the value to be consistent with existing logic? No, let's use name in hidden field.
+                        opt.text = doc.data().nombre; // Store name in text
+                        opt.setAttribute('data-name', doc.data().nombre);
+                        selectArea.add(opt);
+                    });
+                    selectArea.disabled = false;
+                    selectArea.classList.remove('opacity-50');
+                }
+            } catch (error) {
+                console.error("Error loading areas:", error);
+                selectArea.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        // Listener for Area change to update hidden input
+        document.getElementById('selectAreaBienes').addEventListener('change', updateHiddenUnidadValue);
+
+        function updateHiddenUnidadValue() {
+            const secSelect = document.getElementById('selectSecretariaBienes');
+            const uniSelect = document.getElementById('selectUnidadBienes');
+            const areaSelect = document.getElementById('selectAreaBienes');
+
+            const secName = secSelect.options[secSelect.selectedIndex]?.text || '';
+            const uniName = uniSelect.options[uniSelect.selectedIndex]?.text || '';
+            const areaName = areaSelect.options[areaSelect.selectedIndex]?.text || '';
+
+            let finalValue = '';
+            if (areaName && areaSelect.value) {
+                finalValue = areaName;
+            } else if (uniName && uniSelect.value) {
+                finalValue = uniName;
+            } else if (secName && secSelect.value) {
+                finalValue = secName;
+            }
+
+            // Set the value to the hidden input
+            // Ideally we want full path: "Secretaría / Unidad / Área" or just the most specific one.
+            // Original code used "Unidad/Área Administrativa" as a single text field.
+            // Let's store the most specific one, but maybe we should store full path for better context?
+            // User asked for "Estructura por secretarias", implying hierarchy.
+            // Let's stick to the specific name for now to match "Unidad", but maybe include hierarchy if useful.
+            // Going with specific name to keep it simple for now, but context might be lost.
+            // Let's try: "Unidad - Área" format if area is selected? No, keeping it simple.
+
+            document.getElementById('unidadBienes').value = finalValue;
+        }
+
+        // Initialize structure on load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSecretariasBienes();
+        });
 
         function suggestNextFolio() {
             if (currentEditId) return; // Don't suggest if editing
@@ -1779,7 +1948,7 @@
             if (activeBtn) activeBtn.classList.add('active');
 
             // Toggle Sections visibility - Explicitly hide all possible sections
-            const possibleSections = ['entradas-salidas-section', 'movimientos-bienes-section', 'solicitud-movimiento-section', 'configuracion-section'];
+            const possibleSections = ['entradas-salidas-section', 'movimientos-bienes-section', 'configuracion-section'];
             possibleSections.forEach(sid => {
                 const el = document.getElementById(sid);
                 if (el) {
@@ -1804,9 +1973,6 @@
             } else if (id === 'movimientos-bienes') {
                 if (title) title.textContent = 'Movimientos de Bienes Muebles';
                 if (desc) desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
-            } else if (id === 'solicitud-movimiento') {
-                if (title) title.textContent = 'Solicitud de Movimiento de Bienes Muebles';
-                if (desc) desc.textContent = 'Generación de formatos oficiales de solicitud de movimiento.';
             } else if (id === 'configuracion') {
                 if (title) title.textContent = 'Configuración de Estructura';
                 if (desc) desc.textContent = 'Gestión de Secretarías, Unidades y Áreas.';
@@ -1872,6 +2038,7 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 document.getElementById('newSecretariaName').value = '';
+                loadSecretariasBienes(); // Refresh dropdowns too
             } catch (e) { showNotification('Error: ' + e.message, true); }
         }
 
@@ -1880,6 +2047,7 @@
             const newName = prompt("Editar nombre de Secretaría:", currentName);
             if (newName && newName.trim() !== currentName) {
                 await db.collection('secretarias').doc(id).update({ nombre: newName.trim() });
+                loadSecretariasBienes();
             }
         }
 
@@ -1891,6 +2059,7 @@
                 selectedSecretariaConfig = null;
                 document.getElementById('unidadesContainer').classList.add('opacity-50', 'pointer-events-none');
                 document.getElementById('listUnidades').innerHTML = '';
+                loadSecretariasBienes();
             } catch (e) { showNotification('Error: ' + e.message, true); }
         }
 
@@ -2010,6 +2179,7 @@
         // Init
         addItemRow();
         addItemRowBienes();
+        loadSecretariasBienes(); // Load initial data for dropdowns
         renderRecords();
         renderRecordsBienes();
         suggestNextFolio();
