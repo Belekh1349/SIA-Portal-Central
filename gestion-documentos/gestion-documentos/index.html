@@ -1,0 +1,2497 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>SIA - Gestión de Documentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #4c0519;
+            --accent: #f59e0b;
+            --bg-body: #0f172a;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --guinda: #8B1A2D;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* iOS Safe Areas */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .bg-mesh {
+            background-image:
+                radial-gradient(at 0% 0%, rgba(139, 26, 45, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.1) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .sidebar-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(to right, rgba(139, 26, 45, 0.2), transparent);
+            border-left: 4px solid var(--guinda);
+            color: white;
+        }
+
+        /* Responsive Sidebar */
+        @media (max-width: 1024px) {
+            aside {
+                position: fixed !important;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 50 !important;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            aside.open {
+                left: 0;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(4px);
+                z-index: 40;
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            #sidebarOverlay.open {
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+        }
+
+        .input-premium {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-premium:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        }
+
+        /* Fix for native select options in dark mode */
+        select.input-premium option {
+            background-color: #1e293b;
+            /* slate-800 */
+            color: white;
+            padding: 10px;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-20%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--text-muted);
+            pointer-events: none;
+        }
+
+        .btn-guinda {
+            background: var(--guinda);
+            transition: all 0.3s ease;
+        }
+
+        .btn-guinda:hover {
+            background: #a31e34;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 26, 45, 0.3);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-up {
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        /* Custom Table */
+        .custom-table th {
+            background: rgba(255, 255, 255, 0.03);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 16px;
+            text-align: left;
+        }
+
+        .custom-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-mesh">
+    <div id="sidebarOverlay" onclick="toggleSidebar()"
+        class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40 lg:hidden opacity-0 invisible transition-all duration-300">
+    </div>
+
+    <!-- PDF Preview Modal -->
+    <div id="pdfModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closePDFPreview()"></div>
+        <div
+            class="relative bg-white w-full max-w-5xl sm:h-[90vh] h-full sm:rounded-2xl rounded-none shadow-2xl overflow-hidden flex flex-col">
+            <!-- Modal Header -->
+            <div class="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-rose-500/10 rounded-lg">
+                        <i data-lucide="file-text" class="w-5 h-5 text-rose-500"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold leading-none">Vista Previa del Documento</h3>
+                        <p class="text-slate-400 text-[10px] uppercase tracking-widest mt-1">SIA - Vista de Impresión
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="downloadPdfBtn"
+                        class="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-rose-600/20">
+                        <i data-lucide="download" class="w-4 h-4"></i> Descargar
+                    </button>
+                    <button onclick="closePDFPreview()"
+                        class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Modal Body -->
+            <div class="flex-1 bg-slate-100 p-4 relative overflow-hidden">
+                <iframe id="pdfViewer" class="w-full h-full rounded-lg shadow-inner bg-white" frameborder="0"></iframe>
+            </div>
+            <!-- Modal Footer -->
+            <div class="bg-white px-6 py-3 border-t border-slate-100 flex justify-end gap-3 text-xs text-slate-500">
+                <span>Pulsa Esc para cerrar</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-72 glass border-r border-white/5 flex flex-col z-20">
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-10">
+                    <div
+                        class="w-10 h-10 bg-guinda rounded-xl flex items-center justify-center shadow-lg shadow-guinda/20">
+                        <i data-lucide="file-text" class="text-white w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-black text-xl tracking-tighter title-gradient">DOCUMENTOS</h2>
+                        <p class="text-[10px] font-bold text-amber-500 tracking-[0.2em] uppercase">SIA - PORTAL CENTRAL
+                        </p>
+                    </div>
+                    <div class="lg:hidden p-3 rounded-lg bg-white/10 active:scale-95 transition-transform"
+                        onclick="toggleSidebar()">
+                        <i data-lucide="x" class="w-7 h-7 text-white"></i>
+                    </div>
+                </div>
+
+                <nav class="space-y-2">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 px-4">Menu Principal
+                    </p>
+                    <button onclick="showSection('entradas-salidas')" id="nav-entradas-salidas"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 active">
+                        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                        <span class="font-semibold">Entradas y Salidas</span>
+                    </button>
+                    <button onclick="showSection('movimientos-bienes')" id="nav-movimientos-bienes"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                        <i data-lucide="package" class="w-5 h-5"></i>
+                        <span class="font-semibold">Movimientos de Bienes</span>
+                    </button>
+                    <button onclick="showSection('solicitud-movimiento')" id="nav-solicitud-movimiento"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                        <i data-lucide="file-signature" class="w-5 h-5"></i>
+                        <span class="font-semibold text-left">Solicitud de Movimiento</span>
+                    </button>
+                    <!-- More menus can be added here -->
+                    <button onclick="showSection('configuracion')" id="nav-configuracion"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                        <i data-lucide="settings-2" class="w-5 h-5"></i>
+                        <span class="font-semibold">Gestión de Estructura</span>
+                    </button>
+                    <button
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 opacity-50 cursor-not-allowed">
+                        <i data-lucide="archive" class="w-5 h-5"></i>
+                        <span class="font-semibold">Archivo Morto</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="mt-auto p-8 border-t border-white/5">
+                <a href="../index.html"
+                    class="flex items-center gap-3 text-slate-400 hover:text-white transition-colors group">
+                    <i data-lucide="log-out" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                    <span class="font-bold text-sm">Volver al Portal</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-12 relative">
+            <!-- Header Section -->
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-up">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()"
+                        class="lg:hidden p-4 glass rounded-xl text-white active:scale-95 transition-transform shadow-lg">
+                        <i data-lucide="menu" class="w-7 h-7"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-black mb-2" id="section-title">Entradas y Salidas</h1>
+                        <p class="text-slate-400 text-sm md:text-base" id="section-desc">Registro y control de
+                            movimientos documentales y
+                            materiales. <span class="text-[10px] text-amber-500 font-bold ml-2">v0.7.3
+                                (CLEAN-UI)</span></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-emerald-500">Sistema Activo</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Entradas y Salidas Section -->
+            <div id="entradas-salidas-section" class="space-y-8 animate-up delay-1">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Form Card -->
+                    <div
+                        class="lg:col-span-1 glass p-4 sm:p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <i data-lucide="file-plus" class="w-24 h-24"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                            Nuevo Registro
+                        </h3>
+
+                        <form id="registroForm" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número de
+                                    Folio</label>
+                                <input type="text" id="folio" class="w-full input-premium font-mono text-amber-500"
+                                    placeholder="Ej: 2026-001">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
+                                    <input type="date" id="fecha" class="w-full input-premium">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
+                                        de Movimiento</label>
+                                    <div class="select-wrapper">
+                                        <select id="tipoMovimiento"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="Entrada">Entrada</option>
+                                            <option value="Salida">Salida</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Carácter</label>
+                                    <div class="select-wrapper">
+                                        <select id="caracter"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="Permanente">Permanente</option>
+                                            <option value="Temporal">Temporal</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Concepto
+                                        Específico</label>
+                                    <div class="select-wrapper">
+                                        <select id="conceptoEspecifico"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="Transferencia">Transferencia</option>
+                                            <option value="Préstamo">Préstamo</option>
+                                            <option value="Reparación">Reparación</option>
+                                            <option value="Baja">Baja</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
+                                    Administrativa</label>
+                                <input type="text" id="unidad" class="w-full input-premium"
+                                    placeholder="Nombre de la unidad">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Destino
+                                    de los Bienes Muebles</label>
+                                <input type="text" id="destino" class="w-full input-premium"
+                                    placeholder="Nombre de la unidad o área destino">
+                            </div>
+
+                            <!-- Bienes Muebles Dynamic List -->
+                            <div class="space-y-3 pt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lista
+                                        de Bienes a Registrar</label>
+                                    <button type="button" onclick="addItemRow()"
+                                        class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
+                                    </button>
+                                </div>
+                                <div id="itemsContainer" class="space-y-3">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
+                                    <input type="text" id="solicita" class="w-full input-premium"
+                                        placeholder="Nombre de quien solicita">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puerta</label>
+                                    <input type="text" id="puerta" class="w-full input-premium"
+                                        placeholder="No. de puerta">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Retira</label>
+                                    <input type="text" id="retira" class="w-full input-premium"
+                                        placeholder="Nombre de quien retira">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                        Retira</label>
+                                    <input type="text" id="puestoRetira" class="w-full input-premium"
+                                        placeholder="Cargo de quien retira">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Autorizó</label>
+                                    <input type="text" id="autoriz" class="w-full input-premium"
+                                        placeholder="Nombre de quien autoriza">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                        Autorizó</label>
+                                    <input type="text" id="puestoAutoriz" class="w-full input-premium"
+                                        placeholder="Cargo de quien autoriza">
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                    Administrativo</label>
+                                <input type="text" id="puesto" class="w-full input-premium"
+                                    placeholder="Cargo o puesto de solicitante">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
+                                    Observaciones</label>
+                                <textarea id="motivo" class="w-full input-premium h-20 resize-none"
+                                    placeholder="Descripción adicional..."></textarea>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Guardar Registro
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- List Card -->
+                    <div
+                        class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                        <div
+                            class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xl font-bold flex items-center gap-2">
+                                    <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                    Historial Reciente
+                                </h3>
+                            </div>
+                            <!-- Search Bar -->
+                            <div class="flex-1 max-w-md relative">
+                                <i data-lucide="search"
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="searchInput" oninput="handleSearch()"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                    placeholder="Buscar por folio, unidad, solicita o bienes...">
+                            </div>
+                            <div class="flex items-center gap-2 opacity-0 pointer-events-none">
+                                <!-- Botones removidos por solicitud del usuario para evitar redundancia -->
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto flex-grow max-h-[600px]">
+                            <table class="w-full custom-table min-w-[1000px]">
+                                <thead>
+                                    <tr>
+                                        <th>Folio / Fecha</th>
+                                        <th>Tipo / Concepto</th>
+                                        <th>Origen / Destino</th>
+                                        <th>Bienes</th>
+                                        <th>Solicita</th>
+                                        <th class="text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyBody">
+                                    <!-- Rows will be added here via JS -->
+                                </tbody>
+                            </table>
+                            <div id="emptyState" class="p-20 text-center hidden">
+                                <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
+                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay registros
+                                    almacenados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Movimientos de Bienes Muebles Section -->
+            <div id="movimientos-bienes-section" class="space-y-8 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Form Card -->
+                    <div
+                        class="lg:col-span-1 glass p-4 sm:p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <i data-lucide="package" class="w-24 h-24"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                            Nuevo Movimiento de Bienes
+                        </h3>
+
+                        <form id="formBienes" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número
+                                    de
+                                    Folio</label>
+                                <input type="text" id="folioBienes"
+                                    class="w-full input-premium font-mono text-amber-500" placeholder="Ej: MB-2026-001">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha</label>
+                                    <input type="date" id="fechaBienes" class="w-full input-premium">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Tipo
+                                        de Movimiento</label>
+                                    <div class="select-wrapper">
+                                        <select id="tipoMovBienes"
+                                            class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                            <option value="MOVIMIENTO">MOVIMIENTO</option>
+                                            <option value="REUBICACIÓN">REUBICACIÓN</option>
+                                            <option value="PARA BAJA">PARA BAJA</option>
+                                            <option value="RETIRO">RETIRO</option>
+                                            <option value="INGRESO">INGRESO</option>
+                                            <option value="RESGUARDO EN ÁREA DE STOCK">RESGUARDO EN ÁREA DE STOCK
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Unidad/Área
+                                    Administrativa</label>
+                                <input type="text" id="unidadBienes" class="w-full input-premium"
+                                    placeholder="Nombre de la unidad">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Destino
+                                    de los Bienes Muebles</label>
+                                <input type="text" id="destinoBienes" class="w-full input-premium"
+                                    placeholder="Nombre de la unidad o área destino">
+                            </div>
+
+                            <!-- Bienes Muebles Dynamic List -->
+                            <div class="space-y-3 pt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lista
+                                        de Bienes a Registrar</label>
+                                    <button type="button" onclick="addItemRowBienes()"
+                                        class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
+                                    </button>
+                                </div>
+                                <div id="itemsContainerBienes" class="space-y-3">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Ejecuta</label>
+                                    <input type="text" id="ejecutaBienes" class="w-full input-premium"
+                                        placeholder="Nombre de quien ejecuta">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puerta</label>
+                                    <input type="text" id="puertaBienes" class="w-full input-premium"
+                                        placeholder="No. de puerta">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Solicita</label>
+                                    <input type="text" id="solicitaBienes" class="w-full input-premium"
+                                        placeholder="Nombre de quien solicita">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                        Solicita</label>
+                                    <input type="text" id="puestoSolicitaBienes" class="w-full input-premium"
+                                        placeholder="Cargo de quien solicita">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Autorizó</label>
+                                    <input type="text" id="autorizBienes" class="w-full input-premium"
+                                        placeholder="Nombre de quien autoriza">
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                        Autorizó</label>
+                                    <input type="text" id="puestoAutorizBienes" class="w-full input-premium"
+                                        placeholder="Cargo de quien autoriza">
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Puesto
+                                    Ejecuta</label>
+                                <input type="text" id="puestoBienes" class="w-full input-premium"
+                                    placeholder="Cargo o puesto de ejecutante">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
+                                    Observaciones</label>
+                                <textarea id="motivoBienes" class="w-full input-premium h-20 resize-none"
+                                    placeholder="Descripción adicional..."></textarea>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Guardar Registro
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- List Card -->
+                    <div
+                        class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                        <div
+                            class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xl font-bold flex items-center gap-2">
+                                    <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                    Historial de Movimientos
+                                </h3>
+                            </div>
+                            <!-- Search Bar -->
+                            <div class="flex-1 max-w-md relative">
+                                <i data-lucide="search"
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="searchBienes" oninput="handleSearchBienes()"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                    placeholder="Buscar por folio, unidad, bienes...">
+                            </div>
+                            <div class="flex items-center gap-2">
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto flex-grow max-h-[600px]">
+                            <table class="w-full custom-table min-w-[1000px]">
+                                <thead>
+                                    <tr>
+                                        <th>Folio / Fecha</th>
+                                        <th>Tipo de Movimiento</th>
+                                        <th>Origen / Destino</th>
+                                        <th>Bienes</th>
+                                        <th>Ejecuta / Solicita</th>
+                                        <th class="text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyBodyBienes">
+                                    <!-- Rows will be added here via JS -->
+                                </tbody>
+                            </table>
+                            <div id="emptyStateBienes" class="p-20 text-center hidden">
+                                <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
+                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay
+                                    registros
+                                    almacenados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Solicitud de Movimiento de Bienes Muebles Section -->
+            <div id="solicitud-movimiento-section" class="space-y-8 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Form Card -->
+                    <div
+                        class="lg:col-span-1 glass p-4 sm:p-8 rounded-3xl border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <i data-lucide="file-signature" class="w-24 h-24"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                            Nueva Solicitud
+                        </h3>
+
+                        <form id="formSolicitud" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Número de
+                                    Folio</label>
+                                <input type="text" id="folioSolicitud"
+                                    class="w-full input-premium font-mono text-amber-500"
+                                    placeholder="Ej: SOL-2026-001">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Fecha de
+                                    Solicitud</label>
+                                <input type="date" id="fechaSolicitud" class="w-full input-premium">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Área
+                                    Solicitante</label>
+                                <input type="text" id="areaSolicitante" class="w-full input-premium"
+                                    placeholder="Ej: Coordinación Administrativa">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Nombre
+                                    del Solicitante</label>
+                                <input type="text" id="nombreSolicitante" class="w-full input-premium"
+                                    placeholder="Nombre completo">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Movimiento a
+                                    Realizar</label>
+                                <div class="select-wrapper">
+                                    <select id="tipoMovSolicitud"
+                                        class="w-full input-premium appearance-none bg-slate-800 cursor-pointer relative z-10">
+                                        <option value="Entrada">Entrada</option>
+                                        <option value="Reubicación">Reubicación</option>
+                                        <option value="Retiro">Retiro</option>
+                                        <option value="Para Baja">Para Baja</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Motivo /
+                                    Detalle</label>
+                                <textarea id="motivoSolicitud" class="w-full input-premium h-20 resize-none"
+                                    placeholder="Descripción del movimiento..."></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Nombre
+                                        Vo. Bo.</label>
+                                    <input type="text" id="voBoNombre" class="w-full input-premium"
+                                        placeholder="Nombre de quien avala">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Cargo
+                                        Vo. Bo.</label>
+                                    <input type="text" id="voBoCargo" class="w-full input-premium"
+                                        placeholder="Cargo administrativo">
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Items List -->
+                            <div class="space-y-3 pt-2">
+                                <div class="flex items-center justify-between px-1">
+                                    <label
+                                        class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Bienes
+                                        en Solicitud</label>
+                                    <button type="button" onclick="addItemRowSolicitud()"
+                                        class="flex items-center gap-1 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-colors">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Añadir Bien
+                                    </button>
+                                </div>
+                                <div id="itemsContainerSolicitud" class="space-y-3">
+                                    <!-- Dynamic rows -->
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full btn-guinda py-4 rounded-xl font-black text-sm tracking-widest uppercase mt-4 flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Guardar Solicitud
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- List Card -->
+                    <div
+                        class="lg:col-span-2 glass rounded-3xl border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                        <div
+                            class="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <h3 class="text-xl font-bold flex items-center gap-2">
+                                <i data-lucide="list" class="text-blue-400 w-5 h-5"></i>
+                                Historial de Solicitudes
+                            </h3>
+                            <div class="flex-1 max-w-md relative">
+                                <i data-lucide="search"
+                                    class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <input type="text" id="searchSolicitud" oninput="handleSearchSolicitud()"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                    placeholder="Buscar por folio, solicitante, área...">
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto flex-grow max-h-[600px]">
+                            <table class="w-full custom-table min-w-[1000px]">
+                                <thead>
+                                    <tr>
+                                        <th>Folio / Fecha</th>
+                                        <th>Tipo / Área</th>
+                                        <th>Solicitante</th>
+                                        <th>Bienes</th>
+                                        <th class="text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyBodySolicitud">
+                                    <!-- Rows added via JS -->
+                                </tbody>
+                            </table>
+                            <div id="emptyStateSolicitud" class="p-20 text-center hidden">
+                                <i data-lucide="inbox" class="w-16 h-16 text-slate-700 mx-auto mb-4"></i>
+                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs">No hay solicitudes
+                                    registradas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración Section -->
+            <div id="configuracion-section" class="space-y-8 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Secretarías -->
+                    <div class="glass p-8 rounded-3xl border-white/10 shadow-2xl">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="building-2" class="text-emerald-500 w-5 h-5"></i>
+                            Secretarías
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="newSecretariaName" class="w-full input-premium text-sm"
+                                    placeholder="Nueva Secretaría...">
+                                <button onclick="addSecretaria()"
+                                    class="p-3 bg-emerald-500/20 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="listSecretarias" class="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unidades -->
+                    <div id="unidadesContainer"
+                        class="glass p-8 rounded-3xl border-white/10 shadow-2xl opacity-50 pointer-events-none transition-all">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="layout-grid" class="text-amber-500 w-5 h-5"></i>
+                            Unidades de: <span id="selectedSecretariaLabel" class="text-emerald-500">...</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="newUnidadName" class="w-full input-premium text-sm"
+                                    placeholder="Nueva Unidad...">
+                                <button onclick="addUnidad()"
+                                    class="p-3 bg-amber-500/20 text-amber-500 rounded-xl hover:bg-amber-500 hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="listUnidades" class="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Áreas -->
+                    <div id="areasContainer"
+                        class="glass p-8 rounded-3xl border-white/10 shadow-2xl opacity-50 pointer-events-none transition-all">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="map-pin" class="text-blue-500 w-5 h-5"></i>
+                            Áreas de: <span id="selectedUnidadLabel" class="text-amber-500">...</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="newAreaName" class="w-full input-premium text-sm"
+                                    placeholder="Nueva Área...">
+                                <button onclick="addArea()"
+                                    class="p-3 bg-blue-500/20 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="listAreas" class="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification"
+        class="fixed bottom-10 right-10 glass px-6 py-4 rounded-2xl border-emerald-500/20 translate-y-20 transition-transform duration-500 z-50 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+        </div>
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-emerald-500">Exito</p>
+            <p class="text-sm text-white font-medium" id="notif-text">Registro guardado con éxito.</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+
+    <script>
+        // --- CONFIGURACIÓN DE FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCo_t2pFMtZq5_CgL2i1geFZQSfmYVK2j4",
+            authDomain: "sirecoa-pro.firebaseapp.com",
+            projectId: "sirecoa-pro",
+            storageBucket: "sirecoa-pro.firebasestorage.app",
+            messagingSenderId: "806841040491",
+            appId: "1:806841040491:web:de946568679a34d698bb2e",
+            measurementId: "G-6TBNH2ZYS0"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const recordsCol = db.collection('movimientos');
+        const recordsBienesCol = db.collection('movimientos_bienes');
+        const recordsSolicitudCol = db.collection('solicitudes_movimiento');
+
+        // Init Lucide
+        lucide.createIcons();
+
+        let records = [];
+        let recordsBienes = [];
+        let recordsSolicitud = [];
+        let currentEditId = null;
+        let searchTerm = '';
+        let searchTermBienes = '';
+        let searchTermSolicitud = '';
+
+        const form = document.getElementById('registroForm');
+        const formBienes = document.getElementById('formBienes');
+        const formSolicitud = document.getElementById('formSolicitud');
+        const historyBody = document.getElementById('historyBody');
+        const historyBodyBienes = document.getElementById('historyBodyBienes');
+        const historyBodySolicitud = document.getElementById('historyBodySolicitud');
+        const emptyState = document.getElementById('emptyState');
+        const emptyStateBienes = document.getElementById('emptyStateBienes');
+        const emptyStateSolicitud = document.getElementById('emptyStateSolicitud');
+
+        // Escuchar cambios en tiempo real desde la nube
+        recordsCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            records = [];
+            snapshot.forEach((doc) => {
+                records.push({ id: doc.id, ...doc.data() });
+            });
+            renderRecords();
+            suggestNextFolio();
+        }, (error) => {
+            console.error("Error fetching records: ", error);
+            showNotification('Error al cargar registros: ' + error.message, true);
+        });
+
+        // --- LÓGICA BIENES MUEBLES ---
+        let currentEditIdBienes = null;
+
+
+        // Escuchar cambios en tiempo real
+        recordsBienesCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            recordsBienes = [];
+            snapshot.forEach((doc) => {
+                recordsBienes.push({ id: doc.id, ...doc.data() });
+            });
+            renderRecordsBienes();
+            suggestNextFolioBienes();
+        }, (error) => {
+            console.error("Error fetching goods records: ", error);
+        });
+
+        function suggestNextFolioBienes() {
+            if (currentEditIdBienes) return;
+            const folioInput = document.getElementById('folioBienes');
+            if (recordsBienes.length === 0) {
+                folioInput.value = `MB-${new Date().getFullYear()}-001`;
+                return;
+            }
+            const sorted = [...recordsBienes].sort((a, b) => b.timestamp - a.timestamp);
+            const lastFolio = sorted[0].folio;
+            if (lastFolio && lastFolio.includes('-')) {
+                const parts = lastFolio.split('-');
+                const Year = parts[1];
+                const num = parseInt(parts[2]);
+                if (!isNaN(num)) {
+                    folioInput.value = `MB-${Year}-${(num + 1).toString().padStart(3, '0')}`;
+                }
+            }
+        }
+
+        function handleSearchBienes() {
+            searchTermBienes = document.getElementById('searchBienes').value.toLowerCase();
+            renderRecordsBienes();
+        }
+
+        function renderRecordsBienes() {
+            historyBodyBienes.innerHTML = '';
+            const filtered = recordsBienes.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.unidad} ${rec.ejecuta} ${rec.tipo} ${rec.bienes.map(b => b.nombre).join(' ')}`.toLowerCase();
+                return searchStr.includes(searchTermBienes);
+            });
+
+            if (filtered.length === 0) {
+                emptyStateBienes.classList.remove('hidden');
+            } else {
+                emptyStateBienes.classList.add('hidden');
+                filtered.forEach(rec => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-white/5 transition-colors group';
+
+                    const goodsSummary = rec.bienes && rec.bienes.length > 0
+                        ? `${rec.bienes[0].nombre} ${rec.bienes.length > 1 ? '(+' + (rec.bienes.length - 1) + ')' : ''}`
+                        : 'Sin bienes';
+
+                    row.innerHTML = `
+                        <td class="text-sm">
+                            <div class="font-bold text-white">${rec.folio || 'S/N'}</div>
+                            <div class="text-[10px] text-slate-500">${rec.fecha}</div>
+                        </td>
+                        <td class="text-sm">
+                            <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase bg-amber-500/10 text-amber-500">${rec.tipo}</span>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <div class="text-white font-bold">${rec.unidad}</div>
+                            <div class="text-[10px] text-amber-500/70">→ ${rec.destino || 'Local'}</div>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <span class="px-2 py-1 bg-white/5 rounded text-[10px] text-blue-400 font-mono">${goodsSummary}</span>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <div class="font-bold text-white">${rec.ejecuta}</div>
+                            <div class="text-[10px] uppercase tracking-tighter text-slate-500">Solicitó: ${rec.solicita}</div>
+                        </td>
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="exportRecordPDFBienes('${rec.id}')" class="p-2 text-slate-600 hover:text-rose-500 transition-colors" title="Descargar Vale">
+                                    <i data-lucide="file-down" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="editRecordBienes('${rec.id}')" class="p-2 text-slate-600 hover:text-amber-500 transition-colors" title="Editar">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteRecordBienes('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    historyBodyBienes.appendChild(row);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        function addItemRowBienes(nombre = '', inventario = '') {
+            const container = document.getElementById('itemsContainerBienes');
+            const rowId = 'row-bienes-' + Math.random().toString(36).substr(2, 9);
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-12 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 group relative items-center';
+            div.id = rowId;
+            div.innerHTML = `
+                <div class="col-span-7 sm:col-span-8 space-y-1">
+                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] sm:text-xs text-white" placeholder="Bien Mueble" value="${nombre}">
+                </div>
+                <div class="col-span-4 sm:col-span-3 space-y-1">
+                    <input type="text" class="item-inventario w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] sm:text-xs font-mono text-amber-500" placeholder="Inventario" value="${inventario}">
+                </div>
+                <div class="col-span-1 flex items-center justify-center">
+                    <button type="button" onclick="removeItemRowBienes('${rowId}')" class="text-slate-600 hover:text-red-400 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function removeItemRowBienes(id) {
+            const rows = document.querySelectorAll('#itemsContainerBienes .grid');
+            if (rows.length > 1) {
+                document.getElementById(id).remove();
+            } else {
+                showNotification('Debe haber al menos un bien.', true);
+            }
+        }
+
+        formBienes.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const items = [];
+            document.querySelectorAll('#itemsContainerBienes .grid').forEach(row => {
+                const nombre = row.querySelector('.item-nombre').value;
+                const inventario = row.querySelector('.item-inventario').value;
+                if (nombre) items.push({ nombre, inventario });
+            });
+
+            if (items.length === 0) {
+                showNotification('Error: Debes agregar al menos un bien mueble.', true);
+                return;
+            }
+
+            const recordData = {
+                folio: document.getElementById('folioBienes').value,
+                fecha: document.getElementById('fechaBienes').value,
+                tipo: document.getElementById('tipoMovBienes').value,
+                unidad: document.getElementById('unidadBienes').value,
+                destino: document.getElementById('destinoBienes').value,
+                bienes: items,
+                puerta: document.getElementById('puertaBienes').value,
+                ejecuta: document.getElementById('ejecutaBienes').value,
+                solicita: document.getElementById('solicitaBienes').value,
+                puestoSolicita: document.getElementById('puestoSolicitaBienes').value,
+                autoriz: document.getElementById('autorizBienes').value,
+                pAutoriz: document.getElementById('puestoAutorizBienes').value,
+                puesto: document.getElementById('puestoBienes').value,
+                motivo: document.getElementById('motivoBienes').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (currentEditIdBienes) {
+                    await recordsBienesCol.doc(currentEditIdBienes).update(recordData);
+                    currentEditIdBienes = null;
+                    showNotification('Movimiento actualizado.');
+                    formBienes.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                } else {
+                    await recordsBienesCol.add(recordData);
+                    showNotification('Movimiento guardado.');
+                }
+                formBienes.reset();
+                document.getElementById('itemsContainerBienes').innerHTML = '';
+                addItemRowBienes();
+                document.getElementById('fechaBienes').valueAsDate = new Date();
+                lucide.createIcons();
+            } catch (error) {
+                showNotification('Error: ' + error.message, true);
+            }
+        });
+
+        function editRecordBienes(id) {
+            const rec = recordsBienes.find(r => r.id === id);
+            if (!rec) return;
+            currentEditIdBienes = id;
+            document.getElementById('folioBienes').value = rec.folio || '';
+            document.getElementById('fechaBienes').value = rec.fecha;
+            document.getElementById('tipoMovBienes').value = rec.tipo;
+            document.getElementById('unidadBienes').value = rec.unidad;
+            document.getElementById('destinoBienes').value = rec.destino || '';
+            document.getElementById('puertaBienes').value = rec.puerta || '';
+            document.getElementById('ejecutaBienes').value = rec.ejecuta || '';
+            document.getElementById('solicitaBienes').value = rec.solicita || '';
+            document.getElementById('puestoSolicitaBienes').value = rec.puestoSolicita || '';
+            document.getElementById('autorizBienes').value = rec.autoriz || '';
+            document.getElementById('puestoAutorizBienes').value = rec.pAutoriz || '';
+            document.getElementById('puestoBienes').value = rec.puesto || '';
+            document.getElementById('motivoBienes').value = rec.motivo;
+
+            const container = document.getElementById('itemsContainerBienes');
+            container.innerHTML = '';
+            rec.bienes.forEach(b => addItemRowBienes(b.nombre, b.inventario));
+
+            formBienes.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Registro`;
+            formBienes.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteRecordBienes(id) {
+            if (confirm('¿Eliminar este movimiento?')) {
+                await recordsBienesCol.doc(id).delete();
+                showNotification('Registro eliminado.');
+            }
+        }
+
+        async function exportRecordPDFBienes(id) {
+            const rec = recordsBienes.find(r => r.id === id);
+            if (!rec) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const guinda = [139, 26, 45];
+            const fieldHeight = 6;
+
+            doc.setFillColor(...guinda);
+            doc.rect(0, 0, 210, 35, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES Y CONTROL PATRIMONIAL", 10, 15);
+            doc.setFontSize(9);
+            doc.text("FORMATO DE MOVIMIENTO DE BIENES MUEBLES", 105, 30, { align: "center" });
+
+            let currentY = 40;
+            const drawField = (x, y, label, value, width = 95) => {
+                doc.setFillColor(180, 180, 180);
+                doc.rect(x, y, 35, fieldHeight, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(7);
+                doc.text(label, x + 2, y + 4);
+                doc.setFillColor(230, 230, 230);
+                doc.rect(x + 35, y, width - 35, fieldHeight, 'F');
+                doc.setTextColor(0, 0, 0);
+                doc.text(value ? value.substring(0, 50) : '', x + 37, y + 4);
+            };
+
+            drawField(10, currentY, "Folio", rec.folio || 'S/N', 50);
+            drawField(130, currentY, "Fecha", rec.fecha, 70);
+            currentY += 10;
+            drawField(10, currentY, "Unidad/Área", rec.unidad);
+            drawField(105, currentY, "Tipo Movimiento", rec.tipo);
+            currentY += 8;
+            drawField(10, currentY, "Destino", rec.destino);
+            drawField(105, currentY, "Puerta", rec.puerta);
+            currentY += 8;
+            drawField(10, currentY, "Ejecuta", rec.ejecuta);
+            drawField(105, currentY, "Puesto Ejecuta", rec.puesto);
+            currentY += 8;
+            drawField(10, currentY, "Solicita", rec.solicita);
+            drawField(105, currentY, "Puesto Solicita", rec.puestoSolicita);
+            currentY += 8;
+            drawField(10, currentY, "Autorizó", rec.autoriz);
+            drawField(105, currentY, "Puesto Autorizó", rec.pAutoriz);
+            currentY += 10;
+            drawField(10, currentY, "Motivo", rec.motivo, 190);
+
+            currentY += 12;
+            doc.autoTable({
+                startY: currentY,
+                head: [['No.', 'Bienes', 'Inventario']],
+                body: rec.bienes.map((b, i) => [i + 1, b.nombre, b.inventario]),
+                theme: 'striped',
+                headStyles: { fillColor: guinda, textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 2, halign: 'center' }
+            });
+
+            const footerY = 270;
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+
+            doc.text("Solicita", 55, footerY - 15, { align: "center" });
+            doc.line(25, footerY, 85, footerY);
+            doc.setFont("helvetica", "normal");
+            doc.text(rec.solicita || '-', 55, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.puestoSolicita || '', 55, footerY + 9, { align: "center" });
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text("Autorizó", 155, footerY - 15, { align: "center" });
+            doc.line(125, footerY, 185, footerY);
+            doc.setFont("helvetica", "normal");
+            doc.text(rec.autoriz || '-', 155, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.pAutoriz || '', 155, footerY + 9, { align: "center" });
+
+            openPDFPreview(doc, `Movimiento_${rec.folio || rec.id}.pdf`);
+        }
+
+        // Set current date as default
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        // --- ESTRUCTURA ORGANIZACIONAL LOGIC ---
+
+
+        function suggestNextFolio() {
+            if (currentEditId) return; // Don't suggest if editing
+
+            const folioInput = document.getElementById('folio');
+            if (records.length === 0) {
+                folioInput.value = `${new Date().getFullYear()}-001`;
+                return;
+            }
+
+            // Get last folio (sorted by date)
+            const sorted = [...records].sort((a, b) => b.timestamp - a.timestamp); // Sort by timestamp for most recent
+            const lastFolio = sorted[0].folio;
+
+            if (lastFolio && lastFolio.includes('-')) {
+                const parts = lastFolio.split('-');
+                const Year = parts[0];
+                const num = parseInt(parts[1]);
+                if (!isNaN(num)) {
+                    folioInput.value = `${Year}-${(num + 1).toString().padStart(3, '0')}`;
+                }
+            }
+        }
+
+        function handleSearch() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            renderRecords();
+        }
+
+        function renderRecords() {
+            historyBody.innerHTML = '';
+            const filtered = records.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.unidad} ${rec.solicita} ${rec.tipo} ${rec.bienes.map(b => b.nombre).join(' ')}`.toLowerCase();
+                return searchStr.includes(searchTerm);
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                filtered.forEach(rec => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-white/5 transition-colors group';
+
+                    const isEntrada = rec.tipo === 'Entrada';
+                    const badgeClass = isEntrada ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500';
+
+                    const goodsSummary = rec.bienes && rec.bienes.length > 0
+                        ? `${rec.bienes[0].nombre} ${rec.bienes.length > 1 ? '(+' + (rec.bienes.length - 1) + ')' : ''}`
+                        : 'Sin bienes';
+
+                    row.innerHTML = `
+                        <td class="text-sm">
+                            <div class="font-bold text-white">${rec.folio || 'S/N'}</div>
+                            <div class="text-[10px] text-slate-500">${rec.fecha}</div>
+                        </td>
+                        <td class="text-sm">
+                            <div class="flex flex-col gap-1">
+                                <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase ${badgeClass}">${rec.tipo}</span>
+                                <span class="text-[9px] font-bold text-slate-500 uppercase px-1">${rec.caracter} | ${rec.concepto}</span>
+                            </div>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <div class="text-white font-bold">${rec.unidad}</div>
+                            <div class="text-[10px] text-amber-500/70">→ ${rec.destino || 'Local'}</div>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <span class="px-2 py-1 bg-white/5 rounded text-[10px] text-blue-400 font-mono">${goodsSummary}</span>
+                        </td>
+                        <td class="text-sm text-slate-400">
+                            <div class="font-bold text-white">${rec.solicita}</div>
+                            <div class="text-[10px] uppercase tracking-tighter text-slate-500">${rec.puesto}</div>
+                        </td>
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <button onclick="exportRecordPDF('${rec.id}')" class="p-2 text-slate-600 hover:text-rose-500 transition-colors" title="Descargar Vale">
+                                    <i data-lucide="file-down" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="editRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-amber-500 transition-colors" title="Editar">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteRecord('${rec.id}')" class="p-2 text-slate-600 hover:text-red-400 transition-colors" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    historyBody.appendChild(row);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        // Bienes dynamic rows
+        function addItemRow(nombre = '', inventario = '') {
+            const container = document.getElementById('itemsContainer');
+            const rowId = 'row-' + Math.random().toString(36).substr(2, 9);
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-12 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 group relative items-center';
+            div.id = rowId;
+            div.innerHTML = `
+                <div class="col-span-7 sm:col-span-8 space-y-1">
+                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] sm:text-xs text-white" placeholder="Bien Mueble" value="${nombre}">
+                </div>
+                <div class="col-span-4 sm:col-span-3 space-y-1">
+                    <input type="text" class="item-inventario w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] sm:text-xs font-mono text-amber-500" placeholder="Inventario" value="${inventario}">
+                </div>
+                <div class="col-span-1 flex items-center justify-center">
+                    <button type="button" onclick="removeItemRow('${rowId}')" class="text-slate-600 hover:text-red-400 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function removeItemRow(id) {
+            const rows = document.querySelectorAll('#itemsContainer .grid');
+            if (rows.length > 1) {
+                document.getElementById(id).remove();
+            } else {
+                showNotification('Debe haber al menos un bien.', true);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const itemsContainer = document.getElementById('itemsContainer');
+            const items = [];
+            itemsContainer.querySelectorAll('.grid').forEach(row => {
+                const nombre = row.querySelector('.item-nombre').value;
+                const inventario = row.querySelector('.item-inventario').value;
+                if (nombre) items.push({ nombre, inventario });
+            });
+
+            if (items.length === 0) {
+                showNotification('Error: Debes agregar al menos un bien mueble.', true);
+                return;
+            }
+
+            const recordData = {
+                folio: document.getElementById('folio').value,
+                fecha: document.getElementById('fecha').value,
+                tipo: document.getElementById('tipoMovimiento').value,
+                caracter: document.getElementById('caracter').value,
+                concepto: document.getElementById('conceptoEspecifico').value,
+                unidad: document.getElementById('unidad').value,
+                destino: document.getElementById('destino').value,
+                bienes: items,
+                puerta: document.getElementById('puerta').value,
+                solicita: document.getElementById('solicita').value,
+                puesto: document.getElementById('puesto').value,
+                retira: document.getElementById('retira').value,
+                pRetira: document.getElementById('puestoRetira').value,
+                autoriz: document.getElementById('autoriz').value,
+                pAutoriz: document.getElementById('puestoAutoriz').value,
+                motivo: document.getElementById('motivo').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Save server time
+            };
+
+            if (!recordData.unidad || !recordData.solicita || !recordData.motivo) {
+                showNotification('Error: Completa los campos obligatorios.', true);
+                return;
+            }
+
+            try {
+                if (currentEditId) {
+                    await recordsCol.doc(currentEditId).update(recordData);
+                    currentEditId = null;
+                    showNotification('Registro actualizado en la nube.');
+                    form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                } else {
+                    await recordsCol.add(recordData);
+                    showNotification('Registro guardado en la nube.');
+                }
+
+                form.reset();
+                itemsContainer.innerHTML = '';
+                addItemRow();
+                document.getElementById('fecha').valueAsDate = new Date();
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error saving record:", error);
+                showNotification('Error al guardar: ' + error.message, true);
+            }
+        });
+
+        function editRecord(id) {
+            const rec = records.find(r => r.id === id);
+            if (!rec) return;
+
+            currentEditId = id;
+
+            // Fill form
+            document.getElementById('folio').value = rec.folio || '';
+            document.getElementById('fecha').value = rec.fecha;
+            document.getElementById('tipoMovimiento').value = rec.tipo;
+            document.getElementById('caracter').value = rec.caracter;
+            document.getElementById('conceptoEspecifico').value = rec.concepto;
+            document.getElementById('unidad').value = rec.unidad;
+            document.getElementById('destino').value = rec.destino || '';
+            document.getElementById('puerta').value = rec.puerta || '';
+            document.getElementById('solicita').value = rec.solicita;
+            document.getElementById('puesto').value = rec.puesto || '';
+            document.getElementById('retira').value = rec.retira || '';
+            document.getElementById('puestoRetira').value = rec.pRetira || '';
+            document.getElementById('autoriz').value = rec.autoriz || '';
+            document.getElementById('puestoAutoriz').value = rec.pAutoriz || '';
+            document.getElementById('motivo').value = rec.motivo;
+
+            // Fill items
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = '';
+            rec.bienes.forEach(item => {
+                addItemRow(item.nombre, item.inventario);
+            });
+
+            // Update button
+            form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar en la Nube`;
+
+            // Scroll to form
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteRecord(id) {
+            if (confirm('¿Deseas eliminar este registro de la nube?')) {
+                try {
+                    await recordsCol.doc(id).delete();
+                    showNotification('Registro eliminado.');
+                    if (currentEditId === id) {
+                        currentEditId = null;
+                        form.reset();
+                        document.getElementById('itemsContainer').innerHTML = '';
+                        addItemRow();
+                        form.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Registro`;
+                    }
+                } catch (error) {
+                    showNotification('Error al eliminar: ' + error.message, true);
+                }
+            }
+        }
+
+        async function clearHistory() {
+            if (confirm('¿Seguro que deseas borrar TODO el historial de la nube? Esta acción no se puede deshacer.')) {
+                try {
+                    const snapshot = await recordsCol.get();
+                    const batch = db.batch();
+                    snapshot.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    showNotification('Historial borrado por completo.');
+                } catch (error) {
+                    showNotification('Error al borrar: ' + error.message, true);
+                }
+            }
+        }
+
+        function showNotification(text, isError = false) {
+            const notif = document.getElementById('notification');
+            const notifText = document.getElementById('notif-text');
+
+            notifText.textContent = text;
+            if (isError) {
+                notif.classList.replace('border-emerald-500/20', 'border-red-500/20');
+                notif.querySelector('div').classList.replace('bg-emerald-500/20', 'bg-red-500/20');
+                notif.querySelector('div').classList.replace('text-emerald-500', 'text-red-400');
+                notif.querySelector('p').textContent = 'Error';
+                notif.querySelector('p').classList.replace('text-emerald-500', 'text-red-400');
+            } else {
+                notif.classList.replace('border-red-500/20', 'border-emerald-500/20');
+                notif.querySelector('div').classList.replace('bg-red-500/20', 'bg-emerald-500/20');
+                notif.querySelector('div').classList.replace('text-red-400', 'text-emerald-500');
+                notif.querySelector('p').textContent = 'Exito';
+                notif.querySelector('p').classList.replace('text-red-400', 'text-emerald-500');
+            }
+
+            notif.classList.remove('translate-y-20');
+            setTimeout(() => {
+                notif.classList.add('translate-y-20');
+            }, 3000);
+        }
+
+        // Helper to convert images to base64
+        function getBase64Image(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.setAttribute('crossOrigin', 'anonymous');
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = canvas.toDataURL("image/png");
+                    resolve(dataURL);
+                };
+                img.onerror = error => reject(error);
+                img.src = url;
+            });
+        }
+
+        async function exportRecordPDF(id) {
+            const rec = records.find(r => r.id === id);
+            if (!rec) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const guinda = [139, 26, 45];
+
+            // --- HEADER ---
+            doc.setFillColor(...guinda);
+            doc.rect(0, 0, 210, 35, 'F');
+
+            // Soft guinda container for Logo (to ensure it doesn't clash with guinda)
+            doc.setFillColor(163, 50, 69); // #A33245
+            doc.rect(145, 5, 55, 15, 'F');
+
+            // Logo Support - Smaller and uniform
+            try {
+                const logoBase64 = await getBase64Image('logo.png');
+                doc.addImage(logoBase64, 'PNG', 147, 7, 50, 11);
+            } catch (e) {
+                console.warn('Logo not found, proceeding without it');
+            }
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10); // Reduced size
+            doc.setFont("helvetica", "bold");
+            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 10, 10); // Moved higher to corner
+            doc.text("Y CONTROL PATRIMONIAL", 10, 15);
+
+            doc.setFontSize(9); // More reduced than the main title
+            doc.text("FORMATO DE CONTROL ENTRADAS Y SALIDAS", 105, 30, { align: "center" });
+
+            // --- INFO GRID ---
+            let currentY = 40;
+            const fieldHeight = 6; // Reduced height
+
+            // Row 1: Folio & Fecha
+            // Folio
+            doc.setFillColor(180, 180, 180);
+            doc.rect(10, currentY, 25, fieldHeight, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(7);
+            doc.text("Folio", 12, currentY + 4);
+
+            doc.setFillColor(230, 230, 230);
+            doc.rect(35, currentY, 45, fieldHeight, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.text(rec.folio || 'S/N', 37, currentY + 4);
+
+            // Fecha
+            doc.setFillColor(180, 180, 180);
+            doc.rect(140, currentY, 25, fieldHeight, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text("Fecha", 142, currentY + 4);
+
+            doc.setFillColor(230, 230, 230);
+            doc.rect(165, currentY, 35, fieldHeight, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.text(rec.fecha, 167, currentY + 4);
+
+            currentY += 10;
+
+            // Helper for drawing smaller fields
+            const drawField = (x, y, label, value, width = 95) => {
+                doc.setFillColor(180, 180, 180);
+                doc.rect(x, y, 35, fieldHeight, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(7);
+                doc.text(label, x + 2, y + 4);
+
+                doc.setFillColor(230, 230, 230);
+                doc.rect(x + 35, y, width - 35, fieldHeight, 'F');
+                doc.setTextColor(0, 0, 0);
+                doc.text(value ? value.substring(0, 50) : '', x + 37, y + 4);
+            };
+
+            // Grid Layout
+            drawField(10, currentY, "Unidad/Área", rec.unidad);
+            drawField(105, currentY, "Tipo de Movimiento", rec.tipo);
+            currentY += 8;
+            drawField(10, currentY, "Destino de Bienes", rec.destino);
+            drawField(105, currentY, "Carácter", rec.caracter);
+            currentY += 8;
+            drawField(10, currentY, "Puerta", rec.puerta);
+            drawField(105, currentY, "Concepto específico", rec.concepto);
+            currentY += 8;
+            drawField(10, currentY, "Solicita", rec.solicita);
+            drawField(105, currentY, "Puesto Administrativo", rec.puesto);
+
+            currentY += 10;
+
+            // Motivo / Observaciones (Compact)
+            doc.setFillColor(180, 180, 180);
+            doc.rect(10, currentY, 35, fieldHeight, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text("Motivo/Observaciones", 11, currentY + 4);
+
+            doc.setFillColor(230, 230, 230);
+            doc.rect(45, currentY, 155, fieldHeight, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.text(rec.motivo ? rec.motivo.substring(0, 100) : '', 47, currentY + 4);
+
+            currentY += 12;
+
+            // --- BIENES TABLE ---
+            const goodsData = rec.bienes.map((b, i) => [i + 1, b.nombre, b.inventario]);
+            doc.autoTable({
+                startY: currentY,
+                head: [['No.', 'Bienes', 'Inventario']],
+                body: goodsData,
+                theme: 'striped',
+                headStyles: { fillColor: guinda, textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                styles: { fontSize: 8, cellPadding: 2, halign: 'center' },
+                columnStyles: {
+                    0: { cellWidth: 15 },
+                    1: { cellWidth: 'auto', halign: 'left' },
+                    2: { cellWidth: 40 }
+                }
+            });
+
+            // --- SIGNATURES AT BOTTOM ---
+            const footerY = 270; // Forced to bottom of A4 page
+            doc.setDrawColor(0);
+            doc.setFontSize(8);
+
+            // Retira Section
+            doc.setFont("helvetica", "bold");
+            doc.text("Retira", 55, footerY - 15, { align: "center" });
+            doc.line(25, footerY, 85, footerY);
+            doc.setFont("helvetica", "normal");
+            doc.text(rec.retira || '-', 55, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.pRetira || '', 55, footerY + 9, { align: "center" });
+
+            // Autorizó Section
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text("Autorizó", 155, footerY - 15, { align: "center" });
+            doc.line(125, footerY, 185, footerY);
+            doc.setFont("helvetica", "normal");
+            doc.text(rec.autoriz || '-', 155, footerY + 5, { align: "center" });
+            doc.setFontSize(7);
+            doc.text(rec.pAutoriz || '', 155, footerY + 9, { align: "center" });
+
+            // NEW: Open in internal Modal
+            openPDFPreview(doc, `Vale_${rec.folio || rec.id}.pdf`);
+        }
+
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header Guinda
+            doc.setFillColor(139, 26, 45);
+            doc.rect(0, 0, 210, 40, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("GESTIÓN DE DOCUMENTOS", 14, 20);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("SIA - Suite Integrada Administrativa", 14, 28);
+
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("REPORTE DE ENTRADAS Y SALIDAS", 14, 55);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Fecha de emisión: ${new Date().toLocaleString()}`, 14, 62);
+
+            const filteredToExport = records.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.unidad} ${rec.solicita} ${rec.tipo} ${rec.bienes.map(b => b.nombre).join(' ')}`.toLowerCase();
+                return searchStr.includes(searchTerm);
+            });
+
+            const tableData = [];
+            filteredToExport.forEach(r => {
+                // First item
+                tableData.push([
+                    `${r.folio || 'N/A'}\n${r.fecha}`,
+                    `${r.tipo}\n(${r.caracter})`,
+                    `${r.unidad}\n→ ${r.destino || 'Local'}`,
+                    `${r.bienes[0].nombre}\nInv: ${r.bienes[0].inventario || 'N/A'}`,
+                    `${r.solicita}\n(Retira: ${r.retira || '-'})`
+                ]);
+
+                // Extra items
+                for (let i = 1; i < r.bienes.length; i++) {
+                    tableData.push([
+                        '', '', '',
+                        `${r.bienes[i].nombre}\nInv: ${r.bienes[i].inventario || 'N/A'}`,
+                        ''
+                    ]);
+                }
+            });
+
+
+            doc.autoTable({
+                startY: 70,
+                head: [['Folio / Fecha', 'Tipo / Carácter', 'Área Origen / Destino', 'Bienes / Inventario', 'Solicita / Retira']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [139, 26, 45], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 4, overflow: 'linebreak' },
+                columnStyles: {
+                    0: { cellWidth: 20 },
+                    1: { cellWidth: 25 },
+                    2: { cellWidth: 40 },
+                    3: { cellWidth: 'auto' },
+                    4: { cellWidth: 40 }
+                }
+            });
+
+            const finalY = doc.lastAutoTable.finalY + 30;
+            if (finalY < 270) {
+                // Firmas
+                doc.setDrawColor(139, 26, 45);
+
+                // Línea Solicita
+                doc.line(14, finalY, 64, finalY);
+                doc.setFontSize(7);
+                doc.text("SOLICITA", 39, finalY + 5, { align: "center" });
+
+                // Línea Retira
+                doc.line(80, finalY, 130, finalY);
+                doc.text("RETIRA", 105, finalY + 5, { align: "center" });
+
+                // Línea Autoriza
+                doc.line(146, finalY, 196, finalY);
+                doc.text("AUTORIZA", 171, finalY + 5, { align: "center" });
+            }
+
+            openPDFPreview(doc, `Reporte_Movimientos_${Date.now()}.pdf`);
+        }
+
+        function openPDFPreview(doc, filename) {
+            const modal = document.getElementById('pdfModal');
+            const viewer = document.getElementById('pdfViewer');
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+
+            const blobUrl = doc.output('bloburl');
+            viewer.src = blobUrl;
+
+            downloadBtn.onclick = () => doc.save(filename);
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closePDFPreview() {
+            const modal = document.getElementById('pdfModal');
+            const viewer = document.getElementById('pdfViewer');
+            modal.classList.add('hidden');
+            viewer.src = '';
+            document.body.style.overflow = '';
+        }
+
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        // Sidebar Navigation
+        function showSection(id) {
+            // Update UI Sidebar
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            const activeBtn = document.getElementById(`nav-${id}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Toggle Sections visibility - Explicitly hide all possible sections
+            const possibleSections = ['entradas-salidas-section', 'movimientos-bienes-section', 'solicitud-movimiento-section', 'configuracion-section'];
+            possibleSections.forEach(sid => {
+                const el = document.getElementById(sid);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.style.display = 'none'; // CRITICAL: Ensure inline display:block from previous calls is removed
+                }
+            });
+
+            const targetSection = document.getElementById(`${id}-section`);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.style.display = 'block';
+            }
+
+            // Update Header titles
+            const title = document.getElementById('section-title');
+            const desc = document.getElementById('section-desc');
+
+            if (id === 'entradas-salidas') {
+                if (title) title.textContent = 'Entradas y Salidas';
+                if (desc) desc.textContent = 'Registro y control de movimientos documentales y materiales.';
+            } else if (id === 'movimientos-bienes') {
+                if (title) title.textContent = 'Movimientos de Bienes Muebles';
+                if (desc) desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
+            } else if (id === 'solicitud-movimiento') {
+                if (title) title.textContent = 'Solicitud de Movimiento de Bienes Muebles';
+                if (desc) desc.textContent = 'Generación de formatos oficiales de solicitud de movimiento.';
+            } else if (id === 'configuracion') {
+                if (title) title.textContent = 'Configuración de Estructura';
+                if (desc) desc.textContent = 'Gestión de Secretarías, Unidades y Áreas.';
+            }
+
+            if (window.innerWidth < 1024) toggleSidebar();
+            lucide.createIcons();
+        }
+
+        // --- GESTIÓN DE ESTRUCTURA (CONFIGURACIÓN) ---
+        let selectedSecretariaConfig = null;
+        let selectedUnidadConfig = null;
+
+        function initConfig() {
+            // Listen for secretarias changes
+            db.collection('secretarias').orderBy('nombre').onSnapshot(snapshot => {
+                const list = document.getElementById('listSecretarias');
+                if (!list) return;
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all ${selectedSecretariaConfig === doc.id ? 'border border-rose-500 bg-rose-500/10' : ''}`;
+                    div.innerHTML = `
+                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
+                        <div class="flex gap-2">
+                             <button onclick="editSecretaria('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteSecretaria('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    div.onclick = () => selectSecretariaConfig(doc.id, data.nombre);
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        function selectSecretariaConfig(id, name) {
+            selectedSecretariaConfig = id;
+            selectedUnidadConfig = null;
+            document.getElementById('selectedSecretariaLabel').textContent = name;
+            document.getElementById('unidadesContainer').classList.remove('opacity-50', 'pointer-events-none');
+
+            // Reset areas
+            document.getElementById('areasContainer').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('listAreas').innerHTML = '';
+            document.getElementById('selectedUnidadLabel').textContent = 'Selecciona una Unidad';
+
+            // Load Unidades
+            loadUnidadesConfig(id);
+        }
+
+        async function addSecretaria() {
+            const name = document.getElementById('newSecretariaName').value.trim();
+            if (!name) return;
+            try {
+                await db.collection('secretarias').add({
+                    nombre: name,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('newSecretariaName').value = '';
+            } catch (e) { showNotification('Error: ' + e.message, true); }
+        }
+
+        async function editSecretaria(id, currentName, event) {
+            event.stopPropagation();
+            const newName = prompt("Editar nombre de Secretaría:", currentName);
+            if (newName && newName.trim() !== currentName) {
+                await db.collection('secretarias').doc(id).update({ nombre: newName.trim() });
+            }
+        }
+
+        async function deleteSecretaria(id, event) {
+            event.stopPropagation();
+            if (!confirm('¿Eliminar esta Secretaría y TODAS sus dependencias?')) return;
+            try {
+                await db.collection('secretarias').doc(id).delete();
+                selectedSecretariaConfig = null;
+                document.getElementById('unidadesContainer').classList.add('opacity-50', 'pointer-events-none');
+                document.getElementById('listUnidades').innerHTML = '';
+            } catch (e) { showNotification('Error: ' + e.message, true); }
+        }
+
+        function loadUnidadesConfig(secretariaId) {
+            db.collection('secretarias').doc(secretariaId).collection('unidades').orderBy('nombre').onSnapshot(snapshot => {
+                const list = document.getElementById('listUnidades');
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all ${selectedUnidadConfig === doc.id ? 'border border-amber-500 bg-amber-500/10' : ''}`;
+                    div.innerHTML = `
+                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
+                         <div class="flex gap-2">
+                             <button onclick="editUnidad('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteUnidad('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    div.onclick = () => selectUnidadConfig(doc.id, data.nombre);
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        function selectUnidadConfig(id, name) {
+            selectedUnidadConfig = id;
+            document.getElementById('selectedUnidadLabel').textContent = name;
+            document.getElementById('areasContainer').classList.remove('opacity-50', 'pointer-events-none');
+            loadAreasConfig(selectedSecretariaConfig, id);
+            // Re-render Unidades to highlight
+            loadUnidadesConfig(selectedSecretariaConfig);
+        }
+
+        async function addUnidad() {
+            if (!selectedSecretariaConfig) return;
+            const name = document.getElementById('newUnidadName').value.trim();
+            if (!name) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').add({
+                nombre: name,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById('newUnidadName').value = '';
+        }
+
+        async function editUnidad(id, currentName, event) {
+            event.stopPropagation();
+            const newName = prompt("Editar nombre de Unidad:", currentName);
+            if (newName && newName.trim() !== currentName) {
+                await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(id).update({ nombre: newName.trim() });
+            }
+        }
+
+        async function deleteUnidad(id, event) {
+            event.stopPropagation();
+            if (!confirm('¿Eliminar Unidad?')) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(id).delete();
+        }
+
+        function loadAreasConfig(secretariaId, unidadId) {
+            db.collection('secretarias').doc(secretariaId).collection('unidades').doc(unidadId).collection('areas').orderBy('nombre').onSnapshot(snapshot => {
+                const list = document.getElementById('listAreas');
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const div = document.createElement('div');
+                    div.className = `p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer flex justify-between items-center group transition-all`;
+                    div.innerHTML = `
+                        <span class="font-bold text-sm text-slate-300 group-hover:text-white">${data.nombre}</span>
+                         <div class="flex gap-2">
+                             <button onclick="editArea('${doc.id}', '${data.nombre}', event)" class="p-1 hover:bg-blue-500/20 rounded text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteArea('${doc.id}', event)" class="p-1 hover:bg-rose-500/20 rounded text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        async function addArea() {
+            if (!selectedSecretariaConfig || !selectedUnidadConfig) return;
+            const name = document.getElementById('newAreaName').value.trim();
+            if (!name) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').add({
+                nombre: name,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById('newAreaName').value = '';
+        }
+
+        async function editArea(id, currentName, event) {
+            event.stopPropagation();
+            const newName = prompt("Editar nombre de Área:", currentName);
+            if (newName && newName.trim() !== currentName) {
+                await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').doc(id).update({ nombre: newName.trim() });
+            }
+        }
+
+        async function deleteArea(id, event) {
+            event.stopPropagation();
+            if (!confirm('¿Eliminar Área?')) return;
+            await db.collection('secretarias').doc(selectedSecretariaConfig).collection('unidades').doc(selectedUnidadConfig).collection('areas').doc(id).delete();
+        }
+
+        // --- GESTIÓN DE SOLICITUDES DE MOVIMIENTO ---
+
+        recordsSolicitudCol.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            recordsSolicitud = [];
+            snapshot.forEach((doc) => {
+                recordsSolicitud.push({ id: doc.id, ...doc.data() });
+            });
+            renderHistorySolicitud();
+            suggestNextFolioSolicitud();
+        });
+
+        function suggestNextFolioSolicitud() {
+            const folioInput = document.getElementById('folioSolicitud');
+            if (!folioInput || recordsSolicitud.length === 0) {
+                if (folioInput) folioInput.value = `SOL-2026-001`;
+                return;
+            }
+            const sorted = [...recordsSolicitud].sort((a, b) => b.timestamp - a.timestamp);
+            const lastFolio = sorted[0].folio;
+            if (lastFolio && lastFolio.includes('-')) {
+                const parts = lastFolio.split('-');
+                const Year = parts[1];
+                const num = parseInt(parts[2]);
+                if (!isNaN(num)) {
+                    folioInput.value = `SOL-${Year}-${(num + 1).toString().padStart(3, '0')}`;
+                }
+            }
+        }
+
+        formSolicitud.onsubmit = async (e) => {
+            e.preventDefault();
+            const items = [];
+            document.querySelectorAll('#itemsContainerSolicitud > div').forEach(row => {
+                items.push({
+                    nombre: row.querySelector('.item-nombre').value,
+                    inventario: row.querySelector('.item-inv').value
+                });
+            });
+
+            const data = {
+                folio: document.getElementById('folioSolicitud').value,
+                fecha: document.getElementById('fechaSolicitud').value,
+                area: document.getElementById('areaSolicitante').value,
+                solicitante: document.getElementById('nombreSolicitante').value,
+                tipo: document.getElementById('tipoMovSolicitud').value,
+                motivo: document.getElementById('motivoSolicitud').value,
+                voBoNombre: document.getElementById('voBoNombre').value || '',
+                voBoCargo: document.getElementById('voBoCargo').value || '',
+                items: items,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (currentEditId) {
+                    await recordsSolicitudCol.doc(currentEditId).update(data);
+                    currentEditId = null;
+                } else {
+                    await recordsSolicitudCol.add(data);
+                }
+                showNotification('Solicitud guardada correctamente.');
+                formSolicitud.reset();
+                document.getElementById('itemsContainerSolicitud').innerHTML = '';
+                addItemRowSolicitud();
+                suggestNextFolioSolicitud();
+            } catch (error) {
+                console.error("Error saving solicitud:", error);
+                showNotification('Error al guardar la solicitud.', true);
+            }
+        };
+
+        function editSolicitud(id) {
+            const rec = recordsSolicitud.find(r => r.id === id);
+            if (!rec) return;
+
+            currentEditId = id;
+
+            document.getElementById('folioSolicitud').value = rec.folio || '';
+            document.getElementById('fechaSolicitud').value = rec.fecha;
+            document.getElementById('areaSolicitante').value = rec.area;
+            document.getElementById('nombreSolicitante').value = rec.solicitante;
+            document.getElementById('tipoMovSolicitud').value = rec.tipo;
+            document.getElementById('motivoSolicitud').value = rec.motivo || '';
+            document.getElementById('voBoNombre').value = rec.voBoNombre || '';
+            document.getElementById('voBoCargo').value = rec.voBoCargo || '';
+
+            const container = document.getElementById('itemsContainerSolicitud');
+            container.innerHTML = '';
+            if (rec.items && rec.items.length > 0) {
+                rec.items.forEach(item => {
+                    addItemRowSolicitud(item.nombre, item.inventario);
+                });
+            } else {
+                addItemRowSolicitud();
+            }
+
+            formSolicitud.querySelector('button[type="submit"]').innerHTML = `<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar Solicitud`;
+            formSolicitud.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            lucide.createIcons();
+        }
+
+        function addItemRowSolicitud(nombre = '', inventario = '') {
+            const container = document.getElementById('itemsContainerSolicitud');
+            const rowId = 'row-sol-' + Math.random().toString(36).substr(2, 9);
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-12 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 group relative items-center';
+            div.id = rowId;
+            div.innerHTML = `
+                <div class="col-span-7 sm:col-span-8">
+                    <input type="text" class="item-nombre w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white" placeholder="Bien Mueble" value="${nombre}">
+                </div>
+                <div class="col-span-4 sm:col-span-3">
+                    <input type="text" class="item-inv w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs font-mono text-amber-500" placeholder="Inventario" value="${inventario}">
+                </div>
+                <div class="col-span-1 flex justify-center">
+                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-slate-600 hover:text-red-400 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function handleSearchSolicitud() {
+            searchTermSolicitud = document.getElementById('searchSolicitud').value.toLowerCase();
+            renderHistorySolicitud();
+        }
+
+        function renderHistorySolicitud() {
+            historyBodySolicitud.innerHTML = '';
+            const filtered = recordsSolicitud.filter(rec => {
+                const searchStr = `${rec.folio} ${rec.area} ${rec.solicitante} ${rec.tipo}`.toLowerCase();
+                return searchStr.includes(searchTermSolicitud);
+            });
+
+            if (filtered.length === 0) {
+                emptyStateSolicitud.classList.remove('hidden');
+            } else {
+                emptyStateSolicitud.classList.add('hidden');
+                filtered.forEach(rec => {
+                    const row = document.createElement('tr');
+                    const itemsText = rec.items && rec.items.length > 0 ? `${rec.items[0].nombre} (+${rec.items.length - 1})` : 'Sin bienes';
+                    row.innerHTML = `
+                        <td class="text-sm">
+                            <div class="font-bold text-white">${rec.folio}</div>
+                            <div class="text-[10px] text-slate-500">${rec.fecha}</div>
+                        </td>
+                        <td class="text-sm">
+                            <span class="px-2 py-1 bg-amber-500/10 text-amber-500 rounded text-[10px] uppercase font-bold">${rec.tipo}</span>
+                            <div class="text-[10px] text-slate-500 mt-1">${rec.area}</div>
+                        </td>
+                        <td class="text-sm text-white font-medium">${rec.solicitante}</td>
+                        <td class="text-xs text-slate-400 font-mono">${itemsText}</td>
+                        <td class="text-right">
+                            <div class="flex justify-end gap-1">
+                                <button onclick="exportSolicitudPDF('${rec.id}')" class="p-2 text-slate-400 hover:text-rose-500" title="Ver PDF"><i data-lucide="file-text" class="w-4 h-4"></i></button>
+                                <button onclick="editSolicitud('${rec.id}')" class="p-2 text-slate-400 hover:text-amber-500" title="Editar"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                <button onclick="deleteSolicitud('${rec.id}')" class="p-2 text-slate-400 hover:text-red-500" title="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    historyBodySolicitud.appendChild(row);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        async function deleteSolicitud(id) {
+            if (confirm('¿Eliminar esta solicitud?')) {
+                await recordsSolicitudCol.doc(id).delete();
+                showNotification('Exito', 'Solicitud eliminada.');
+            }
+        }
+
+        async function exportSolicitudPDF(id) {
+            const rec = recordsSolicitud.find(r => r.id === id);
+            if (!rec) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const guinda = [139, 26, 45];
+            const dorado = [212, 175, 55];
+
+            // Header Premium
+            doc.setFillColor(...guinda);
+            doc.rect(0, 0, 210, 35, 'F');
+            doc.setFillColor(...dorado);
+            doc.rect(0, 35, 210, 1.5, 'F');
+
+            // Header Text Left
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text("SUBCOORDINACIÓN DE ADQUISICIONES", 15, 14);
+            doc.text("Y CONTROL PATRIMONIAL", 15, 20);
+
+            // --- Rounded Gold Logo Container (Right Side) ---
+            const logoW = 55;
+            const logoH = 22;
+            const logoX = 200 - logoW; // Right aligned
+            const logoY = 6;
+            const radius = 2;
+
+            // Dorado Discreto (Creamy Elegant Gold)
+            doc.setFillColor(245, 235, 210);
+            doc.roundedRect(logoX, logoY, logoW, logoH, radius, radius, 'F');
+
+            // Logo Centered in Container
+            try {
+                const logoBase64 = await getBase64Image('logo_institucional.png');
+                const imgProps = doc.getImageProperties(logoBase64);
+                const ratio = imgProps.width / imgProps.height;
+
+                let finalW = logoW - 10;
+                let finalH = finalW / ratio;
+                if (finalH > logoH - 6) {
+                    finalH = logoH - 6;
+                    finalW = finalH * ratio;
+                }
+                const offX = logoX + (logoW - finalW) / 2;
+                const offY = logoY + (logoH - finalH) / 2;
+                doc.addImage(logoBase64, 'PNG', offX, offY, finalW, finalH);
+            } catch (e) {
+                console.warn('Logo not found', e);
+            }
+
+            // Title below bar
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.text('SOLICITUD DE MOVIMIENTO DE BIENES MUEBLES', 105, 45, { align: 'center' });
+
+            // Info Body
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.text('FOLIO:', 150, 48);
+            doc.setTextColor(...guinda);
+            doc.text(rec.folio, 163, 48);
+
+            doc.setTextColor(50, 50, 50);
+            doc.text('FECHA:', 150, 54);
+            doc.setFont('helvetica', 'normal');
+            doc.text(rec.fecha, 163, 54);
+
+            let currentY = 65;
+
+            const drawEntry = (label, val) => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(label, 20, currentY);
+                doc.setFont('helvetica', 'normal');
+                doc.text(String(val || '').toUpperCase(), 65, currentY);
+                currentY += 7;
+            };
+
+            drawEntry('ÁREA SOLICITANTE:', rec.area);
+            drawEntry('SOLICITANTE:', rec.solicitante);
+            drawEntry('TIPO DE MOVIMIENTO:', rec.tipo);
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('MOTIVO / DETALLE:', 20, currentY);
+            currentY += 5;
+            doc.setFont('helvetica', 'normal');
+            const motivoLines = doc.splitTextToSize(rec.motivo || 'SIN DETALLES ADICIONALES', 170);
+            doc.text(motivoLines, 20, currentY);
+            currentY += (motivoLines.length * 5) + 5;
+
+            // Table of items
+            const tableData = rec.items.map((item, index) => [
+                index + 1,
+                item.nombre.toUpperCase(),
+                item.inventario || 'S/N'
+            ]);
+
+            doc.autoTable({
+                startY: currentY,
+                head: [['No.', 'BIEN MUEBLE', 'INVENTARIO']],
+                body: tableData,
+                styles: { fontSize: 8, cellPadding: 3, halign: 'center', valign: 'middle' },
+                headStyles: { fillColor: guinda, textColor: 255, halign: 'center' },
+                columnStyles: {
+                    0: { cellWidth: 15 },
+                    1: { halign: 'center' }, // Centered under "BIEN MUEBLE"
+                    2: { cellWidth: 40 }
+                },
+                margin: { left: 20, right: 20 }
+            });
+
+            // Signatures at absolute bottom
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const signatureY = pageHeight - 45;
+
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0);
+            doc.text('Vo. Bo.', 60, signatureY - 8, { align: 'center' });
+            doc.text('AUTORIZA', 150, signatureY - 8, { align: 'center' });
+
+            doc.setDrawColor(150);
+            doc.setLineWidth(0.5);
+            doc.line(30, signatureY, 90, signatureY);
+            doc.line(120, signatureY, 180, signatureY);
+
+            // Under signature lines
+            doc.setFontSize(8);
+
+            // Vo. Bo. Details
+            doc.setFont('helvetica', 'bold');
+            doc.text((rec.voBoNombre || 'NOMBRE Y FIRMA').toUpperCase(), 60, signatureY + 5, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
+            const voBoCargoLines = doc.splitTextToSize((rec.voBoCargo || '').toUpperCase(), 60);
+            doc.text(voBoCargoLines, 60, signatureY + 9, { align: 'center' });
+
+            // Autoriza Details
+            doc.setFont('helvetica', 'bold');
+            doc.text('MTRO. ISAAC CELAYA LIRA', 150, signatureY + 5, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
+            doc.text('SUBCOORDINADOR DE ADQUISICIONES', 150, signatureY + 9, { align: 'center' });
+            doc.text('Y CONTROL PATRIMONIAL', 150, signatureY + 13, { align: 'center' });
+
+            // Footer
+            doc.setFillColor(...dorado);
+            doc.rect(0, pageHeight - 3, 210, 3, 'F');
+
+            const pdfBlob = doc.output('bloburl');
+            document.getElementById('pdfViewer').src = pdfBlob;
+            document.getElementById('pdfModal').classList.remove('hidden');
+            document.getElementById('downloadPdfBtn').onclick = () => doc.save(`Solicitud_${rec.folio}.pdf`);
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', initConfig);
+
+        // Init
+        addItemRow();
+        addItemRowBienes();
+        addItemRowSolicitud();
+        renderRecords();
+        renderRecordsBienes();
+        renderHistorySolicitud();
+        suggestNextFolio();
+        suggestNextFolioBienes();
+        suggestNextFolioSolicitud();
+        document.getElementById('fechaBienes').valueAsDate = new Date();
+        document.getElementById('fechaSolicitud').valueAsDate = new Date();
+    </script>
+</body>
+
+</html>

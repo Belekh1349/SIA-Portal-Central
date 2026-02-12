@@ -1,0 +1,29 @@
+# Archivos del Sistema Operativo
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# IDEs y Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.settings/
+
+# Archivos Temporales y Logs
+*.log
+tmp/
+temp/
+
+# Dependencias (si se agregan en el futuro)
+node_modules/
+dist/
+build/
+
+# Backups manuales o archivos de respaldo
+*.bak
+*.tmp
+*.old
+backup/

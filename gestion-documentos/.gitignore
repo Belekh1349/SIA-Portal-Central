@@ -1,0 +1,11 @@
+# Firebase and System ignores
+.firebase/
+firebase-debug.log
+firebase-debug.log*
+.DS_Store
+node_modules/
+dist/
+
+# Temp files
+temp_index.html
+*.tmp
