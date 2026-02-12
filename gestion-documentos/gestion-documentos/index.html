@@ -2359,10 +2359,12 @@
                 const imgProps = doc.getImageProperties(logoBase64);
                 const ratio = imgProps.width / imgProps.height;
 
-                let finalW = logoW - 10;
+                let finalW = (logoW - 10) * 0.8; // Reduced by 20%
                 let finalH = finalW / ratio;
-                if (finalH > logoH - 6) {
-                    finalH = logoH - 6;
+                const maxHeight = (logoH - 6) * 0.8; // Reduced by 20%
+
+                if (finalH > maxHeight) {
+                    finalH = maxHeight;
                     finalW = finalH * ratio;
                 }
                 const offX = logoX + (logoW - finalW) / 2;
