@@ -1867,31 +1867,46 @@
         // Sidebar Navigation
         function showSection(id) {
             // Update UI Sidebar
-            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-            const activeBtn = document.getElementById(`nav-${id}`);
-            if (activeBtn) activeBtn.classList.add('active');
+            try {
+                document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+                const activeBtn = document.getElementById(`nav-${id}`);
+                if (activeBtn) activeBtn.classList.add('active');
 
-            // Toggle Sections visibility
-            document.getElementById('entradas-salidas-section').classList.add('hidden');
-            document.getElementById('movimientos-bienes-section').classList.add('hidden');
+                // Toggle Sections visibility - Use an array of ALL possible section IDs to ensure total cleanup
+                const allSections = ['entradas-salidas-section', 'movimientos-bienes-section'];
+                allSections.forEach(sid => {
+                    const el = document.getElementById(sid);
+                    if (el) {
+                        el.classList.add('hidden');
+                        el.style.display = 'none'; // CRITICAL: remove any previous inline display override
+                    }
+                });
 
-            const targetSection = document.getElementById(`${id}-section`);
-            if (targetSection) targetSection.classList.remove('hidden');
+                const targetSection = document.getElementById(id + '-section');
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                    targetSection.style.display = 'block';
+                }
 
-            // Update Header titles
-            const title = document.getElementById('section-title');
-            const desc = document.getElementById('section-desc');
+                // Update Header titles
+                const title = document.getElementById('section-title');
+                const desc = document.getElementById('section-desc');
 
-            if (id === 'entradas-salidas') {
-                title.textContent = 'Entradas y Salidas';
-                desc.textContent = 'Registro y control de movimientos documentales y materiales.';
-            } else if (id === 'movimientos-bienes') {
-                title.textContent = 'Movimientos de Bienes Muebles';
-                desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
+                if (title && desc) {
+                    if (id === 'entradas-salidas') {
+                        title.textContent = 'Entradas y Salidas';
+                        desc.textContent = 'Registro y control de movimientos documentales y materiales.';
+                    } else if (id === 'movimientos-bienes') {
+                        title.textContent = 'Movimientos de Bienes Muebles';
+                        desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
+                    }
+                }
+
+                if (window.innerWidth < 1024) toggleSidebar();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } catch (error) {
+                console.error("Error in showSection:", error);
             }
-
-            if (window.innerWidth < 1024) toggleSidebar();
-            lucide.createIcons();
         }
 
         // Init
