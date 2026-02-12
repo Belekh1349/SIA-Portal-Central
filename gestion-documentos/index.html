@@ -780,7 +780,74 @@
                 </div>
             </div>
             <!-- Configuración Section -->
-            <!-- Configuración Section Removed -->
+            <div id="configuracion-section" class="space-y-8 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Secretarías -->
+                    <div class="glass p-8 rounded-3xl border-white/10 shadow-2xl">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="building-2" class="text-emerald-500 w-5 h-5"></i>
+                            Secretarías
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="newSecretariaName" class="w-full input-premium text-sm"
+                                    placeholder="Nueva Secretaría...">
+                                <button onclick="addSecretaria()"
+                                    class="p-3 bg-emerald-500/20 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="listSecretarias" class="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unidades -->
+                    <div id="unidadesContainer"
+                        class="glass p-8 rounded-3xl border-white/10 shadow-2xl opacity-50 pointer-events-none transition-all">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="layout-grid" class="text-amber-500 w-5 h-5"></i>
+                            Unidades de: <span id="selectedSecretariaLabel" class="text-emerald-500">...</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="newUnidadName" class="w-full input-premium text-sm"
+                                    placeholder="Nueva Unidad...">
+                                <button onclick="addUnidad()"
+                                    class="p-3 bg-amber-500/20 text-amber-500 rounded-xl hover:bg-amber-500 hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="listUnidades" class="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Áreas -->
+                    <div id="areasContainer"
+                        class="glass p-8 rounded-3xl border-white/10 shadow-2xl opacity-50 pointer-events-none transition-all">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i data-lucide="map-pin" class="text-blue-500 w-5 h-5"></i>
+                            Áreas de: <span id="selectedUnidadLabel" class="text-amber-500">...</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="newAreaName" class="w-full input-premium text-sm"
+                                    placeholder="Nueva Área...">
+                                <button onclick="addArea()"
+                                    class="p-3 bg-blue-500/20 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="listAreas" class="space-y-2 mt-4 max-h-[400px] overflow-y-auto pr-2">
+                                <!-- Loaded via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -1880,11 +1947,15 @@
             const activeBtn = document.getElementById(`nav-${id}`);
             if (activeBtn) activeBtn.classList.add('active');
 
-            // Toggle Sections visibility
-            document.getElementById('entradas-salidas-section').classList.add('hidden');
-            document.getElementById('movimientos-bienes-section').classList.add('hidden');
-            const configSec = document.getElementById('configuracion-section');
-            if (configSec) configSec.classList.add('hidden');
+            // Toggle Sections visibility - Explicitly hide all possible sections
+            const possibleSections = ['entradas-salidas-section', 'movimientos-bienes-section', 'configuracion-section'];
+            possibleSections.forEach(sid => {
+                const el = document.getElementById(sid);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.style.display = 'none'; // CRITICAL: Ensure inline display:block from previous calls is removed
+                }
+            });
 
             const targetSection = document.getElementById(`${id}-section`);
             if (targetSection) {
@@ -1897,14 +1968,14 @@
             const desc = document.getElementById('section-desc');
 
             if (id === 'entradas-salidas') {
-                title.textContent = 'Entradas y Salidas';
-                desc.textContent = 'Registro y control de movimientos documentales y materiales.';
+                if (title) title.textContent = 'Entradas y Salidas';
+                if (desc) desc.textContent = 'Registro y control de movimientos documentales y materiales.';
             } else if (id === 'movimientos-bienes') {
-                title.textContent = 'Movimientos de Bienes Muebles';
-                desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
+                if (title) title.textContent = 'Movimientos de Bienes Muebles';
+                if (desc) desc.textContent = 'Gestión integral y rastreo de activos institucionales.';
             } else if (id === 'configuracion') {
-                title.textContent = 'Configuración de Estructura';
-                desc.textContent = 'Gestión de Secretarías, Unidades y Áreas.';
+                if (title) title.textContent = 'Configuración de Estructura';
+                if (desc) desc.textContent = 'Gestión de Secretarías, Unidades y Áreas.';
             }
 
             if (window.innerWidth < 1024) toggleSidebar();
@@ -1956,7 +2027,6 @@
 
             // Load Unidades
             loadUnidadesConfig(id);
-            initConfig(); // Re-render to highlight selection
         }
 
         async function addSecretaria() {
