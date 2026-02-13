@@ -74,6 +74,10 @@
             animation: fadeIn 0.3s ease-out;
         }
 
+        .animate-shake {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -83,6 +87,28 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(5px);
+            }
+
+            50% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+
+            100% {
+                transform: translateX(0);
             }
         }
     </style>
@@ -151,7 +177,8 @@
             FileDown: (props) => <Icon {...props} path="M12 17V3 M6 11l6 6 6-6 M19 21H5" />,
             Home: (props) => <Icon {...props} path="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" />,
             Layout: (props) => <Icon {...props} path="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />,
-            Monitor: (props) => <Icon {...props} path="M2 12V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v7 m-10 5v4 m-5 0h10" />
+            Monitor: (props) => <Icon {...props} path="M2 12V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v7 m-10 5v4 m-5 0h10" />,
+            Lock: (props) => <Icon {...props} path="M7 11V7a5 5 0 0 1 10 0v4 M8 11h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z M12 15v3" />,
         };
 
         const DEFAULT_DATA = [
@@ -548,8 +575,60 @@
             );
         };
 
+        // --- PASSWORD SCREEN ---
+        const PasswordScreen = ({ onAccess }) => {
+            const [pass, setPass] = useState('');
+            const [error, setError] = useState(false);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (pass === 'Patrimonio_00') {
+                    onAccess();
+                } else {
+                    setError(true);
+                    setTimeout(() => setError(false), 2000);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900 bg-opacity-95 backdrop-blur-md">
+                    <div className="w-full max-w-md p-8 bg-white rounded-3xl shadow-2xl animate-fade-in mx-4">
+                        <div className="flex justify-center mb-6">
+                            <div className="p-4 bg-blue-50 rounded-2xl text-blue-600">
+                                <Icons.Lock className="w-12 h-12" />
+                            </div>
+                        </div>
+                        <h1 className="text-2xl font-black text-center text-slate-800 uppercase mb-2">Acceso Restringido</h1>
+                        <p className="text-center text-slate-500 mb-8 font-medium">Por favor, ingrese la contraseña de seguridad para continuar.</p>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="relative">
+                                <input
+                                    type="password"
+                                    value={pass}
+                                    onChange={(e) => setPass(e.target.value)}
+                                    className={`w-full px-6 py-4 rounded-2xl border-2 outline-none transition-all text-center text-xl font-bold tracking-widest ${error ? 'border-red-400 bg-red-50 text-red-900 animate-shake' : 'border-slate-100 focus:border-blue-500'}`}
+                                    placeholder="*************"
+                                    autoFocus
+                                />
+                            </div>
+                            {error && <p className="text-red-500 text-center font-bold text-sm">Contraseña incorrecta</p>}
+                            <button type="submit" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/30 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all">
+                                VERIFICAR ACCESO
+                            </button>
+                        </form>
+                        <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+                            <a href="../index.html" className="text-slate-400 hover:text-blue-600 font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                                <Icons.RotateCcw className="w-4 h-4" /> Volver al Portal
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- APP ---
         function App() {
+            const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('finance_auth') === 'true');
             const [activeTab, setActiveTab] = useState('details');
             const [dashboardTab, setDashboardTab] = useState('consolidated');
             const [detailsView, setDetailsView] = useState('detailed');
@@ -871,7 +950,7 @@
                 }
             };
 
-
+            if (!isAuthenticated) return <PasswordScreen onAccess={() => { setIsAuthenticated(true); sessionStorage.setItem('finance_auth', 'true'); }} />;
 
             return (
                 <div className="min-h-screen">
