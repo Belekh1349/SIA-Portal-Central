@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Códigos QR para Inventario</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container no-print">
+        <header>
+            <div class="logo-container">
+                <div class="logo-icon">QR</div>
+                <h1>Inventario<span>Pro</span></h1>
+            </div>
+            <p class="subtitle">Convierte tu Google Sheet en etiquetas de inventario listas para imprimir</p>
+        </header>
+
+        <main>
+            <section class="setup-section box-glass">
+                <h2>1. Configuración de Base de Datos</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="url">Google Sheets (Enlace)</button>
+                    <button class="tab-btn" data-tab="manual">Pegar Datos Manualmente</button>
+                </div>
+
+                <div id="url-panel" class="tab-panel active">
+                    <div class="input-group">
+                        <label for="sheet-url">URL del CSV de Google Sheets</label>
+                        <input type="text" id="sheet-url"
+                            placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" spellcheck="false">
+                        <button id="load-btn" class="btn-primary">Cargar Datos</button>
+                    </div>
+                </div>
+
+                <div id="manual-panel" class="tab-panel">
+                    <div class="input-group-vertical">
+                        <label for="manual-data">Pega aquí tus códigos (uno por línea o desde Excel)</label>
+                        <textarea id="manual-data" placeholder="Ejemplo:&#10;A-101&#10;A-102&#10;A-103"></textarea>
+                        <button id="generate-manual-btn" class="btn-primary">Generar desde Texto</button>
+                    </div>
+                </div>
+
+                <div class="input-group search-container" style="margin-top: 20px;">
+                    <label for="search-input">Buscar activo (Número o Código)</label>
+                    <input type="text" id="search-input" placeholder="Ej: A-1024 o 001..." disabled>
+                </div>
+
+                <div class="help-text">
+                    <p>Tip: Si el enlace falla por seguridad, usa la pestaña "Pegar Datos Manualmente".</p>
+                </div>
+            </section>
+
+            <section class="controls-section box-glass">
+                <h2>2. Personalización de Etiquetas</h2>
+                <div class="controls-grid">
+                    <div class="control-item">
+                        <label>Tamaño de Etiqueta</label>
+                        <select id="tag-size">
+                            <option value="small">Pequeño (25mm)</option>
+                            <option value="medium" selected>Mediano (40mm)</option>
+                            <option value="large">Grande (60mm)</option>
+                        </select>
+                    </div>
+                    <div class="control-item">
+                        <label>Columnas en Impresión</label>
+                        <input type="number" id="grid-cols" value="4" min="1" max="8">
+                    </div>
+                    <div class="control-item">
+                        <label>Color del QR</label>
+                        <input type="color" id="qr-color" value="#000000">
+                    </div>
+                </div>
+                <button id="print-btn" class="btn-secondary" disabled>Imprimir Etiquetas</button>
+            </section>
+
+            <section id="preview-section" class="preview-section">
+                <div class="section-header">
+                    <div class="header-left">
+                        <h2>Vista Previa</h2>
+                        <span id="item-count" class="badge">0 items</span>
+                    </div>
+                    <button id="refresh-btn" class="btn-icon" title="Refrescar datos de la hoja" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 2v6h-6"></path>
+                            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                            <path d="M3 22v-6h6"></path>
+                            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                        </svg>
+                        Refrescar Todo
+                    </button>
+                </div>
+                <div id="labels-container" class="labels-grid">
+                    <!-- Los códigos QR se generarán aquí -->
+                    <div class="empty-state">
+                        <p>Ingresa una URL de Google Sheets para comenzar...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 InventarioPro - Herramienta de Gestión de Activos</p>
+        </footer>
+    </div>
+
+    <!-- Contenedor optimizado para impresión (oculto en pantalla) -->
+    <div id="print-container" class="print-only"></div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

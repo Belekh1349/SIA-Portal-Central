@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>Sistema de Gestión Financiera</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- jsPDF & AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            /* iOS Safe Areas */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 2rem;
+            }
+        }
+
+        #error-boundary {
+            padding: 20px;
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: 2px solid #ef4444;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10000;
+            overflow: auto;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .animate-shake {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(5px);
+            }
+
+            50% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+    <div id="error-boundary">
+        <h2 class="font-bold text-lg mb-2">Error de Carga</h2>
+        <pre id="error-message" class="text-sm overflow-auto"></pre>
+    </div>
+
+    <div id="root">
+        <div class="flex items-center justify-center min-h-screen text-slate-500">
+            <div class="text-center">
+                <svg class="animate-spin h-10 w-10 mx-auto mb-4 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <div class="text-lg font-medium">Cargando Sistema...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect, useRef } = React;
+
+        window.onerror = function (msg, url, line, col, error) {
+            document.getElementById('error-boundary').style.display = 'block';
+            document.getElementById('error-message').textContent = `${msg} (Línea: ${line})`;
+            return false;
+        };
+
+        // --- ICONS ---
+        const Icon = ({ path, className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d={path} />
+            </svg>
+        );
+
+        const Icons = {
+            LayoutDashboard: (props) => <Icon {...props} path="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />,
+            Wallet: (props) => <Icon {...props} path="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5zm-6-4h4m-4 4h4" />,
+            Car: (props) => <Icon {...props} path="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2a2 2 0 0 0 2-2v-1h10v1a2 2 0 0 0 2 2v-1a2 2 0 0 0 2-2z" />,
+            FileText: (props) => <Icon {...props} path="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" />,
+            Building2: (props) => <Icon {...props} path="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2 M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2 M10 6h4 M10 10h4 M10 14h4 M10 18h4" />,
+            Table: (props) => <Icon {...props} path="M12 3v18 M3 9h18 M3 15h18" />,
+            TrendingUp: (props) => <Icon {...props} path="M23 6l-9.5 9.5-5-5L1 18" />,
+            X: (props) => <Icon {...props} path="M18 6 6 18 M6 6l12 12" />,
+            Edit: (props) => <Icon {...props} path="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />,
+            Trash2: (props) => <Icon {...props} path="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M10 11v6 M14 11v6" />,
+            Plus: (props) => <Icon {...props} path="M12 5v14 M5 12h14" />,
+            Printer: (props) => <Icon {...props} path="M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z" />,
+            Settings: (props) => <Icon {...props} path="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />,
+            MapPin: (props) => <Icon {...props} path="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />,
+            RotateCcw: (props) => <Icon {...props} path="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5" />,
+            Globe: (props) => <Icon {...props} path="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2ZM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" />,
+            Landmark: (props) => <Icon {...props} path="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z M12 22V11 M9 22V11 M15 22V11 M18 22V11 M21 22V11 M3 22h18" />,
+            Mic2: (props) => <Icon {...props} path="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v3 M8 22h8" />,
+            Users: (props) => <Icon {...props} path="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75" />,
+            Save: (props) => <Icon {...props} path="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z M17 21v-8H7v8 M7 3v5h8" />,
+            Download: (props) => <Icon {...props} path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3" />,
+            Upload: (props) => <Icon {...props} path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12" />,
+            FileDown: (props) => <Icon {...props} path="M12 17V3 M6 11l6 6 6-6 M19 21H5" />,
+            Home: (props) => <Icon {...props} path="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" />,
+            Layout: (props) => <Icon {...props} path="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />,
+            Monitor: (props) => <Icon {...props} path="M2 12V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v7 m-10 5v4 m-5 0h10" />,
+            Lock: (props) => <Icon {...props} path="M7 11V7a5 5 0 0 1 10 0v4 M8 11h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z M12 15v3" />,
+        };
+
+        const DEFAULT_DATA = [
+            { id: 1, area: "Administración", fiveYears: 1833920.00, vehicles: 7694984.00, contents: 1779641.96, category: "Unidad de Apoyo" },
+            { id: 2, area: "Oficina de Relaciones Públicas", fiveYears: 255024.00, vehicles: 0.00, contents: 174715.92, category: "Unidad de Apoyo" },
+            { id: 3, area: "Estacionamiento (Pedro Ascencio)", fiveYears: 0.00, vehicles: 0.00, contents: 26834.41, category: "Unidad de Apoyo" },
+            { id: 4, area: "Explanada", fiveYears: 23936.00, vehicles: 0.00, contents: 368355.62, category: "Unidad de Apoyo" },
+            { id: 5, area: "Casa Colón", fiveYears: 0.00, vehicles: 0.00, contents: 37350.00, category: "Unidad de Apoyo" },
+            { id: 6, area: "Coordinación de Giras, Logística y Seguridad", fiveYears: 1047907.00, vehicles: 2176500.00, contents: 546746.69, category: "Unidad de Apoyo" },
+            { id: 7, area: "Jefe de la Unidad", fiveYears: 261536.00, vehicles: 0.00, contents: 254064.23, category: "Unidad de Apoyo" },
+            { id: 8, area: "Subcoordinación de Informática", fiveYears: 1533836.00, vehicles: 0.00, contents: 2204269.06, category: "Unidad de Apoyo" },
+            { id: 9, area: "Coordinación de Agenda", fiveYears: 158400.00, vehicles: 0.00, contents: 0.00, category: "Unidad de Apoyo" },
+            { id: 10, area: "Coordinación de Atención Ciudadana", fiveYears: 1410464.00, vehicles: 0.00, contents: 841786.05, category: "Unidad de Apoyo" },
+            { id: 11, area: "Coordinación de Asuntos Internacionales (Sor Juana)", fiveYears: 326832.00, vehicles: 0.00, contents: 434656.02, category: "Unidad de Apoyo" },
+            { id: 12, area: "Coordinación de Asuntos Internacionales (Hamburgo)", fiveYears: 207152.00, vehicles: 0.00, contents: 290716.98, category: "Unidad de Apoyo" },
+            { id: 13, area: "Coordinación de Asuntos Internacionales (HOUSTON)", fiveYears: 0.00, vehicles: 0.00, contents: 137060.25, category: "Unidad de Apoyo" },
+            { id: 14, area: "Gubernatura", fiveYears: 690624.00, vehicles: 0.00, contents: 1307551.97, category: "Gubernatura" },
+            { id: 15, area: "Vocería de la Gubernatura", fiveYears: 934834.00, vehicles: 0.00, contents: 703662.84, category: "Vocería" },
+        ];
+
+        const LOCATION_DATA = {
+            unidadApoyo: [
+                { area: "Palacio de Gobierno", units: 143, fiveYears: 4405631.00, contents: 3767517.72 },
+                { area: "Explanada", units: 1, fiveYears: 23936.00, contents: 368355.62 },
+                { area: "Casa Colón", units: 0, fiveYears: 0.00, contents: 37350.00 },
+                { area: "Jefe de la Unidad y Administración (Quintana Roo)", units: 81, fiveYears: 2095456.00, contents: 2033706.19 },
+                { area: "Estacionamiento (Pedro Ascencio)", units: 0, fiveYears: 0.00, contents: 26834.41 },
+                { area: "Coordinación de Asuntos Internacionales (Sor Juana)", units: 13, fiveYears: 326832.00, contents: 434656.02 },
+                { area: "Coordinación de Asuntos Internacionales (Hamburgo)", units: 8, fiveYears: 207152.00, contents: 290716.98 },
+                { area: "Coordinación de Asuntos Internacionales (HOUSTON)", units: 0, fiveYears: 0.00, contents: 137060.25 },
+            ],
+            gubernatura: [
+                { area: "Palacio de Gobierno", units: 21, fiveYears: 690624.00, contents: 1307551.97 }
+            ],
+            voceria: [
+                { area: "Palacio de Gobierno", units: 27, fiveYears: 934834.00, contents: 703662.84 }
+            ]
+        };
+
+        const HIGHEST_VALUES_DATA = {
+            unidadApoyo: [
+                { area: "Palacio de Gobierno", slim: 74, slim_v: 23936.00, tower: 10, tower_v: 54950.00, monitor: 10, monitor_v: 5568.00, laptop: 45, laptop_v: 39600.00, imac: 4, imac_v: 61796.00 },
+                { area: "Explanada", slim: 1, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 0, laptop_v: 0, imac: 0, imac_v: 0 },
+                { area: "Jefe de la Unidad y Administración (Quintana Roo)", slim: 71, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 10, laptop_v: 39600.00, imac: 0, imac_v: 0 },
+                { area: "Coordinación de Asuntos Internacionales (Sor Juana)", slim: 12, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 1, laptop_v: 39600.00, imac: 0, imac_v: 0 },
+                { area: "Coordinación de Asuntos Internacionales (Hamburgo)", slim: 7, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 1, laptop_v: 39600.00, imac: 0, imac_v: 0 }
+            ],
+            gubernatura: [
+                { area: "Gubernatura", slim: 9, slim_v: 23936.00, tower: 0, tower_v: 0, monitor: 0, monitor_v: 0, laptop: 12, laptop_v: 39600.00, imac: 0, imac_v: 0 }
+            ],
+            voceria: [
+                { area: "Vocería de la Gubernatura", slim: 5, slim_v: 23936.00, tower: 3, tower_v: 54950.00, monitor: 3, monitor_v: 5568.00, laptop: 16, laptop_v: 39600.00, imac: 0, imac_v: 0 }
+            ]
+        };
+
+        const EQUIPMENT_PRICES = { slim: 23936.00, tower: 54950.00, monitor: 5568.00, laptop: 39600.00, imac: 61796.00 };
+        const COLORS = { fiveYears: '#3b82f6', vehicles: '#f59e0b', contents: '#10b981' };
+
+        const formatCurrency = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
+
+        // --- COMPONENTS ---
+        const BarChart = ({ labels, datasets, stacked = false, horizontal = false, height = '350px' }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+            useEffect(() => {
+                if (!canvasRef.current) return;
+                if (chartRef.current) chartRef.current.destroy();
+                chartRef.current = new Chart(canvasRef.current.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels, datasets },
+                    options: {
+                        indexAxis: horizontal ? 'y' : 'x',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: datasets.length > 1, position: 'top', labels: { boxWidth: 10, font: { family: 'Montserrat', weight: 'bold', size: 10 } } },
+                            tooltip: { backgroundColor: '#1e293b', bodyFont: { family: 'Montserrat' }, titleFont: { family: 'Montserrat' } }
+                        },
+                        scales: {
+                            x: { stacked, grid: { display: false }, ticks: { font: { family: 'Montserrat', size: 9 } } },
+                            y: { stacked, grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Montserrat', size: 9 }, callback: (v) => '$' + v.toLocaleString() } }
+                        },
+                        elements: { bar: { borderRadius: 6, borderSkipped: false } }
+                    }
+                });
+                return () => chartRef.current?.destroy();
+            }, [labels, datasets, horizontal, stacked]);
+            return <div className="relative w-full overflow-hidden" style={{ height }}><canvas ref={canvasRef}></canvas></div>;
+        };
+
+        const PieChart = ({ labels, data, bgColors, title }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+            useEffect(() => {
+                if (!canvasRef.current) return;
+                if (chartRef.current) chartRef.current.destroy();
+                chartRef.current = new Chart(canvasRef.current.getContext('2d'), {
+                    type: 'doughnut',
+                    data: { labels, datasets: [{ data, backgroundColor: bgColors, borderWidth: 0, hoverOffset: 20 }] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '75%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 8, padding: 20, font: { family: 'Montserrat', weight: 'bold', size: 10 } } },
+                            tooltip: { backgroundColor: '#1e293b', bodyFont: { family: 'Montserrat' } }
+                        }
+                    }
+                });
+                return () => chartRef.current?.destroy();
+            }, [labels, data, bgColors]);
+            return (
+                <div className="relative w-full flex flex-col items-center justify-center p-4" style={{ height: '350px' }}>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
+                        <span className="text-xl font-black text-slate-800">{formatCurrency(data.reduce((a, b) => a + b, 0))}</span>
+                    </div>
+                    <canvas ref={canvasRef}></canvas>
+                </div>
+            );
+        };
+
+        const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className={`bg-white rounded-xl shadow-2xl w-full ${maxWidth} overflow-hidden animate-fade-in text-slate-800`}>
+                        <div className="bg-[#4c0519] px-6 py-4 flex justify-between items-center text-white">
+                            <h3 className="font-bold">{title}</h3>
+                            <button onClick={onClose}><Icons.X className="w-6 h-6" /></button>
+                        </div>
+                        <div className="max-h-[85vh] overflow-y-auto p-6">{children}</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Card = ({ title, subtitle, children, className = "" }) => (
+            <div className={`bg-white p-6 rounded-xl shadow-sm border border-slate-200 card ${className}`}>
+                <div className="mb-4">
+                    <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+                    {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
+                </div>
+                {children}
+            </div>
+        );
+
+        const CategorySection = ({ title, data }) => {
+            const sum5Y = data.reduce((a, c) => a + Number(c.fiveYears || 0), 0);
+            const sumVeh = data.reduce((a, c) => a + Number(c.vehicles || 0), 0);
+            const sumCon = data.reduce((a, c) => a + Number(c.contents || 0), 0);
+            const sumTotal = sum5Y + sumVeh + sumCon;
+
+            return (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 card">
+                    <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm">{title}</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-200 text-sm">
+                            <thead className="bg-slate-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left font-semibold text-slate-600">Área</th>
+                                    <th className="px-6 py-3 text-right font-semibold text-slate-600">5 Años</th>
+                                    <th className="px-6 py-3 text-right font-semibold text-slate-600">Vehículos</th>
+                                    <th className="px-6 py-3 text-right font-semibold text-slate-600">Contenidos</th>
+                                    <th className="px-6 py-3 text-right font-bold text-slate-900 bg-slate-100/50">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200">
+                                {data.map(row => (
+                                    <tr key={row.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-6 py-4 font-medium">{row.area}</td>
+                                        <td className="px-6 py-4 text-right">{formatCurrency(row.fiveYears)}</td>
+                                        <td className="px-6 py-4 text-right">{formatCurrency(row.vehicles)}</td>
+                                        <td className="px-6 py-4 text-right">{formatCurrency(row.contents)}</td>
+                                        <td className="px-6 py-4 text-right font-bold bg-slate-50">{formatCurrency(Number(row.fiveYears || 0) + Number(row.vehicles || 0) + Number(row.contents || 0))}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                            <tfoot className="bg-[#4c0519] text-white font-bold">
+                                <tr>
+                                    <td className="px-6 py-4 uppercase tracking-tighter text-xs">TOTAL {title}</td>
+                                    <td className="px-6 py-4 text-right">{formatCurrency(sum5Y)}</td>
+                                    <td className="px-6 py-4 text-right">{formatCurrency(sumVeh)}</td>
+                                    <td className="px-6 py-4 text-right">{formatCurrency(sumCon)}</td>
+                                    <td className="px-6 py-4 text-right text-amber-400 text-sm">{formatCurrency(sumTotal)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+
+        const LocationTable = ({ title, data }) => {
+            const sumUnits = data.reduce((a, c) => a + Number(c.units || 0), 0);
+            const sum5Y = data.reduce((a, c) => a + Number(c.fiveYears || 0), 0);
+            const sumCon = data.reduce((a, c) => a + Number(c.contents || 0), 0);
+
+            return (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 card">
+                    <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm">{title}</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-200 text-sm">
+                            <thead className="bg-slate-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left font-semibold text-slate-600">Ubicación</th>
+                                    <th className="px-6 py-3 text-center font-semibold text-slate-600">Unidades</th>
+                                    <th className="px-6 py-3 text-right font-semibold text-slate-600">Valor 5 Años</th>
+                                    <th className="px-6 py-3 text-right font-semibold text-slate-600">Valor Contenidos</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200">
+                                {data.map((row, i) => (
+                                    <tr key={i} className="hover:bg-slate-50">
+                                        <td className="px-6 py-4 font-medium">{row.area}</td>
+                                        <td className="px-6 py-4 text-center">{row.units}</td>
+                                        <td className="px-6 py-4 text-right">{formatCurrency(row.fiveYears)}</td>
+                                        <td className="px-6 py-4 text-right">{formatCurrency(row.contents)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                            <tfoot className="bg-[#4c0519] text-white font-bold">
+                                <tr>
+                                    <td className="px-6 py-4 uppercase tracking-tighter text-xs">TOTAL {title}</td>
+                                    <td className="px-6 py-4 text-center">{sumUnits}</td>
+                                    <td className="px-6 py-4 text-right">{formatCurrency(sum5Y)}</td>
+                                    <td className="px-6 py-4 text-right">{formatCurrency(sumCon)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+
+        const HighestValuesTable = ({ title, data, types }) => {
+            const totals = types.map(t => ({
+                count: data.reduce((a, c) => a + Number(c[t.k] || 0), 0),
+                value: data.reduce((a, c) => a + (Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)), 0)
+            }));
+
+            return (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 card" >
+                    <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm">{title}</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full border-collapse text-[11px] text-slate-800 bg-white">
+                            <thead className="bg-[#bcbcbc] text-slate-900">
+                                <tr className="border-b border-slate-300">
+                                    <th className="px-4 py-2 border-r border-slate-400 text-left font-bold uppercase text-[9px]">UBICACIÓN</th>
+                                    {types.map((t, idx) => (
+                                        <React.Fragment key={idx}>
+                                            <th className="px-2 py-2 border-r border-slate-400 text-center font-bold text-[9px] uppercase">UNIDADES</th>
+                                            <th className="px-2 py-2 border-r border-slate-400 text-center font-bold text-[9px] uppercase">{t.h}</th>
+                                        </React.Fragment>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-300 border-b border-slate-300">
+                                {data.map((row, i) => {
+                                    return (
+                                        <tr key={i} className="hover:bg-slate-50 transition-colors border-b border-slate-200">
+                                            <td className="px-4 py-2 border-r border-slate-200 font-bold text-slate-800 bg-slate-50/50">{row.area}</td>
+                                            {types.map((t, idx) => (
+                                                <React.Fragment key={idx}>
+                                                    <td className="px-2 py-2 border-r border-slate-200 text-center font-medium">
+                                                        {row[t.k] || 0}
+                                                    </td>
+                                                    <td className="px-2 py-2 border-r border-slate-200 text-right text-slate-600 font-medium">
+                                                        {formatCurrency(row[t.k + '_v'] || (row[t.k] > 0 ? t.p : 0))}
+                                                    </td>
+                                                </React.Fragment>
+                                            ))}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                            <tfoot className="bg-[#4c0519] text-white font-bold">
+                                <tr>
+                                    <td className="px-4 py-2 border-r border-slate-800 uppercase tracking-tighter text-[9px]">TOTALES</td>
+                                    {totals.map((t, idx) => (
+                                        <React.Fragment key={idx}>
+                                            <td className="px-2 py-2 border-r border-slate-800 text-center text-amber-400">{t.count}</td>
+                                            <td className="px-2 py-2 border-r border-slate-800 text-right text-[8px]">{formatCurrency(t.value)}</td>
+                                        </React.Fragment>
+                                    ))}
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div >
+            );
+        };
+
+        const SpecificDashboard = ({ title, icon: Icon, data, locData = [], highData = [], types = [], color }) => {
+            const sum = (list, k) => list.reduce((a, c) => a + Number(c[k] || 0), 0);
+
+            // Sumar de Items y de Ubicaciones
+            const sub5Y = sum(data, 'fiveYears') + sum(locData, 'fiveYears');
+            const subVeh = sum(data, 'vehicles');
+            const subCon = sum(data, 'contents') + sum(locData, 'contents');
+
+            // Sumar Valores Altos (Equipos)
+            const subHigh = highData.reduce((a, c) => {
+                let s = 0;
+                types.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p));
+                return a + s;
+            }, 0);
+
+            const grandTotal = sub5Y + subVeh + subCon + subHigh;
+
+            return (
+                <div className="space-y-8 animate-fade-in max-w-full">
+                    <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col lg:flex-row justify-between items-center gap-8">
+                        <div className="flex items-center gap-6">
+                            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 shadow-inner flex shrink-0" style={{ color }}>
+                                <Icon className="w-12 h-12" />
+                            </div>
+                            <div>
+                                <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight leading-none mb-2">{title}</h2>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }}></span>
+                                    <p className="text-slate-400 font-bold uppercase text-[11px] tracking-[0.2em]">Reporte Consolidado por Área</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-slate-50 px-8 py-5 rounded-2xl border border-slate-100 text-center lg:text-right w-full lg:w-auto">
+                            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Inversión Consolidada</div>
+                            <div className="text-4xl font-black text-slate-900">{formatCurrency(grandTotal)}</div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[
+                            { l: 'A 5 Años', v: sub5Y, c: 'blue', i: Icons.FileText },
+                            { l: 'Vehículos', v: subVeh, c: 'amber', i: Icons.Car },
+                            { l: 'Contenidos', v: subCon, c: 'emerald', i: Icons.Wallet },
+                            { l: 'Equipos', v: subHigh, c: 'purple', i: Icons.Monitor }
+                        ].map((m, i) => (
+                            <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className={`p-3 bg-${m.c}-50 text-${m.c}-600 rounded-xl`}><m.i className="w-6 h-6" /></div>
+                                    <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest pt-1">Periodo Actual</span>
+                                </div>
+                                <div>
+                                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{m.l}</div>
+                                    <div className="text-2xl font-black text-slate-800">{formatCurrency(m.v)}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 h-auto">
+                        <div className="xl:col-span-5 h-full">
+                            <Card title="Composición del Gasto" subtitle="Distribución porcentual por rubro" className="h-full flex flex-col">
+                                <div className="flex-grow flex items-center justify-center">
+                                    <PieChart labels={['5 Años', 'Vehículos', 'Contenidos', 'Equipos']} data={[sub5Y, subVeh, subCon, subHigh]} bgColors={['#3b82f6', '#f59e0b', '#10b981', '#a855f7']} />
+                                </div>
+                            </Card>
+                        </div>
+                        <div className="xl:col-span-7 h-full">
+                            <Card title="Gasto por Departamento" subtitle="Comparativa interna de áreas" className="h-full flex flex-col">
+                                <div className="flex-grow">
+                                    <BarChart
+                                        labels={[...data, ...locData, ...highData].map(d => d.area).filter((v, i, a) => a.indexOf(v) === i)}
+                                        datasets={[{
+                                            label: 'Presupuesto Total',
+                                            data: [...data, ...locData, ...highData].map(d => d.area).filter((v, i, a) => a.indexOf(v) === i).map(area => {
+                                                const d1 = data.find(it => it.area === area) || {};
+                                                const d2 = locData.find(it => it.area === area) || {};
+                                                const d3 = highData.find(it => it.area === area) || {};
+
+                                                let highSum = 0;
+                                                types.forEach(t => highSum += Number(d3[t.k] || 0) * Number(d3[t.k + '_v'] || t.p));
+
+                                                return Number(d1.fiveYears || 0) + Number(d1.vehicles || 0) + Number(d1.contents || 0) +
+                                                    Number(d2.fiveYears || 0) + Number(d2.contents || 0) +
+                                                    highSum;
+                                            }),
+                                            backgroundColor: color + 'CC'
+                                        }]}
+                                        horizontal={true}
+                                    />
+                                </div>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- PASSWORD SCREEN ---
+        const PasswordScreen = ({ onAccess }) => {
+            const [pass, setPass] = useState('');
+            const [error, setError] = useState(false);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (pass === 'Patrimonio_00') {
+                    onAccess();
+                } else {
+                    setError(true);
+                    setTimeout(() => setError(false), 2000);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900 bg-opacity-95 backdrop-blur-md">
+                    <div className="w-full max-w-md p-8 bg-white rounded-3xl shadow-2xl animate-fade-in mx-4">
+                        <div className="flex justify-center mb-6">
+                            <div className="p-4 bg-blue-50 rounded-2xl text-blue-600">
+                                <Icons.Lock className="w-12 h-12" />
+                            </div>
+                        </div>
+                        <h1 className="text-2xl font-black text-center text-slate-800 uppercase mb-2">Acceso Restringido</h1>
+                        <p className="text-center text-slate-500 mb-8 font-medium">Por favor, ingrese la contraseña de seguridad para continuar.</p>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="relative">
+                                <input
+                                    type="password"
+                                    value={pass}
+                                    onChange={(e) => setPass(e.target.value)}
+                                    className={`w-full px-6 py-4 rounded-2xl border-2 outline-none transition-all text-center text-xl font-bold tracking-widest ${error ? 'border-red-400 bg-red-50 text-red-900 animate-shake' : 'border-slate-100 focus:border-blue-500'}`}
+                                    placeholder="*************"
+                                    autoFocus
+                                />
+                            </div>
+                            {error && <p className="text-red-500 text-center font-bold text-sm">Contraseña incorrecta</p>}
+                            <button type="submit" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/30 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all">
+                                VERIFICAR ACCESO
+                            </button>
+                        </form>
+                        <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+                            <a href="../index.html" className="text-slate-400 hover:text-blue-600 font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                                <Icons.RotateCcw className="w-4 h-4" /> Volver al Portal
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- APP ---
+        function App() {
+            const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem('finance_auth') === 'true');
+            const [activeTab, setActiveTab] = useState('details');
+            const [dashboardTab, setDashboardTab] = useState('consolidated');
+            const [detailsView, setDetailsView] = useState('detailed');
+            const [mgmtView, setMgmtView] = useState('general');
+            const [showSplash, setShowSplash] = useState(false);
+            const [exportModal, setExportModal] = useState(false);
+            const [exportConfig, setExportConfig] = useState({ type: 'detailed', area: 'all' });
+            const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
+
+            const [items, setItems] = useState(() => JSON.parse(localStorage.getItem('f_items')) || DEFAULT_DATA);
+            const [locationData, setLocationData] = useState(() => JSON.parse(localStorage.getItem('f_loc')) || LOCATION_DATA);
+            const [highestData, setHighestData] = useState(() => JSON.parse(localStorage.getItem('f_high')) || HIGHEST_VALUES_DATA);
+            const [equipmentTypes, setEquipmentTypes] = useState(() => JSON.parse(localStorage.getItem('f_types')) || [
+                { k: 'slim', h: 'CPU EA', p: EQUIPMENT_PRICES.slim },
+                { k: 'tower', h: 'CPU ED', p: EQUIPMENT_PRICES.tower },
+                { k: 'monitor', h: 'Monitor', p: EQUIPMENT_PRICES.monitor },
+                { k: 'laptop', h: 'Laptop', p: EQUIPMENT_PRICES.laptop },
+                { k: 'imac', h: 'iMac', p: EQUIPMENT_PRICES.imac }
+            ]);
+
+            const [modal, setModal] = useState({ open: false, item: null });
+            const [columnModal, setColumnModal] = useState({ open: false });
+            const [formData, setFormData] = useState({});
+            const dashboardRef = useRef(null);
+
+            useEffect(() => { localStorage.setItem('f_items', JSON.stringify(items)); }, [items]);
+            useEffect(() => { localStorage.setItem('f_loc', JSON.stringify(locationData)); }, [locationData]);
+            useEffect(() => { localStorage.setItem('f_high', JSON.stringify(highestData)); }, [highestData]);
+            useEffect(() => { localStorage.setItem('f_types', JSON.stringify(equipmentTypes)); }, [equipmentTypes]);
+
+            // Handlers
+            const handleDelete = (id, cat) => {
+                if (!confirm('¿Eliminar registro?')) return;
+                if (mgmtView === 'general') setItems(items.filter(i => i.id !== id));
+                else if (mgmtView === 'location') setLocationData({ ...locationData, [cat]: locationData[cat].filter((_, i) => `l-${cat}-${i}` !== id) });
+                else if (mgmtView === 'highest') setHighestData({ ...highestData, [cat]: highestData[cat].filter((_, i) => `h-${cat}-${i}` !== id) });
+            };
+
+            const handleEdit = (it) => { setModal({ open: true, item: it }); setFormData({ ...it }); };
+            const handleAdd = () => {
+                setModal({ open: true, item: null });
+                if (mgmtView === 'general') setFormData({ area: '', category: 'Unidad de Apoyo', fiveYears: 0, vehicles: 0, contents: 0 });
+                else if (mgmtView === 'location') setFormData({ section: 'unidadApoyo', area: '', units: 0, fiveYears: 0, contents: 0 });
+                else {
+                    const baseData = { section: 'unidadApoyo', area: '' };
+                    equipmentTypes.forEach(t => {
+                        baseData[t.k] = 0;
+                        baseData[t.k + '_v'] = t.p;
+                    });
+                    setFormData(baseData);
+                }
+            };
+
+            const handleSave = (e) => {
+                e.preventDefault();
+                if (mgmtView === 'general') {
+                    const dataToSave = {
+                        ...formData,
+                        fiveYears: Number(formData.fiveYears || 0),
+                        vehicles: Number(formData.vehicles || 0),
+                        contents: Number(formData.contents || 0)
+                    };
+                    if (modal.item) setItems(items.map(i => i.id === modal.item.id ? { ...dataToSave, id: i.id } : i));
+                    else setItems([...items, { ...dataToSave, id: Date.now() }]);
+                } else if (mgmtView === 'location') {
+                    const s = formData.section || 'unidadApoyo';
+                    const dataToSave = {
+                        area: formData.area,
+                        units: Number(formData.units || 0),
+                        fiveYears: Number(formData.fiveYears || 0),
+                        contents: Number(formData.contents || 0)
+                    };
+
+                    if (modal.item && modal.item.cat && modal.item.cat !== s) {
+                        const oldCat = modal.item.cat;
+                        const oldIdx = parseInt(modal.item.id.split('-').pop());
+                        const oldList = locationData[oldCat].filter((_, i) => i !== oldIdx);
+
+                        const newList = [...locationData[s]];
+                        newList.push(dataToSave);
+                        setLocationData({ ...locationData, [oldCat]: oldList, [s]: newList });
+                    } else {
+                        const list = [...locationData[s]];
+                        if (modal.item) {
+                            const idx = parseInt(modal.item.id.split('-').pop());
+                            list[idx] = dataToSave;
+                        } else list.push(dataToSave);
+                        setLocationData({ ...locationData, [s]: list });
+                    }
+                } else {
+                    const s = formData.section || 'unidadApoyo';
+                    const vals = { area: formData.area };
+                    equipmentTypes.forEach(t => {
+                        vals[t.k] = Number(formData[t.k] || 0);
+                        vals[t.k + '_v'] = Number(formData[t.k + '_v'] || t.p);
+                    });
+
+                    // If we're editing and the section changed, remove from old and add to new
+                    if (modal.item && modal.item.cat && modal.item.cat !== s) {
+                        const oldCat = modal.item.cat;
+                        const oldIdx = parseInt(modal.item.id.split('-').pop());
+                        const oldList = highestData[oldCat].filter((_, i) => i !== oldIdx);
+
+                        const newList = [...highestData[s]];
+                        newList.push(vals);
+                        setHighestData({ ...highestData, [oldCat]: oldList, [s]: newList });
+                    } else {
+                        const list = [...highestData[s]];
+                        if (modal.item) {
+                            const idx = parseInt(modal.item.id.split('-').pop());
+                            list[idx] = vals;
+                        } else list.push(vals);
+                        setHighestData({ ...highestData, [s]: list });
+                    }
+                }
+                setModal({ open: false, item: null });
+            };
+
+            const handleBackup = () => {
+                const data = { items, locationData, highestData, timestamp: new Date().toISOString() };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `respaldo_patrimonial_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            const handleRestore = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.items && data.locationData && data.highestData) {
+                            if (confirm('¿Restaurar datos? Se sobrescribirán los datos actuales.')) {
+                                setItems(data.items);
+                                setLocationData(data.locationData);
+                                setHighestData(data.highestData);
+                                alert('Datos restaurados con éxito.');
+                            }
+                        } else {
+                            alert('Archivo de respaldo no válido.');
+                        }
+                    } catch (err) {
+                        alert('Error al leer el archivo.');
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            };
+
+            const handleReset = () => { if (confirm('¿Restablecer datos originales?')) { localStorage.clear(); window.location.reload(); } };
+
+            const handleExportPDF = async (previewOnly = false) => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const titleMap = { detailed: 'Reporte Detallado', location: 'Reporte por Ubicación', highest: 'Reporte Valores Altos', dashboard: 'Dashboard Ejecutivo' };
+                const areaMap = { all: 'Completo', 'Unidad de Apoyo': 'Unidad de Apoyo', Gubernatura: 'Gubernatura', Vocería: 'Vocería' };
+
+                if (exportConfig.type === 'dashboard') {
+                    if (dashboardRef.current) {
+                        try {
+                            // Ajuste de ultra-estabilidad para evitar distorsión visual (glitch)
+                            const canvas = await html2canvas(dashboardRef.current, {
+                                scale: 2, // Escala estable que no desborda la memoria del navegador
+                                useCORS: true,
+                                logging: false,
+                                backgroundColor: '#ffffff', // Fondo blanco total para evitar el tono cenizo
+                                removeContainer: true,
+                                imageTimeout: 15000,
+                                onclone: (clonedDoc) => {
+                                    const el = clonedDoc.querySelector('.animate-fade-in');
+                                    if (el) el.style.animation = 'none';
+                                }
+                            });
+
+                            // Usamos JPEG en máxima calidad para mayor estabilidad en el buffer de jspdf
+                            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                            const imgProps = doc.getImageProperties(imgData);
+                            const pdfWidth = doc.internal.pageSize.getWidth() - 20;
+                            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                            doc.setFont("montserrat", "bold");
+                            doc.setFontSize(16);
+                            doc.setTextColor(76, 5, 25);
+                            doc.text(`DASHBOARD EJECUTIVO - ${areaMap[exportConfig.area]}`, 105, 15, { align: 'center' });
+
+                            // 'FAST' es más estable para incrustar imágenes grandes
+                            doc.addImage(imgData, 'JPEG', 10, 25, pdfWidth, pdfHeight);
+
+                            if (previewOnly) {
+                                const blob = doc.output('blob');
+                                if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+                                setPdfPreviewUrl(URL.createObjectURL(blob));
+                            } else {
+                                doc.save(`Dashboard_${exportConfig.area}.pdf`);
+                                setExportModal(false);
+                                setPdfPreviewUrl(null);
+                            }
+                            return;
+                        } catch (err) {
+                            alert('Error al capturar el dashboard. Asegúrate de que el dashboard sea visible.');
+                            return;
+                        }
+                    }
+                }
+
+                doc.setFont("montserrat", "bold");
+                doc.setFontSize(18);
+                doc.setTextColor(76, 5, 25);
+                doc.text("MULTIPLE EMPRESARIAL 5 AÑOS", 105, 20, { align: 'center' });
+
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${titleMap[exportConfig.type]} - ${areaMap[exportConfig.area]}`, 105, 30, { align: 'center' });
+
+                doc.setFontSize(10);
+                doc.setFont("montserrat", "normal");
+                doc.text(`Generado el: ${new Date().toLocaleString()}`, 105, 38, { align: 'center' });
+
+                let tableData = [];
+                let headers = [];
+
+                if (exportConfig.type === 'detailed') {
+                    headers = [["Área", "5 Años", "Vehículos", "Contenidos", "Total"]];
+                    const filtered = exportConfig.area === 'all' ? items : items.filter(i => i.category === exportConfig.area);
+                    tableData = filtered.map(i => [i.area, formatCurrency(i.fiveYears), formatCurrency(i.vehicles), formatCurrency(i.contents), formatCurrency(i.fiveYears + i.vehicles + i.contents)]);
+
+                    const t5 = filtered.reduce((a, c) => a + c.fiveYears, 0);
+                    const tv = filtered.reduce((a, c) => a + c.vehicles, 0);
+                    const tc = filtered.reduce((a, c) => a + c.contents, 0);
+                    tableData.push(["TOTAL GENERAL", formatCurrency(t5), formatCurrency(tv), formatCurrency(tc), formatCurrency(t5 + tv + tc)]);
+                } else if (exportConfig.type === 'location') {
+                    headers = [["Área/Ubicación", "Unidades", "5 Años", "Contenidos"]];
+                    const map = { all: ['unidadApoyo', 'gubernatura', 'voceria'], 'Unidad de Apoyo': ['unidadApoyo'], Gubernatura: ['gubernatura'], Vocería: ['voceria'] };
+                    let filtered = [];
+                    map[exportConfig.area].forEach(k => filtered = [...filtered, ...locationData[k]]);
+
+                    tableData = filtered.map(i => [i.area, i.units, formatCurrency(i.fiveYears), formatCurrency(i.contents)]);
+
+                    const tu = filtered.reduce((a, c) => a + Number(c.units), 0);
+                    const t5 = filtered.reduce((a, c) => a + Number(c.fiveYears), 0);
+                    const tc = filtered.reduce((a, c) => a + Number(c.contents), 0);
+                    tableData.push(["TOTAL GENERAL", tu, formatCurrency(t5), formatCurrency(tc)]);
+                } else {
+                    doc.deletePage(1);
+                    doc.addPage('a4', 'l');
+                    doc.setFont("montserrat", "bold");
+                    doc.setFontSize(18);
+                    doc.setTextColor(76, 5, 25);
+                    doc.text("MULTIPLE EMPRESARIAL 5 AÑOS", 148, 20, { align: 'center' });
+                    doc.setFontSize(14);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`${titleMap[exportConfig.type]} - ${areaMap[exportConfig.area]}`, 148, 30, { align: 'center' });
+                    doc.setFontSize(10);
+                    doc.text(`Generado el: ${new Date().toLocaleString()}`, 148, 38, { align: 'center' });
+
+                    const hRow = ["Ubicación"];
+                    equipmentTypes.forEach(t => {
+                        hRow.push("UND");
+                        hRow.push(t.h);
+                    });
+                    headers = [hRow];
+
+                    const map = { all: ['unidadApoyo', 'gubernatura', 'voceria'], 'Unidad de Apoyo': ['unidadApoyo'], Gubernatura: ['gubernatura'], Vocería: ['voceria'] };
+                    let filtered = [];
+                    map[exportConfig.area].forEach(k => filtered = [...filtered, ...highestData[k]]);
+
+                    tableData = filtered.map(i => {
+                        const row = [i.area];
+                        equipmentTypes.forEach(t => {
+                            row.push(i[t.k] || 0);
+                            row.push(formatCurrency(i[t.k + '_v'] || (i[t.k] > 0 ? t.p : 0)));
+                        });
+                        return row;
+                    });
+
+                    const foot = ["TOTALES"];
+                    equipmentTypes.forEach(t => {
+                        const count = filtered.reduce((a, c) => a + Number(c[t.k] || 0), 0);
+                        const val = filtered.reduce((a, c) => a + (Number(c[t.k] || 0) * (c[t.k + '_v'] || t.p)), 0);
+                        foot.push(count);
+                        foot.push(formatCurrency(val));
+                    });
+                    tableData.push(foot);
+                }
+
+                doc.autoTable({
+                    startY: 45,
+                    head: headers,
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [76, 5, 25], textColor: [255, 255, 255], font: "montserrat", fontSize: 10 },
+                    styles: { font: "montserrat", fontSize: 9 },
+                    alternateRowStyles: { fillColor: [249, 250, 251] },
+                    didParseCell: function (data) {
+                        if (data.row.index === tableData.length - 1) {
+                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.fillColor = [241, 245, 249];
+                            data.cell.styles.textColor = [76, 5, 25];
+                            data.cell.styles.fontSize = 10;
+                        }
+                    }
+                });
+
+                if (previewOnly) {
+                    const blob = doc.output('blob');
+                    if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+                    setPdfPreviewUrl(URL.createObjectURL(blob));
+                } else {
+                    doc.save(`Reporte_${exportConfig.type}_${exportConfig.area}.pdf`);
+                    setExportModal(false);
+                    setPdfPreviewUrl(null);
+                }
+            };
+
+            if (!isAuthenticated) return <PasswordScreen onAccess={() => { setIsAuthenticated(true); sessionStorage.setItem('finance_auth', 'true'); }} />;
+
+            return (
+                <div className="min-h-screen">
+                    <nav className="bg-[#4c0519] text-white sticky top-0 z-40 p-4 shadow-lg no-print">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <a href="../index.html" className="p-2 hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2 text-slate-300 hover:text-white" title="Regresar al Portal">
+                                    <Icons.Home className="w-5 h-5" />
+                                    <span className="text-xs font-bold uppercase tracking-widest hidden md:inline">Entrada Principal</span>
+                                </a>
+                                <div className="w-[1px] h-6 bg-white/20 mx-2"></div>
+                                <div className="flex gap-2">
+                                    {[
+                                        { id: 'general', l: 'Dashboard', i: Icons.LayoutDashboard },
+                                        { id: 'details', l: 'Tablas', i: Icons.Table },
+                                        { id: 'edit', l: 'Gestión', i: Icons.Settings }
+                                    ].map(t => (
+                                        <button key={t.id} onClick={() => setActiveTab(t.id)} className={`px-4 py-2 rounded-lg font-bold text-sm uppercase transition-all flex items-center gap-2 ${activeTab === t.id ? 'bg-amber-500 text-slate-900 shadow-lg' : 'hover:bg-[#630d16]'}`}>
+                                            <t.i className="w-4 h-4" />
+                                            <span>{t.l}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-xl font-extrabold tracking-tight flex items-baseline gap-1.5 text-right">
+                                    <span className="text-white">MULTIPLE</span>
+                                    <span className="text-slate-300 font-medium text-lg">EMPRESARIAL</span>
+                                    <span className="text-amber-500 font-black text-2xl">5 AÑOS</span>
+                                </h1>
+                                <div className="w-1.5 h-8 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-7xl mx-auto p-6">
+                        {activeTab === 'general' && (
+                            <div className="flex flex-col md:flex-row gap-6">
+                                <div className="w-full md:w-64 space-y-2 no-print overflow-x-auto flex md:flex-col gap-2 pb-2 md:pb-0">
+                                    {[
+                                        { id: 'consolidated', l: 'Consolidado', i: Icons.Globe },
+                                        { id: 'unidad', l: 'Unidad de Apoyo a la Administración General', i: Icons.Users },
+                                        { id: 'gubernatura', l: 'Gubernatura', i: Icons.Building2 },
+                                        { id: 'voceria', l: 'Vocería de la Gubernatura', i: Icons.Mic2 }
+                                    ].map(v => (
+                                        <button key={v.id} onClick={() => setDashboardTab(v.id)} className={`flex-shrink-0 md:w-full text-left p-3 rounded-xl font-bold text-[10px] uppercase tracking-tighter transition-all flex items-center gap-3 ${dashboardTab === v.id ? 'bg-[#4c0519] text-white shadow-lg scale-[1.02]' : 'bg-white border text-slate-600 hover:bg-slate-50'}`}>
+                                            <v.i className="w-4 h-4" />
+                                            <span className="whitespace-nowrap">{v.l}</span>
+                                        </button>
+                                    ))}
+                                    <button onClick={() => { setExportConfig({ ...exportConfig, type: 'dashboard' }); setExportModal(true); }} className="flex-shrink-0 md:w-full text-left p-3 rounded-xl font-bold text-xs text-amber-600 uppercase border border-amber-100 hover:bg-amber-50 mt-0 md:mt-2 flex items-center gap-3">
+                                        <Icons.FileDown className="w-4 h-4" />
+                                        <span className="whitespace-nowrap">Exportar Dashboard</span>
+                                    </button>
+                                </div>
+                                <div className="flex-grow max-w-full overflow-hidden" ref={dashboardRef}>
+                                    {dashboardTab === 'consolidated' && (
+                                        <div className="space-y-8 animate-fade-in p-1">
+                                            <div className="bg-gradient-to-br from-[#4c0519] via-[#630d16] to-[#4c0519] p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] text-white flex flex-col md:flex-row justify-between items-center relative overflow-hidden shadow-2xl border border-white/5">
+                                                <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/20 rounded-full -mr-40 -mt-40 blur-3xl opacity-30 animate-pulse"></div>
+                                                <div className="absolute bottom-0 left-0 w-80 h-80 bg-rose-500/10 rounded-full -ml-40 -mb-40 blur-3xl opacity-20"></div>
+                                                <div className="relative z-10 w-full">
+                                                    <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-tight mb-4 border-l-8 border-amber-500 pl-4 sm:pl-6 text-center md:text-left">CONSOLIDADO GENERAL</h2>
+                                                    <p className="text-rose-100/70 font-medium mb-8 sm:mb-12 max-w-md mx-auto md:mx-0 text-center md:text-left leading-relaxed">Reporte ejecutivo centralizado que integra todas las áreas y rubros de inversión patrimonial.</p>
+                                                    <div className="flex flex-col items-center md:items-start">
+                                                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] mb-2 text-center md:text-left">Presupuesto Global Programado</span>
+                                                        <div className="text-4xl sm:text-7xl font-black text-white leading-none tracking-tighter drop-shadow-lg text-center md:text-left">
+                                                            {formatCurrency(
+                                                                items.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0) +
+                                                                Object.values(locationData).flat().reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0) +
+                                                                Object.values(highestData).flat().reduce((a, c) => {
+                                                                    let rowSum = 0;
+                                                                    equipmentTypes.forEach(t => { rowSum += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p); });
+                                                                    return a + rowSum;
+                                                                }, 0)
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="hidden lg:block relative z-10">
+                                                    <div className="p-8 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm animate-float">
+                                                        <Icons.LayoutDashboard className="w-16 h-16 text-amber-500 opacity-60" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                                                <Card title="Inversión por Rubro" subtitle="Acumulado histórico por categoría">
+                                                    <BarChart labels={['A 5 Años', 'Vehículos', 'Contenidos', 'Equipos']} datasets={[{
+                                                        label: 'Monto Total',
+                                                        data: [
+                                                            items.reduce((a, c) => a + Number(c.fiveYears || 0), 0) + Object.values(locationData).flat().reduce((a, c) => a + Number(c.fiveYears || 0), 0),
+                                                            items.reduce((a, c) => a + Number(c.vehicles || 0), 0),
+                                                            items.reduce((a, c) => a + Number(c.contents || 0), 0) + Object.values(locationData).flat().reduce((a, c) => a + Number(c.contents || 0), 0),
+                                                            Object.values(highestData).flat().reduce((a, c) => {
+                                                                let rowSum = 0;
+                                                                equipmentTypes.forEach(t => { rowSum += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p); });
+                                                                return a + rowSum;
+                                                            }, 0)
+                                                        ],
+                                                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#9333ea']
+                                                    }]} />
+                                                </Card>
+
+                                                <Card title="Peso Presupuestal por Entidad" subtitle="Distribución entre las 3 coordinaciones principales">
+                                                    <PieChart labels={['Unidad de Apoyo', 'Gubernatura', 'Vocería']} data={[
+                                                        (items.filter(i => i.category === 'Unidad de Apoyo').reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0)) +
+                                                        (locationData.unidadApoyo.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0)) +
+                                                        (highestData.unidadApoyo.reduce((a, c) => { let s = 0; equipmentTypes.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)); return a + s; }, 0)),
+
+                                                        (items.filter(i => i.category === 'Gubernatura').reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0)) +
+                                                        (locationData.gubernatura.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0)) +
+                                                        (highestData.gubernatura.reduce((a, c) => { let s = 0; equipmentTypes.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)); return a + s; }, 0)),
+
+                                                        (items.filter(i => i.category === 'Vocería').reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.vehicles || 0) + Number(c.contents || 0), 0)) +
+                                                        (locationData.voceria.reduce((a, c) => a + Number(c.fiveYears || 0) + Number(c.contents || 0), 0)) +
+                                                        (highestData.voceria.reduce((a, c) => { let s = 0; equipmentTypes.forEach(t => s += Number(c[t.k] || 0) * Number(c[t.k + '_v'] || t.p)); return a + s; }, 0))
+                                                    ]} bgColors={['#4c0519', '#3b82f6', '#9333ea']} />
+                                                </Card>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {dashboardTab === 'unidad' && <SpecificDashboard title="Unidad de Apoyo a la Admón. General" data={items.filter(i => i.category === 'Unidad de Apoyo')} locData={locationData.unidadApoyo} highData={highestData.unidadApoyo} types={equipmentTypes} icon={Icons.Users} color="#2563eb" />}
+                                    {dashboardTab === 'gubernatura' && <SpecificDashboard title="Gubernatura" data={items.filter(i => i.category === 'Gubernatura')} locData={locationData.gubernatura} highData={highestData.gubernatura} types={equipmentTypes} icon={Icons.Building2} color="#f59e0b" />}
+                                    {dashboardTab === 'voceria' && <SpecificDashboard title="Vocería de la Gubernatura" data={items.filter(i => i.category === 'Vocería')} locData={locationData.voceria} highData={highestData.voceria} types={equipmentTypes} icon={Icons.Mic2} color="#9333ea" />}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'details' && (
+                            <div className="flex flex-col md:flex-row gap-6">
+                                <div className="w-64 space-y-2 no-print">
+                                    {[
+                                        { id: 'detailed', l: 'Reporte Detallado', i: Icons.FileText },
+                                        { id: 'location', l: 'Por Ubicación', i: Icons.MapPin },
+                                        { id: 'highest', l: 'Valores Altos', i: Icons.TrendingUp }
+                                    ].map(v => (
+                                        <button key={v.id} onClick={() => setDetailsView(v.id)} className={`w-full text-left p-3 rounded-xl font-bold text-sm border flex items-center gap-3 ${detailsView === v.id ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>
+                                            <v.i className="w-4 h-4" />
+                                            <span>{v.l}</span>
+                                        </button>
+                                    ))}
+                                    <button onClick={() => setExportModal(true)} className="w-full text-left p-3 rounded-xl font-bold text-xs text-amber-600 uppercase border border-amber-100 hover:bg-amber-50 mt-2 flex items-center gap-3">
+                                        <Icons.FileDown className="w-4 h-4" />
+                                        <span>Generar Reporte PDF</span>
+                                    </button>
+                                    <button onClick={handleReset} className="w-full text-left p-3 rounded-xl font-bold text-xs text-red-500 uppercase border border-red-100 hover:bg-red-50 mt-4 flex items-center gap-3">
+                                        <Icons.RotateCcw className="w-4 h-4" />
+                                        <span>Restablecer Sistema</span>
+                                    </button>
+                                </div>
+                                <div className="flex-grow">
+                                    <div className="flex justify-between items-center mb-6 no-print">
+                                        <h2 className="text-2xl font-black text-slate-800 uppercase">{detailsView === 'detailed' ? 'Reporte Detallado' : detailsView === 'location' ? 'Inventario por Ubicación' : 'VALOR MÁS ALTO'}</h2>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setExportModal(true)} className="px-5 py-2 bg-amber-500 text-white rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-amber-600 transition-all shadow-md"><Icons.FileDown className="w-4 h-4" /> Exportar PDF</button>
+                                            <button onClick={() => window.print()} className="px-5 py-2 bg-slate-100 border rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-white transition-all"><Icons.Printer className="w-4 h-4" /> Imprimir</button>
+                                        </div>
+                                    </div>
+                                    {detailsView === 'detailed' && (
+                                        <>
+                                            <CategorySection title="Unidad de Apoyo a la Administración General" data={items.filter(i => i.category === 'Unidad de Apoyo')} />
+                                            <CategorySection title="Gubernatura" data={items.filter(i => i.category === 'Gubernatura')} />
+                                            <CategorySection title="Vocería de la Gubernatura" data={items.filter(i => i.category === 'Vocería')} />
+                                        </>
+                                    )}
+                                    {detailsView === 'location' && (
+                                        <>
+                                            <LocationTable title="Ubicación: Unidad de Apoyo" data={locationData.unidadApoyo} />
+                                            <LocationTable title="Ubicación: Gubernatura" data={locationData.gubernatura} />
+                                            <LocationTable title="Ubicación: Vocería" data={locationData.voceria} />
+                                        </>
+                                    )}
+                                    {detailsView === 'highest' && (
+                                        <>
+                                            <HighestValuesTable title="VALOR MAS ALTO-UNIDAD DE APOYO A LA ADMINISTRACIÓN GENERAL" data={highestData.unidadApoyo} types={equipmentTypes} />
+                                            <HighestValuesTable title="VALOR MAS ALTO-GUBERNATURA" data={highestData.gubernatura} types={equipmentTypes} />
+                                            <HighestValuesTable title="VALOR MAS ALTO-VOCERÍA DE LA GUBERNATURA" data={highestData.voceria} types={equipmentTypes} />
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'edit' && (
+                            <div className="space-y-6 animate-fade-in no-print">
+                                <div className="bg-white p-6 rounded-2xl border flex flex-col md:flex-row justify-between items-center gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-bold">Gestor de Datos</h2>
+                                        <p className="text-slate-500 text-sm">Modifica o añade registros de las tablas</p>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                                            {[
+                                                { id: 'general', l: 'Reporte', i: Icons.FileText },
+                                                { id: 'location', l: 'Ubicación', i: Icons.MapPin },
+                                                { id: 'highest', l: 'Valores', i: Icons.TrendingUp },
+                                                { id: 'maintenance', l: 'Sistema', i: Icons.Settings }
+                                            ].map(v => (
+                                                <button key={v.id} onClick={() => setMgmtView(v.id)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${mgmtView === v.id ? 'bg-white shadow text-[#4c0519]' : 'text-slate-500 hover:text-slate-700'}`}>
+                                                    <v.i className="w-3 h-3" />
+                                                    <span>{v.l}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button onClick={handleAdd} className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all"><Icons.Plus className="w-5 h-5" /> Nuevo Registro</button>
+                                    </div>
+                                </div>
+                                {mgmtView !== 'maintenance' ? (
+                                    <div className="bg-white rounded-2xl border overflow-hidden shadow-sm">
+                                        <table className="min-w-full divide-y divide-slate-200">
+                                            <thead className="bg-slate-50">
+                                                <tr>
+                                                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase">Registro</th>
+                                                    <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase">Datos</th>
+                                                    <th className="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase">Opciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100">
+                                                {(mgmtView === 'general' ? items : (mgmtView === 'location' ? Object.keys(locationData).flatMap(k => locationData[k].map((i, idx) => ({ ...i, id: `l-${k}-${idx}`, cat: k }))) : Object.keys(highestData).flatMap(k => highestData[k].map((i, idx) => ({ ...i, id: `h-${k}-${idx}`, cat: k })))))
+                                                    .map(row => (
+                                                        <tr key={row.id} className="hover:bg-slate-50 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="font-bold text-slate-900">{row.area}</div>
+                                                                <div className="text-[10px] inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 mt-1 uppercase font-black tracking-tighter border border-slate-200">
+                                                                    {row.cat === 'unidadApoyo' || row.category === 'Unidad de Apoyo' ? 'Unidad de Apoyo' : row.cat === 'gubernatura' || row.category === 'Gubernatura' ? 'Gubernatura' : 'Vocería'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right text-xs font-medium text-slate-600">
+                                                                {mgmtView === 'general' && `5A: ${formatCurrency(row.fiveYears)} | Vh: ${formatCurrency(row.vehicles)}`}
+                                                                {mgmtView === 'location' && `Units: ${row.units} | 5A: ${formatCurrency(row.fiveYears)}`}
+                                                                {mgmtView === 'highest' && equipmentTypes.map(t => `${t.h}: ${row[t.k] || 0}`).join(' | ')}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right space-x-1">
+                                                                <button onClick={() => handleEdit(row)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Icons.Edit className="w-5 h-5" /></button>
+                                                                <button onClick={() => handleDelete(row.id, row.cat)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Icons.Trash2 className="w-5 h-5" /></button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in px-4">
+                                        {/* GESTIÓN DE COLUMNAS */}
+                                        <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl flex flex-col justify-between border-t-8 border-t-blue-500 hover:border-blue-500/20 transition-all">
+                                            <div>
+                                                <div className="w-16 h-16 bg-blue-50 rounded-2xl mb-6 flex items-center justify-center text-blue-600">
+                                                    <Icons.Layout className="w-8 h-8" />
+                                                </div>
+                                                <h3 className="text-2xl font-black text-blue-900 mb-4">Estructura de Equipos</h3>
+                                                <p className="text-slate-500 leading-relaxed mb-8">Administre las columnas de la tabla de Valores Altos. Agregue nuevos tipos de activos o elimine los existentes.</p>
+                                                <div className="space-y-2 mb-8">
+                                                    {equipmentTypes.map((t, idx) => (
+                                                        <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all">
+                                                            <div>
+                                                                <span className="text-xs font-black uppercase text-slate-800">{t.h}</span>
+                                                                <span className="mx-2 text-slate-300">|</span>
+                                                                <span className="text-[10px] text-slate-500 font-bold">{formatCurrency(t.p)}</span>
+                                                            </div>
+                                                            <button onClick={() => {
+                                                                if (confirm(`¿Eliminar la columna ${t.h}? Los datos guardados bajo este rubro se ocultarán.`)) {
+                                                                    setEquipmentTypes(equipmentTypes.filter((_, i) => i !== idx));
+                                                                }
+                                                            }} className="text-red-400 hover:text-red-600 p-1">
+                                                                <Icons.Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setColumnModal({ open: true })} className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-blue-700 shadow-lg shadow-blue-500/20">
+                                                <Icons.Plus className="w-5 h-5" />
+                                                <span>Añadir Nueva Columna</span>
+                                            </button>
+                                        </div>
+
+                                        <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl flex flex-col justify-between group hover:border-amber-500/40 transition-all">
+                                            <div>
+                                                <div className="w-16 h-16 bg-amber-50 rounded-2xl mb-6 flex items-center justify-center text-amber-500">
+                                                    <Icons.Save className="w-8 h-8" />
+                                                </div>
+                                                <h3 className="text-2xl font-black text-[#4c0519] mb-4">Respaldo</h3>
+                                                <p className="text-slate-500 leading-relaxed mb-8">Descargue la base de datos completa en formato JSON para seguridad y portabilidad.</p>
+                                            </div>
+                                            <div className="flex flex-col gap-3">
+                                                <button onClick={handleBackup} className="w-full bg-[#4c0519] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-[#630d16] shadow-lg shadow-rose-900/10">
+                                                    <Icons.Download className="w-5 h-5 text-amber-500" />
+                                                    <span>Descargar JSON</span>
+                                                </button>
+                                                <label className="w-full bg-white text-[#4c0519] border-2 border-[#4c0519] py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-slate-50 cursor-pointer transition-all text-center">
+                                                    <Icons.Upload className="w-5 h-5 text-blue-600" />
+                                                    <span>Restaurar Datos</span>
+                                                    <input type="file" accept=".json" onChange={handleRestore} className="hidden" />
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl flex flex-col justify-between border-l-8 border-l-red-500 hover:border-red-500/20 transition-all">
+                                            <div>
+                                                <div className="w-16 h-16 bg-red-50 rounded-2xl mb-6 flex items-center justify-center text-red-600">
+                                                    <Icons.RotateCcw className="w-8 h-8" />
+                                                </div>
+                                                <h3 className="text-2xl font-black text-red-700 mb-4">Control Maestro</h3>
+                                                <p className="text-slate-500 leading-relaxed mb-8">Restablece la configuración de fábrica. Se borrarán columnas y registros personalizados.</p>
+                                            </div>
+                                            <button onClick={handleReset} className="w-full bg-red-50 text-red-700 py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-red-700 hover:text-white transition-all border border-red-100">
+                                                <Icons.Trash2 className="w-5 h-5 opacity-60" />
+                                                <span>Restablecer Todo</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    <Modal isOpen={modal.open} onClose={() => setModal({ open: false, item: null })} title={modal.item ? "Actualizar Registro" : "Crear Registro"}>
+                        <form onSubmit={handleSave} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-black uppercase text-slate-400 mb-1">Área / Ubicación</label>
+                                    <input required className="w-full border rounded-lg p-3 bg-slate-50 focus:ring-2 focus:ring-amber-500 transition-all" value={formData.area} onChange={e => setFormData({ ...formData, area: e.target.value })} />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-xs font-black uppercase text-slate-400 mb-1">Categoría General</label>
+                                    <select className="w-full border rounded-lg p-3 bg-slate-50 font-bold text-slate-700" value={mgmtView === 'general' ? formData.category : formData.section} onChange={e => setFormData({ ...formData, [mgmtView === 'general' ? 'category' : 'section']: e.target.value })}>
+                                        <option value={mgmtView === 'general' ? 'Unidad de Apoyo' : 'unidadApoyo'}>Unidad de Apoyo</option>
+                                        <option value={mgmtView === 'general' ? 'Gubernatura' : 'gubernatura'}>Gubernatura</option>
+                                        <option value={mgmtView === 'general' ? 'Vocería' : 'voceria'}>Vocería</option>
+                                    </select>
+                                </div>
+                            </div>
+                            {mgmtView === 'general' ? (
+                                <>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="text-xs font-black">5 Años ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-3" value={formData.fiveYears} onChange={e => setFormData({ ...formData, fiveYears: e.target.value })} /></div>
+                                        <div><label className="text-xs font-black">Vehículos ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-3" value={formData.vehicles} onChange={e => setFormData({ ...formData, vehicles: e.target.value })} /></div>
+                                    </div>
+                                    <div><label className="text-xs font-black">Contenidos ($)</label><input type="number" step="0.01" className="w-full border rounded-lg p-3" value={formData.contents} onChange={e => setFormData({ ...formData, contents: e.target.value })} /></div>
+                                </>
+                            ) : mgmtView === 'location' ? (
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div><label className="text-xs font-black">Unds</label><input type="number" className="w-full border rounded-lg p-3" value={formData.units} onChange={e => setFormData({ ...formData, units: e.target.value })} /></div>
+                                    <div><label className="text-xs font-black">5A($)</label><input type="number" className="w-full border rounded-lg p-3" value={formData.fiveYears} onChange={e => setFormData({ ...formData, fiveYears: e.target.value })} /></div>
+                                    <div><label className="text-xs font-black">Ct($)</label><input type="number" className="w-full border rounded-lg p-3" value={formData.contents} onChange={e => setFormData({ ...formData, contents: e.target.value })} /></div>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {equipmentTypes.map((t, idx) => (
+                                            <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                                <h4 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">{t.h}</h4>
+                                                <div className="flex gap-3">
+                                                    <div className="flex-1">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Cantidad</label>
+                                                        <input type="number" className="w-full border rounded-lg p-2 mt-1" value={formData[t.k] || 0} onChange={e => setFormData({ ...formData, [t.k]: e.target.value })} />
+                                                    </div>
+                                                    <div className="flex-[2]">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Valor Unitario ($)</label>
+                                                        <input type="number" step="0.01" className="w-full border rounded-lg p-2 mt-1" value={formData[t.k + '_v'] || t.p} onChange={e => setFormData({ ...formData, [t.k + '_v']: e.target.value })} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            <button type="submit" className="w-full bg-[#4c0519] text-white py-4 rounded-xl font-bold shadow-xl flex items-center justify-center gap-3 hover:bg-[#630d16] transition-all">
+                                <Icons.Save className="w-5 h-5" />
+                                <span>Guardar Cambios</span>
+                            </button>
+                        </form>
+                    </Modal>
+
+                    {/* MODAL PARA NUEVAS COLUMNAS */}
+                    <Modal isOpen={columnModal.open} onClose={() => setColumnModal({ open: false })} title="Añadir Nueva Columna (Equipo)">
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const head = e.target.label.value;
+                            const price = Number(e.target.price.value);
+                            const key = head.toLowerCase().replace(/[^a-z]/g, '') + Date.now().toString().slice(-4);
+                            setEquipmentTypes([...equipmentTypes, { k: key, h: head, p: price }]);
+                            setColumnModal({ open: false });
+                        }} className="space-y-6">
+                            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                                <label className="block text-xs font-black uppercase text-blue-400 mb-2">Nombre de la Columna</label>
+                                <input name="label" required placeholder="Ej. Tables, Scanner, etc." className="w-full border rounded-xl p-4 bg-white focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                            </div>
+                            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                                <label className="block text-xs font-black uppercase text-blue-400 mb-2">Precio Estimado por Unidad ($)</label>
+                                <input name="price" type="number" step="0.01" required placeholder="0.00" className="w-full border rounded-xl p-4 bg-white focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                            </div>
+                            <div className="flex gap-4">
+                                <button type="button" onClick={() => setColumnModal({ open: false })} className="flex-1 py-4 font-bold text-slate-400 hover:bg-slate-50 rounded-xl">Cancelar</button>
+                                <button type="submit" className="flex-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 hover:bg-blue-700">Crear Columna</button>
+                            </div>
+                        </form>
+                    </Modal>
+
+                    <Modal isOpen={exportModal} onClose={() => { setExportModal(false); setPdfPreviewUrl(null); }} title="Exportar Reporte a PDF" maxWidth={pdfPreviewUrl ? 'max-w-5xl' : 'max-w-lg'}>
+                        {pdfPreviewUrl ? (
+                            <div className="space-y-6">
+                                <div className="bg-slate-800 rounded-xl overflow-hidden border-4 border-slate-700 shadow-2xl">
+                                    <iframe src={pdfPreviewUrl} className="w-full h-[60vh]" />
+                                </div>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setPdfPreviewUrl(null)} className="flex-grow py-4 border-2 border-slate-200 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all">Regresar a Configuración</button>
+                                    <button onClick={() => handleExportPDF(false)} className="flex-grow bg-[#4c0519] text-white py-4 rounded-xl font-black uppercase tracking-widest text-sm shadow-xl hover:bg-[#630d16] flex items-center justify-center gap-2">
+                                        <Icons.Download className="w-5 h-5 text-amber-500" />
+                                        <span>Descargar Reporte Final</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    <label className="block text-xs font-black uppercase text-slate-400 mb-2">Tipo de Información</label>
+                                    <select className="w-full border rounded-lg p-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-amber-500" value={exportConfig.type} onChange={e => setExportConfig({ ...exportConfig, type: e.target.value })}>
+                                        <option value="dashboard">Visual: Dashboard Ejecutivo</option>
+                                        <option value="detailed">Datos: Reporte Detallado Completo</option>
+                                        <option value="location">Datos: Inventario por Ubicación</option>
+                                        <option value="highest">Datos: Valores Más Altos (Equipos)</option>
+                                    </select>
+                                </div>
+                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    <label className="block text-xs font-black uppercase text-slate-400 mb-2">Filtrar por Área</label>
+                                    <select className="w-full border rounded-lg p-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-amber-500" value={exportConfig.area} onChange={e => setExportConfig({ ...exportConfig, area: e.target.value })}>
+                                        <option value="all">Todas las Áreas (Consolidado)</option>
+                                        <option value="Unidad de Apoyo">Unidad de Apoyo a la Administración General</option>
+                                        <option value="Gubernatura">Gubernatura</option>
+                                        <option value="Vocería">Vocería de la Gubernatura</option>
+                                    </select>
+                                </div>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setExportModal(false)} className="flex-grow py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all">Cancelar</button>
+                                    <button onClick={() => handleExportPDF(true)} className="flex-grow bg-amber-500 text-slate-900 py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-amber-500/20 hover:bg-amber-400 flex items-center justify-center gap-2">
+                                        <Icons.FileDown className="w-4 h-4" />
+                                        <span>Ver Vista Previa</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </Modal>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+
+</html>

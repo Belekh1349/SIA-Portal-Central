@@ -492,10 +492,6 @@
             width: 6px;
         }
 
-        #viewingUserName {
-            color: var(--text-main) !important;
-        }
-
         aside::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
@@ -2154,12 +2150,20 @@
         };
 
         // Inicializar Firebase si no se ha hecho
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.firestore();
+            db.settings({
+                experimentalForceLongPolling: true
+            });
+            window.db = db; // Global for debug
+            var activitiesCol = db.collection('actividades_diarias');
+            var usersCol = db.collection('usuarios_sia');
+        } catch (e) {
+            console.error("Critical Firestore Init Error:", e);
         }
-        const db = firebase.firestore();
-        const activitiesCol = db.collection('actividades_diarias');
-        const usersCol = db.collection('usuarios_sia');
 
         // Data & State
         let currentYear = new Date().getFullYear();
@@ -2322,9 +2326,9 @@
                     alert("Contraseña incorrecta.");
                 }
             } catch (error) {
-                console.error(error);
+                console.error("Error FATAL de autenticación:", error);
                 showLoading(false);
-                alert("Error de conexión.");
+                alert("Error de conexión: " + (error.message || "Desconocido") + "\n\nIntenta recargar la página (Ctrl+F5).");
             }
         }
 

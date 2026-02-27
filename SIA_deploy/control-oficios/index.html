@@ -773,6 +773,7 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+        db.settings({ experimentalForceLongPolling: true });
         const storage = firebase.storage();
         const oficiosCol = db.collection('control_oficios');
 

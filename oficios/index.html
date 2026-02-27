@@ -567,6 +567,32 @@
                 background: white;
             }
         }
+
+        .shake {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(5px);
+            }
+
+            50% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
     </style>
 </head>
 
@@ -963,7 +989,67 @@
         const searchInput = document.getElementById('search-input');
         const filterFrom = document.getElementById('filter-from');
         const filterTo = document.getElementById('filter-to');
+
+        function showPasswordScreen() {
+            const overlay = document.createElement('div');
+            overlay.id = 'auth-overlay';
+            overlay.style.cssText = 'position:fixed; inset:0; z-index:99999; background:#0f172a; display:flex; align-items:center; justify-content:center; font-family:"Inter", sans-serif;';
+
+            overlay.innerHTML = `
+                <div id="auth-card" style="background:#1e293b; padding:40px; border-radius:24px; width:100%; max-width:400px; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); margin: 20px;">
+                    <div style="width:80px; height:80px; background:rgba(37,99,235,0.1); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 24px; color:#3b82f6;">
+                        <i data-lucide="lock" style="width:40px; height:40px;"></i>
+                    </div>
+                    <h2 style="color:white; font-size:24px; font-weight:700; margin-bottom:8px; font-family:\'Outfit\', sans-serif;">Acceso Restringido</h2>
+                    <p style="color:#94a3b8; font-size:14px; margin-bottom:32px;">Ingrese la clave de seguridad para entrar al sistema.</p>
+                    <div style="margin-bottom:24px;">
+                        <input type="password" id="pass-input" placeholder="••••••••••••" style="width:100%; padding:16px; background:#0f172a; border:2px solid #334155; border-radius:12px; color:white; text-align:center; font-size:18px; outline:none; transition:all 0.3s; font-family:monospace;">
+                    </div>
+                    <button id="verify-btn" style="width:100%; padding:16px; background:#2563eb; color:white; border:none; border-radius:12px; font-weight:700; font-size:16px; cursor:pointer; transition:all 0.3s; box-shadow:0 10px 15px -3px rgba(37,99,235,0.3);">VERIFICAR ACCESO</button>
+                    <div style="margin-top:24px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.1);">
+                        <a href="../index.html" style="color:#64748b; text-decoration:none; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; transition:color 0.3s;">
+                            <i data-lucide="arrow-left" style="width:16px; height:16px;"></i> Volver al Portal
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+            lucide.createIcons();
+
+            const input = document.getElementById('pass-input');
+            const btn = document.getElementById('verify-btn');
+            const card = document.getElementById('auth-card');
+
+            input.focus();
+
+            const verify = () => {
+                if (input.value === 'Patrimonio_00') {
+                    sessionStorage.setItem('oficios_auth', 'true');
+                    overlay.style.opacity = '0';
+                    overlay.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(() => {
+                        overlay.remove();
+                        init();
+                    }, 500);
+                } else {
+                    card.classList.add('shake');
+                    input.style.borderColor = '#ef4444';
+                    setTimeout(() => {
+                        card.classList.remove('shake');
+                        input.style.borderColor = '#334155';
+                    }, 500);
+                }
+            };
+
+            btn.onclick = verify;
+            input.onkeypress = (e) => { if (e.key === 'Enter') verify(); };
+        }
         function init() {
+            if (sessionStorage.getItem('oficios_auth') !== 'true') {
+                showPasswordScreen();
+                return;
+            }
             lucide.createIcons();
 
             // Verificar soporte de localStorage

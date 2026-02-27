@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>POBALINES - Sistema de Consulta Premium</title>
+
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+    <!-- Babel para compilar JSX en el navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- jsPDF & AutoTable para exportar a PDF con tablas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sidebar: #0f172a;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --accent: #f59e0b;
+            --overlay: rgba(15, 23, 42, 0.6);
+        }
+
+        [data-theme='dark'] {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-sidebar: #020617;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --accent: #fbbf24;
+            --overlay: rgba(0, 0, 0, 0.8);
+        }
+
+        [data-theme='sepia'] {
+            --bg-main: #f4ecd8;
+            --bg-card: #fdf6e3;
+            --bg-sidebar: #433422;
+            --text-main: #5b4636;
+            --text-muted: #8c7862;
+            --border-color: #e3d5b8;
+            --accent: #d97706;
+            --overlay: rgba(67, 52, 34, 0.6);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            /* iOS Safe Areas */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Dinamic Theme Overrides */
+        [data-theme='dark'] .bg-white,
+        [data-theme='sepia'] .bg-white {
+            background-color: var(--bg-card) !important;
+        }
+
+        [data-theme='dark'] .bg-slate-50,
+        [data-theme='sepia'] .bg-slate-50 {
+            background-color: var(--bg-main) !important;
+        }
+
+        [data-theme='dark'] .bg-slate-100,
+        [data-theme='sepia'] .bg-slate-100 {
+            background-color: var(--bg-main) !important;
+            opacity: 0.8;
+        }
+
+        [data-theme='dark'] .text-slate-900,
+        [data-theme='sepia'] .text-slate-900,
+        [data-theme='dark'] .text-slate-800,
+        [data-theme='sepia'] .text-slate-800,
+        [data-theme='dark'] .text-slate-700,
+        [data-theme='sepia'] .text-slate-700 {
+            color: var(--text-main) !important;
+        }
+
+        [data-theme='dark'] .text-slate-600,
+        [data-theme='sepia'] .text-slate-600,
+        [data-theme='dark'] .text-slate-500,
+        [data-theme='sepia'] .text-slate-500,
+        [data-theme='dark'] .text-slate-400,
+        [data-theme='sepia'] .text-slate-400 {
+            color: var(--text-muted) !important;
+        }
+
+        [data-theme='dark'] .border-slate-200,
+        [data-theme='sepia'] .border-slate-200,
+        [data-theme='dark'] .border-slate-100,
+        [data-theme='sepia'] .border-slate-100 {
+            border-color: var(--border-color) !important;
+        }
+
+        [data-theme='dark'] .bg-slate-900 {
+            background-color: var(--bg-sidebar) !important;
+        }
+
+        [data-theme='sepia'] .bg-slate-900 {
+            background-color: var(--bg-sidebar) !important;
+        }
+
+        .custom-scrollbar {
+            scrollbar-width: auto;
+            scrollbar-color: #d97706 rgba(0, 0, 0, 0.1);
+        }
+
+        /* Universal Scrollbar Styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d97706;
+            /* Amber-600 */
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #f59e0b;
+            /* Amber-500 */
+        }
+
+        /* Sidebar Specific (Dark Background) */
+        .sidebar-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            /* Very subtle track */
+            border-radius: 10px;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.5);
+            /* Clearer Amber */
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+
+        .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 1);
+            /* Solid Amber on hover */
+        }
+
+        /* Indicate scrollability with a subtle shadow at the bottom of the sidebar if possible */
+        .sidebar-container {
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content Specific (Light Background) */
+        .main-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .main-scrollbar::-webkit-scrollbar-thumb {
+            border: 2px solid #f8fafc;
+            background: #d97706;
+        }
+
+        /* Keep scrollbar visible and functional */
+        .custom-scrollbar {
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilos para impresión */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            /* Asegurar que el modal se imprima completo */
+            #root>div {
+                display: block !important;
+                position: relative !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            .fixed.inset-0 {
+                position: relative !important;
+                display: block !important;
+                background: white !important;
+                padding: 0 !important;
+            }
+
+            .max-h-\[90vh\],
+            .max-h-\[80vh\] {
+                max-height: none !important;
+            }
+
+            .overflow-y-auto {
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            .flex-1 {
+                flex: none !important;
+            }
+
+            .shadow-2xl,
+            .shadow-xl,
+            .shadow-lg,
+            .shadow-sm {
+                box-shadow: none !important;
+            }
+
+            .rounded-2xl,
+            .rounded-xl,
+            .rounded-lg {
+                border-radius: 0 !important;
+            }
+
+            /* Ocultar elementos que no deben imprimirse */
+            button,
+            .bg-slate-50.border-t.border-slate-100,
+            .sidebar-container,
+            .main-layout-container {
+                display: none !important;
+            }
+
+            /* Asegurar que el asistente de IA no se imprima para ahorrar papel y enfoque */
+            .bg-gradient-to-br.from-indigo-50.to-purple-50 {
+                display: none !important;
+            }
+
+            .prose {
+                max-width: none !important;
+            }
+
+            body {
+                background-color: white !important;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- ICONOS NATIVOS (SVG WRAPPERS) ---
+        const IconWrapper = ({ children, size = 24, className = "", ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                {children}
+            </svg>
+        );
+
+        const Search = (props) => <IconWrapper {...props}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></IconWrapper>;
+        const Book = (props) => <IconWrapper {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></IconWrapper>;
+        const FileText = (props) => <IconWrapper {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></IconWrapper>;
+        const Download = (props) => <IconWrapper {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></IconWrapper>;
+        const Bookmark = (props) => <IconWrapper {...props}><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></IconWrapper>;
+        const ChevronRight = (props) => <IconWrapper {...props}><path d="m9 18 6-6-6-6" /></IconWrapper>;
+        const Menu = (props) => <IconWrapper {...props}><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="18" x2="20" y2="18" /></IconWrapper>;
+        const X = (props) => <IconWrapper {...props}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></IconWrapper>;
+        const Filter = (props) => <IconWrapper {...props}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></IconWrapper>;
+        const Info = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></IconWrapper>;
+        const Printer = (props) => <IconWrapper {...props}><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect width="12" height="8" x="6" y="14" /></IconWrapper>;
+        const Sparkles = (props) => <IconWrapper {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z" /><path d="M5 3v4" /><path d="M9 3v4" /><path d="M3 7h4" /></IconWrapper>;
+        const MessageSquare = (props) => <IconWrapper {...props}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></IconWrapper>;
+        const Send = (props) => <IconWrapper {...props}><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></IconWrapper>;
+        const Loader2 = (props) => <IconWrapper {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56" /></IconWrapper>;
+        const RotateCcw = (props) => <IconWrapper {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12" /><path d="M3 3v9h9" /></IconWrapper>;
+        const Key = (props) => <IconWrapper {...props}><circle cx="7.5" cy="15.5" r="5.5" /><path d="m21 2-9.6 9.6" /><path d="m15.5 7.5 3 3L22 7l-3-3" /></IconWrapper>;
+        const Sun = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></IconWrapper>;
+        const Moon = (props) => <IconWrapper {...props}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></IconWrapper>;
+        const Coffee = (props) => <IconWrapper {...props}><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h12Z" /><path d="M17 12h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2" /></IconWrapper>;
+        const Settings = (props) => <IconWrapper {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></IconWrapper>;
+        const Eye = (props) => <IconWrapper {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></IconWrapper>;
+        const EyeOff = (props) => <IconWrapper {...props}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" /><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" /><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12c0 0 3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" /><line x1="2" y1="2" x2="22" y2="22" /></IconWrapper>;
+        const CheckCircle = (props) => <IconWrapper {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></IconWrapper>;
+        const Trash = (props) => <IconWrapper {...props}><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></IconWrapper>;
+        const Languages = (props) => <IconWrapper {...props}><path d="m5 8 6 6" /><path d="m4 14 6-6 2-3" /><path d="M2 5h12" /><path d="M7 2h1" /><path d="m22 22-5-10-5 10" /><path d="M14 18h6" /></IconWrapper>;
+        const LogOut = (props) => <IconWrapper {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></IconWrapper>;
+
+
+        // --- BASE DE DATOS COMPLETA DE POBALINES ---
+        const POBALINES_DB = [
+            { id: "POBALIN-001", category: "Control Patrimonial", title: "Registro en Sistema Automatizado", content: "Los bienes muebles que forman parte del patrimonio mobiliario del Poder Ejecutivo Estatal, deberán registrarse exclusivamente en el Sistema Automatizado que determine la Dirección General, para el control y administración del patrimonio mobiliario, generando en éste los movimientos de inventarios respectivos y observando para tal efecto las políticas de registro emitidas por la Contaduría General Gubernamental y la Secretaría de Finanzas." },
+            { id: "POBALIN-002", category: "Control Patrimonial", title: "Dictamen para Adquisición", content: "Previo a la adquisición de bienes muebles que formarán parte del patrimonio mobiliario del Poder Ejecutivo, se deberá contar con el dictamen favorable de la Dirección General.\n\nToda solicitud de dictamen deberá ser acompañada invariablemente de:\n\na) Formato que determine la Dirección General para la justificación de uso y destino por cada tipo de bien mueble, sin tachaduras ni enmendaduras, debidamente requisitado y validado por el Coordinador Administrativo o su equivalente de la dependencia, organismo auxiliar o tribunal administrativo;\n\nb) La cotización vigente de los bienes objeto del dictamen tratándose de artículos nuevos. En el caso de bienes usados, se requerirá el avalúo respectivo y la cotización vigente de un bien nuevo con características similares. Se entenderá por cotización vigente aquella que sea emitida dentro de un plazo máximo a cuarenta y cinco días naturales de antelación a la fecha de la recepción de la solicitud del dictamen;\n\nc) Copia certificada por el Coordinador Administrativo del oficio de autorización presupuestal (anual y/o cuatrimestral);\n\nd) Para el caso de ampliación de servicios, copia de la estructura orgánica autorizada y asignación de plazas de nueva creación;\n\ne) Tratándose de adquisición de vehículos además, deberá cumplir con los requisitos que al efecto emita la Dirección General a través del Sistema Automatizado que determine la misma.\n\nNo se requerirá la baja respectiva, tratándose de Unidades Administrativas de nueva creación.\n\nPara la adquisición de bienes adicionales al amparo de un contrato vigente, no será necesario nuevo dictamen de la Dirección General.\n\nNo se requerirá dictamen de la Dirección General, tratándose de adquisiciones para el cumplimiento de programas institucionales o de obligaciones de carácter laboral que emanen de convenios, de bienes no inventariables cuyo valor se determine en los criterios de la Contaduría General Gubernamental, así como del equipo de seguridad; de telecomunicación y radiotransmisión; de cómputo, software y servicios relacionados con éste; impresiones y encuadernaciones de publicaciones oficiales; y bienes que contengan información geográfica, estadística y catastral; así como bienes y equipo en materia de salud." },
+            { id: "POBALIN-003", category: "Control Patrimonial", title: "Asignación de Bienes", content: "Los bienes muebles de reciente adquisición que forman parte del patrimonio del Poder Ejecutivo Estatal serán asignados a la unidad administrativa de la dependencia para la cual se justificó su uso y destino, sin que puedan reasignarse durante el primer año de su adquisición.\n\nLa asignación de los bienes se formalizará por las áreas de administración mediante el formato de resguardo a cargo de los servidores públicos usuarios, quienes los destinarán únicamente a las funciones propias de la unidad administrativa respectiva, y serán los responsables directos del uso, así como de solicitar al área de administración el mantenimiento que requieran.\n\nLa Dirección General sólo autorizará la reasignación de bienes muebles entre dependencias cuando sea justificada, la cual se realizará a través del Sistema que para tal efecto determine la misma, para la administración y control del patrimonio mobiliario." },
+            { id: "POBALIN-004", category: "Control Patrimonial", title: "Responsabilidades de Áreas Administrativas", content: "Las áreas de administración de las unidades administrativas de las dependencias, organismos auxiliares y tribunales administrativos deberán:\n\na) Custodiar y actualizar los resguardos de bienes muebles que tengan asignados;\n\nb) Registrar los movimientos de alta, baja o cambio de asignación en los inventarios, observando las políticas de registro de bienes muebles emitidas por la Contaduría General Gubernamental;\n\nc) Identificar y actualizar los inventarios de los bienes muebles que tengan asignados, a más tardar el día hábil siguiente al que se presente un movimiento de alta, baja o resignación de los mismos;\n\nd) Llevar un registro y control de los bienes muebles que por su origen no se cuente con factura original o documento que acredite su propiedad y se encuentren en posesión de las unidades administrativas;\n\ne) Vigilar el estado de conservación, así como el mantenimiento preventivo y correctivo de los bienes asignados a la unidad administrativa;\n\nf) Efectuar verificaciones físicas periódicas del inventario, cotejando la existencia física de los bienes contra los bienes registrados en el sistema informático que determine la Dirección General para la administración y control del patrimonio mobiliario;\n\ng) Informar por escrito a la Dirección General, sobre el resultado de las verificaciones físicas a los bienes muebles asignados a sus unidades, dentro de los primeros cinco días hábiles de los meses de junio y diciembre;\n\nh) Autorizar por escrito a las unidades administrativas usuarias la salida de los bienes muebles que requieran mantenimiento preventivo o correctivo o cualquier otro servicio, debiendo constatar que dichos bienes sean devueltos en un término no mayor de quince días hábiles a partir de su salida; salvo aquellos casos que se encuentren debida y documentalmente justificados, contando con la autorización del Coordinador Administrativo o su equivalente;\n\ni) Autorizar por escrito la entrada y salida de bienes muebles de propiedad particular dentro de las unidades administrativas llevando a cabo su registro, previa solicitud de los interesados.\n\nLas áreas de administración de las dependencias, organismos auxiliares y tribunales administrativos deberán registrar única y exclusivamente los bienes de conformidad con lo que al respecto establezcan la Contaduría General Gubernamental y la Secretaría de Finanzas." },
+            { id: "POBALIN-005", category: "Control Patrimonial", title: "Verificación Física", content: "Los titulares de las áreas de administración verificarán dentro de los meses de abril, julio, octubre y enero de cada año los bienes muebles de las dependencias, organismos auxiliares y tribunales administrativos, bajo su competencia, dejando constancia documental de ello en el expediente destinado para tal efecto, para acreditar:\n\na) Las condiciones físicas, de uso y resguardo;\n\nb) Que cuenten con número único de identificación, registrado en el inventario.\n\nCuando con motivo de la verificación física de los bienes muebles que realicen los titulares de las áreas de administración de las dependencias, organismos auxiliares y tribunales administrativos se presenten irregularidades con respecto al inventario de los mismos, se elaborará acta circunstanciada con la participación del órgano de control interno de la unidad administrativa respectiva, para que en el ámbito de su competencia ejerza las acciones conducentes para asegurar la salvaguarda del patrimonio mobiliario estatal. De igual forma, se procederá cuando se presenten irregularidades en las verificaciones físicas que realice la Dirección General.\n\nComo resultado de la verificación física, el área administrativa de las dependencias, organismos auxiliares y tribunales administrativos determinará los bienes que por su estado sean susceptibles económicamente de rehabilitarse." },
+            { id: "POBALIN-006", category: "Control Patrimonial", title: "Obras de Arte", content: "Los bienes muebles considerados obras de arte deberán ser conservados de acuerdo con su naturaleza y características. En caso de requerirse su rehabilitación, deberán observarse las técnicas adecuadas, las disposiciones jurídicas en la materia y no podrán ser alterados.\n\nLas áreas de administración de las dependencias, organismos auxiliares y tribunales administrativos que tengan bajo su resguardo estos bienes, deberán solicitar la verificación de sus condiciones al Instituto Estatal correspondiente, durante el primer trimestre de cada año." },
+            { id: "POBALIN-007", category: "Inventario", title: "Valor de Registro", content: "Para efecto del registro y control de los bienes muebles del patrimonio del Poder Ejecutivo Estatal, los titulares de las áreas de administración deberán referir como valor de los mismos el consignado en la factura incluyendo el Impuesto al Valor Agregado; a falta de ésta, el valor estimado por perito o el que determine el responsable del área de administración, considerando bienes de similares características registrados en el inventario. Este valor deberá consignarse invariablemente en el registro de alta.\n\nTratándose de bienes muebles adquiridos en paquete, la factura deberá consignar el valor unitario de los mismos; en caso contrario, las áreas de administración deberán obtener por escrito del proveedor, su valor unitario al momento de la compra, o en su defecto, el valor estimado por perito, o el que determine el responsable del área de administración, considerando bienes de similares características registrados en el inventario." },
+            { id: "POBALIN-008", category: "Inventario", title: "Registro de Cómputo y Vehículos", content: "Para el registro de equipo de cómputo y bienes muebles conformado por diversas partes deberá asignarse a cada uno de sus componentes el número de inventario respectivo en el sistema automatizado que determine la Dirección General, para el control y administración del patrimonio mobiliario, deberá asignarse a cada uno de sus componentes el número de inventario respectivo, tomando en consideración su precio unitario incluyendo el Impuesto al Valor Agregado.\n\nPara el registro de vehículos automotores en el inventario, se deberá establecer el tipo de asignación." },
+            { id: "POBALIN-009", category: "Inventario", title: "Inventario Global y Modificaciones", content: "La Dirección General integrará el inventario global de bienes muebles del Poder Ejecutivo Estatal, de acuerdo con los registros procesados por las dependencias, organismos auxiliares y tribunales administrativos, en los inventarios de bienes muebles y de los resultados de las verificaciones físicas que se realicen.\n\nPrevio a cualquier modificación de las características originales del bien, las áreas de administración deberán solicitar autorización a la Dirección General, resguardando en el expediente del bien copia simple de la factura debidamente cotejada con el original por la Unidad Administrativa responsable del resguardo y custodia de la documentación original del bien remplazado, así como de autorización emitida por dicha Dirección General." },
+            { id: "POBALIN-010", category: "Inventario", title: "Identificación de Bienes", content: "Previo a cualquier modificación de las caracteristicas oficiales del bien, las Áreas de Administración deberán solicitar autorización por escrito a la Dirección general, resguardando en el expediente del bien copia simple de la factura debidamente cotejada con su original, por la Unidad Administrativa responsable del resguardo y custodia de la documentación original del bien remplazado, así como la autorización emitida por dicha Dirección General." },
+            { id: "POBALIN-011", category: "Inventario", title: "Transferencia de Bienes", content: "El movimiento de transferencia sólo podrá realizarse entre unidades administrativas de la misma dependencia, organismo auxiliar o tribunal administrativo y deberá procesarse a más tardar el día hábil siguiente al que se presente el movimiento en el sistema respectivo.\n\nUna vez asignado el bien, el resguardo respectivo deberá ser firmado por el servidor público usuario, quien será el responsable de los bienes asignados.\n\nEl área de administración será la responsable de registrar inmediatamente la sustitución del usuario, dejando registro histórico de los usuarios a quienes se les ha asignado el bien, en el Sistema Automatizado que determine la Dirección General para el control y administración del patrimonio.\n\nTratándose de la adquisición de bienes muebles, las dependencias, organismos auxiliares o tribunal administrativo, deberán integrar en el expediente de alta: copia de la factura certificada por la unidad administrativa responsable y, en su caso, copia simple del dictamen favorable para la adquisición.\n\nTranscurrido un año de la adquisición de los bienes, su transferencia al interior de la unidad administrativa será determinada por el área de administración, atendiendo a sus necesidades." },
+            { id: "POBALIN-012", category: "Bajas", title: "Baja de Bienes Muebles", content: "Las áreas de administración de las dependencias y tribunales administrativos solicitarán a la Dirección General la baja de bienes muebles obsoletos, en desuso y/o inservibles, debiendo anexar los formatos respectivos y el soporte documental.\n\nLos bienes deberán concentrarse en su forma original, salvo el deterioro causado por el uso normal, en el lugar que determine la Dirección General; en caso contrario, la baja será autorizada cuando se remita copia del acuse de recibo del oficio por el que se da vista de esta situación a su Contraloría Interna.\n\nLas bajas de bienes muebles por siniestro, extravío o robo; además, deberán acompañarse, en su caso de:\n\nI. Acta administrativa circunstanciada con la participación de su Contraloría Interna;\n\nII. Copia del acta de averiguación previa, cuando con motivo del siniestro o robo, se dé vista al Ministerio Público.\n\nEl acta a que hace referencia la fracción I deberá levantarse en un plazo no mayor a diez días hábiles y la señalada en la fracción II, dentro de los cinco días hábiles en ambos casos contados a partir de ocurrido el suceso, siendo obligatorias para realizar la baja de vehículos.\n\nLas áreas de administración deberán tramitar la baja de los números de inventario correspondientes a los bienes que cuenten con más de uno o los que fueron capturados erróneamente, remitiendo a la Dirección General, el formato de baja respectivo y acta administrativa en la que se haga constar esta situación, con la participación de su Contraloría Interna.\n\nTratándose de vehículos, también deberá entregarse la documentación indicada en el formato \"solicitud de baja de vehículo\" o \"solicitud de baja directa de vehículo\", las llaves correspondientes y los vehículos sin logotipos de identificación oficial.\n\nPara la baja de los bienes muebles en desuso que por su origen no fueron registrados en el inventario del sistema integral de control patrimonial y que se encuentran en posesión de las unidades administrativas, se requerirá:\n\na) Copia certificada del acta administrativa, suscrita por el titular del área de administración y un representante de su Contraloría Interna;\n\nb) Relación de los bienes a darse de baja.\n\nPara la baja y destrucción de los documentos en desuso, los titulares de las áreas de administración, deberán entregar el dictamen de la Comisión Dictaminadora de Depuración de Documentos.\n\nTratándose de organismos auxiliares se deberá obtener la autorización de baja de bienes muebles de su respectiva área de administración y aplicarán, en lo conducente, lo dispuesto por esta norma." },
+            { id: "POBALIN-013", category: "Bajas", title: "Baja de Vehículos", content: "La baja de vehículos en desuso, irrecuperables por incosteabilidad, sólo procederá una vez satisfechos los requisitos señalados en el numeral anterior y en su caso, determinada la responsabilidad administrativa a que haya lugar por parte de su Contraloría Interna.\n\nLa falta de documentos para comprobar la propiedad del vehículo no imposibilitará la baja del mismo, para tal efecto la dependencia usuaria deberá presentar copia certificada del acta administrativa, suscrita por el titular del área de administración, con la participación de su Contraloría Interna, en la cual se manifieste la documentación faltante.\n\nPara el caso de baja de vehículos que fueron objeto de sustitución de motor, la carencia de la factura que acredite la propiedad al momento el trámite de baja, se suplirá con el número del documento mediante el cual se está dando cumplimiento al numeral 10, además de acreditar que en los recibos de pago de tenencias o tarjeta de circulación, se consigna el número del motor que se entrega con el vehículo en baja.\n\nAsimismo, para la baja de vehículos, se deberá presentar el original del resguardo respectivo, debidamente cancelado." },
+            { id: "POBALIN-014", category: "Bajas", title: "Bienes del Extranjero", content: "Los bienes muebles que se adquieran en el extranjero por las dependencias, organismos auxiliares y tribunales administrativos, deberán contar con la documentación que acredite su legal introducción en el país y propiedad, debiendo remitir a la Dirección General, copia de la misma y del resguardo respectivo.\n\nLas áreas de administración deberán registrar en el Sistema automatizado correspondiente, los bienes muebles manufacturados internamente para el uso de las dependencias u organismos auxiliares, cuyo valor se estimará sumando los importes de las facturas de los materiales utilizados, incluyendo el impuesto al Valor Agregado." },
+            { id: "POBALIN-015", category: "Vehículos", title: "Definición de Vehículos", content: "Se consideran como vehículos automotores los siguientes:\n• Automóviles\n• Camionetas de carga o de pasajeros\n• Estaciones de carga o de pasajeros\n• Motocicletas\n• Maquinaria que se desplace mediante mecanismos de motor y tracción" },
+            {
+                id: "POBALIN-016",
+                category: "Vehículos",
+                title: "Asignación de Vehículos Directos",
+                content: "La asignación de vehículos para uso directo de los servidores públicos adscritos a las dependencias, organismos auxiliares y tribunales administrativos, siempre y cuando exista disponibilidad, comprenderá los niveles que a continuación se indican:\n\n*Nota: Los valores corresponden al número de salarios mínimos vigentes en la capital del Estado.\n\nEl titular de la unidad administrativa determinará la asignación de vehículos para uso directo, de modelo anterior al año en curso.",
+                tableData: {
+                    headers: ["Nivel", "Valor del Vehículo (SM)", "Cantidad"],
+                    rows: [
+                        ["Coordinador General", "Hasta 3,000", "1"],
+                        ["Subsecretario, Delegado Regional y Subprocurador", "Hasta 7,000", "1"],
+                        ["Director General o equivalente", "Hasta 5,000", "1"],
+                        ["Director de Área o equivalente", "Hasta 4,000", "1"],
+                        ["Secretario Particular de Subsecretario...", "Hasta 3,500", "1"]
+                    ]
+                }
+            },
+            {
+                id: "POBALIN-017",
+                category: "Vehículos",
+                title: "Vehículos de Uso Operativo",
+                content: "Los vehículos de uso operativo son aquellos que las dependencias, organismos auxiliares y tribunales administrativos, destinan permanentemente para sus actividades administrativas, conforme a la siguiente clasificación:\n\nLos vehículos de uso operativo serán los conocidos como de equipamiento básico (austeros).",
+                tableData: {
+                    headers: ["Tipo de Vehículo", "Actividades"],
+                    rows: [
+                        ["Motocicletas", "Valija y correspondencia, Seguridad"],
+                        ["Sedán o equivalente", "Valija y correspondencia, Supervisión, Visitas, Recorridos"],
+                        ["Camioneta Pick-up o Panel", "Transporte de pasajeros y carga, Supervisión"],
+                        ["Van o equivalente", "Transporte de pasajeros"],
+                        ["Minibús", "Transporte de pasajeros"],
+                        ["Autobús", "Transporte de pasajeros"],
+                        ["Camioneta de tres y cinco toneladas", "Transporte de carga"],
+                        ["Camión de redilas y de volteo", "Transporte de carga"],
+                        ["Maquinaria", "Agrícolas, Construcción"]
+                    ]
+                }
+            },
+            { id: "POBALIN-018", category: "Vehículos", title: "Revisión Previa", content: "El usuario de los vehículos previo a utilizarlos deberá revisar las condiciones en que se encuentran y en caso de detectar algún desperfecto, deberá notificarlo de inmediato al titular del área de administración correspondiente, para que de inmediato proceda a su reparación.\n\nEn caso de que el vehículo presente desperfectos o sufra algún siniestro a causa de la omisión de las previsiones anteriores, los responsables se harán acreedores a las sanciones a que haya lugar." },
+            { id: "POBALIN-019", category: "Vehículos", title: "Mantenimiento y Resguardo", content: "Tratándose de vehículos de uso directo y operativo, los titulares de las áreas de administración serán responsables de que se realicen oportunamente los servicios de mantenimiento preventivo y correctivo.\n\nLos titulares de las áreas de administración y los usuarios de vehículos de uso operativo serán responsables de que permanezcan en los estacionamientos destinados para tal efecto, durante las horas y días inhábiles, salvo que por la naturaleza de las funciones o actividades a que estén destinados, sea necesaria su utilización en esos días y horas, debiendo las áreas de administración justificar por escrito tal excepción." },
+            { id: "POBALIN-020", category: "Vehículos", title: "Identificación Oficial", content: "Los vehículos de uso operativo deberán exhibir en las portezuelas delanteras o en lugar visible, la identificación oficial. Aquellos que por la naturaleza de las funciones de la unidad administrativa no deban contar con esta identificación, tendrán que obtener la autorización de la Dirección General.\n\nLas áreas de administración verificarán que los usuarios de vehículos de uso directo y operativo cuenten con licencia de conducir vigente, según corresponda." },
+            { id: "POBALIN-021", category: "Vehículos", title: "Expediente Vehicular", content: "Las áreas de administración serán las responsables de integrar y actualizar dentro de los diez días hábiles siguientes a que se presente algún movimiento de alta, baja, reasignación, reparación o cambio de resguardatario, los expedientes de los vehículos de uso directo y operativo, verificando en los meses de febrero y octubre de cada año que se encuentren al corriente. De dichas verificaciones se deberá levantar el acta correspondiente.\n\nEl expediente de cada unidad vehicular se integrará con la siguiente documentación como mínimo:\n\na) Original o, en su caso, copia certificada de la factura original expedida por la Contaduría General Gubernamental. A falta de ésta, copia certificada de la declaración emitida por autoridad jurisdiccional competente, que determine la propiedad del Gobierno del Estado;\n\nb) Copia de la tarjeta de circulación;\n\nc) Copia de la revista vehicular, en su caso;\n\nd) Certificados de verificación vehicular;\n\ne) Recibos originales de pago de los últimos cinco años del Impuesto Sobre Tenencia o Uso de Vehículos, o en su caso, el refrendo correspondiente;\n\nf) Copia de la póliza de seguro;\n\ng) Órdenes de reparación y copia de las facturas o notas correspondientes, expedidas por la unidad administrativa responsable del resguardo y custodia de la documentación original; y\n\nh) Los demás documentos, en términos de las disposiciones legales, reglamentarias o administrativas." },
+            { id: "POBALIN-022", category: "Vehículos", title: "Accesorios", content: "Los accesorios adicionales u opcionales que los usuarios instalen a los vehículos oficiales no formarán parte del patrimonio Estatal, no obstante para su instalación o retiro, deberán obtener la autorización de los titulares de las áreas de administración.\n\nLos accesorios adicionales u opcionales que se instalen a los vehículos oficiales por cuenta del área de administración, formarán parte del patrimonio estatal y deberán registrarse en el inventario correspondiente." },
+            { id: "POBALIN-023", category: "Semovientes", title: "Registro de Semovientes", content: "Para el registro y control de los semovientes se aplicarán, en lo conducente, las normas relativas a los bienes muebles.\n\nLa adquisición de estos bienes queda exceptuada de dictamen por parte de la Dirección General.\n\nEl registro de estos bienes en el sistema que para tal efecto determine la Dirección General, para la administración y control del patrimonio mobiliario, deberá actualizarse en los meses de julio y enero del año que corresponda.\n\nEl resguardo correspondiente deberá contener como mínimo:\n\na) Las características físicas;\n\nb) Edad;\n\nc) Estado de salud;\n\nd) Lugar donde se ubica físicamente;\n\ne) La descendencia, que deberá darse de alta en el inventario, transcurridos cuarenta días de su nacimiento; y\n\nf) El valor, que será el que se señale en los documentos de su compra.\n\nEn caso de que se adquieran por otros medios, su valor será determinado por perito que cuente con los conocimientos para ello, o por la Comisión Estatal de Parques Naturales y de la Fauna." },
+            { id: "POBALIN-024", category: "Semovientes", title: "Adquisición/Enajenación", content: "Los semovientes podrán ser adquiridos o enajenados, en términos de las disposiciones jurídicas aplicables." },
+            { id: "POBALIN-025", category: "Semovientes", title: "Baja de Semovientes", content: "Tratándose de la baja de semovientes por muerte natural o sacrificio y una vez emitido el certificado de necropsia, el titular de la unidad administrativa que lo resguarde, determinará el destino final de los mismos, informando de ello dentro de los tres días hábiles siguientes contados a partir de la fecha de recepción del certificado de necropsia a la Dirección General, remitiendo el formato de baja.\n\nLas áreas de administración de los organismos auxiliares aplicarán en lo conducente el procedimiento referido para llevar a cabo la baja de semovientes." },
+            { id: "POBALIN-026", category: "Destino Final", title: "Disposición Final de Bienes", content: "Tratándose de bienes muebles dados de baja por las dependencias y tribunales administrativos, la Dirección General, podrá asignar los que se encuentren en condiciones de uso y rehabilitará los susceptibles de aprovecharse.\n\nEl Comité de Arrendamientos, Adquisiciones de Inmuebles y Enajenaciones, emitirá el dictamen conducente para determinar el destino final de los bienes que no resulten útiles para su aprovechamiento.\n\nLa destrucción de los bienes muebles se hará constar en acta circunstanciada con la participación de la Dirección General y del órgano de control interno respectivo.\n\nTratándose de organismos auxiliares, aplicarán en lo conducente el procedimiento establecido en la presente norma." },
+            { id: "POBALIN-027", category: "Trámites", title: "Gestión Vehicular", content: "El servicio de trámite de placas, tarjetas de circulación, permisos, refrendos y verificación de emisiones contaminantes de los vehículos oficiales y el pago del impuesto anual sobre tenencia y uso de vehículos, será realizado por las unidades administrativas." },
+            { id: "POBALIN-028", category: "Trámites", title: "Documentación de Circulación", content: "Todo vehículo oficial en operación deberá contar con la documentación que le permita circular.\n\nCorresponde a las unidades administrativas verificar periódicamente la existencia de todos y cada uno de los documentos. En caso de extravío, deterioro y robo de alguno de éstos o de infracciones, el costo será cubierto por cuenta del servidor público usuario." },
+            { id: "POBALIN-029", category: "Inmuebles", title: "Solicitud de Inmuebles", content: "Las dependencias, organismos auxiliares y tribunales administrativos deberán solicitar a la Secretaría de Finanzas la asignación de inmuebles disponibles de propiedad estatal, para destinarlos al cumplimiento de las funciones a su cargo." },
+            {
+                id: "POBALIN-030",
+                category: "Inmuebles",
+                title: "Dimensiones de Oficinas",
+                content: "Las dimensiones máximas de oficina y demás áreas para uso de los servidores públicos operativos de mandos medios y superiores de las dependencias, organismos auxiliares y tribunales administrativos serán las siguientes:\n\n*Nota: Sólo en los casos que se justifique plenamente.\n\nLa Dirección General podrá determinar, en todo caso, si las direcciones de área, subdirecciones y jefaturas de departamento, requieren las superficies establecidas en la presente norma con base en las funciones que desempeñan.",
+                tableData: {
+                    headers: ["Puesto Funcional", "Recepción (m²)", "Privado (m²)", "Baño (m²)", "Sala Juntas (m² / Cap.)", "Total (m²)"],
+                    rows: [
+                        ["Secretario o Procurador General", "20.00", "36.00", "4.00", "19.00 (Cap. 12)", "79.00"],
+                        ["Coordinador General, Subsecretario, Delegado Regional o Subprocurador", "20.00", "29.00", "4.00", "17.00 (Cap. 10)", "70.00"],
+                        ["Director General o equivalente", "20.00", "20.00", "2.00", "17.00 (Cap. 10)", "59.00"],
+                        ["Director de Área", "16.00", "17.00", "2.00", "14.50 (Cap. 8)", "49.50"],
+                        ["Subdirector", "16.00", "14.00", "-", "12.50 (Cap. 6)*", "42.50"],
+                        ["Jefe de Departamento", "12.00", "12.00", "-", "-", "24.00"],
+                        ["Personal Operativo", "6.00", "-", "-", "-", "6.00"]
+                    ]
+                }
+            },
+            { id: "POBALIN-031", category: "Inmuebles", title: "Solicitud de Asignación", content: "Las dependencias, organismos auxiliares y tribunales administrativos solicitarán por escrito la asignación de bienes inmuebles, requisitando el formato que se encuentre disponible en el sistema que para tal efecto determine la Dirección General, para la administración y control del patrimonio mobiliario. La Dirección General emitirá el dictamen técnico sobre la viabilidad y, en tanto es emitido el acuerdo respectivo, se suscribirá el acta de entrega-recepción provisional del inmueble." },
+            { id: "POBALIN-032", category: "Inmuebles", title: "Informe Bimestral", content: "Los titulares de las áreas de administración de las dependencias, organismos auxiliares, tribunales administrativos e instituciones públicas, deberán informar dentro de los dos primeros días hábiles de cada bimestre, la situación que guardan los inmuebles propiedad del Ejecutivo del Estado que ocupen, requisitando el formato que se encuentre disponible en el sistema que para tal efecto determine la Dirección General, para la administración y control del patrimonio mobiliario.\n\nEn el caso de presentarse un sismo o bien algún otro fenómeno natural perturbador, dicha información deberá remitirse a la Dirección General a más tardar al día siguiente de ocurrido el mismo.\n\nLa Dirección General, supervisará el aprovechamiento de los espacios o inmuebles asignados y, en su caso, determinará la reasignación de aquéllos no utilizados o subutilizados." },
+            { id: "POBALIN-033", category: "Inmuebles", title: "Registro Inmobiliario", content: "La Dirección General integrará el registro de bienes inmuebles con la información que remitan las dependencias, organismos auxiliares, tribunales administrativos e instituciones públicas, y hará las revisiones documentales y verificaciones físicas que estime pertinentes de manera conjunta con el área de administración de la unidad administrativa que corresponda.\n\nLos inmuebles cuyos derechos en calidad de propietario o poseedor detente el Gobierno del Estado o los organismos auxiliares, serán dados de alta en el Sistema Integral de Control Patrimonial." },
+            { id: "POBALIN-034", category: "Inmuebles", title: "Adquisición de Inmuebles", content: "La adquisición de inmuebles para las dependencias se realizará, invariablemente, por conducto de la Secretaría de Finanzas, previo dictamen técnico favorable que emita la Dirección General, en términos de las disposiciones de la Ley de Contratación Pública del Estado de México y Municipios y su Reglamento, y de acuerdo con la disponibilidad presupuestal.\n\nCuando las dependencias hayan programado la adquisición de un inmueble para destinarlo al cumplimiento de sus funciones, deberán requisitar el formato de solicitud que se encuentre disponible en el sistema que para tal efecto determine la Dirección General, para la administración y control del patrimonio mobiliario, el cual deberá ser signado por el titular del área de administración, anexando al mismo la documentación respectiva.\n\nDe la misma manera, se procederá cuando los organismos auxiliares y tribunales administrativos pretendan adquirir un inmueble para destinarlo al cumplimiento de sus funciones." },
+            { id: "POBALIN-035", category: "Inmuebles", title: "Requisitos de Adquisición", content: "Previo a la adquisición de un inmueble, las dependencias, organismos auxiliares y tribunales administrativos deberán verificar que no exista impedimento legal o material para ello, debiendo presentar a la Dirección General, al menos, los documentos siguientes:\n\na) Documento que acredite la propiedad del inmueble a favor del oferente;\n\nb) Documento en el que el oferente manifieste expresamente su intención de transmitir la propiedad al Gobierno del Estado de México y el costo pretendido, con fecha de expedición no mayor a dos meses anteriores al día de su presentación;\n\nc) Constancia de régimen de propiedad, vigente;\n\nd) Certificado de libertad de gravámenes, vigente;\n\ne) Recibo actualizado del pago de impuesto predial;\n\nf) En su caso, recibo actualizado del pago de derechos de agua potable, drenaje, alcantarillado, tratamiento y disposición de aguas residuales;\n\ng) En su caso, recibo de pago actualizado de servicios de suministro de energía eléctrica y de teléfono;\n\nh) En su caso, recibo de pago de aportaciones de mejoras, vigente;\n\ni) Planos topográficos del terreno y arquitectónico de las construcciones firmados por peritos en la materia;\n\nj) Planos estructurales de instalaciones comunes y especiales, en caso de que existan;\n\nk) Dictamen vigente de seguridad estructural, emitido por perito en la materia;\n\nl) Dictamen levantado por el Instituto de Información e Investigación Geográfica, Estadística y Catastral del Estado de México; y\n\nm) Los demás que se consideren necesarios para constatar la situación jurídica del inmueble." },
+            { id: "POBALIN-036", category: "Inmuebles", title: "Alta de Inmuebles", content: "Una vez formalizada la adquisición del inmueble e inscrito a nombre del Gobierno del Estado en el Registro Público de Inmuebles, deberá darse de alta en el sistema que para tal efecto determine la Dirección General, para la administración y control de patrimonio inmobiliario." },
+            { id: "POBALIN-037", category: "Inmuebles", title: "Mantenimiento y Remodelación", content: "Con la autorización de la Dirección General, las dependencias, organismos auxiliares y tribunales administrativos podrán llevar a cabo trabajos de mantenimiento, conservación, acondicionamiento y remodelación de las oficinas destinadas al cumplimiento de funciones, siempre que se justifique y se cuente con suficiencia presupuestal.\n\nEste acuerdo tendrá vigencia durante el ejercicio fiscal en que se emita, con arreglo a las disposiciones que al respecto establecen el Libro Décimo Segundo del Código Administrativo del Estado de México.\n\nCuando la obra a ejecutar no exceda de ocho salarios mínimos generales vigentes de la zona económica que corresponda elevados al mes, sin incluir el Impuesto al Valor Agregado (I.V.A.), no será necesario solicitar dictamen, solo se dará conocimiento de los trabajos a realizar. Observándose lo estipulado en el formato como parte de los requisitos y la definición de los rubros de los trabajos." },
+            { id: "POBALIN-038", category: "Inmuebles", title: "Reporte de Adecuaciones", content: "Las adecuaciones a los inmuebles propiedad del Poder Ejecutivo Estatal, deberán reportarse dentro de los cinco días hábiles siguientes al inicio de la obra a la Dirección General, remitiendo la autorización correspondiente de la Secretaría de Agua y Obra Pública.\n\nEn igual plazo, deberán reportar la conclusión de la obra, remitiendo el valor de la adecuación realizada en el inmueble." },
+            { id: "POBALIN-039", category: "Arrendamientos", title: "Centros de Servicios Administrativos", content: "De los inmuebles denominados Centros de Servicios Administrativos, será responsabilidad de las dependencias, organismos auxiliares y tribunales administrativos el uso, conservación y mantenimiento en su estado físico, instalaciones y de imagen institucional, con independencia de las disposiciones que al efecto señalan las Normas para la Administración y Funcionamiento de los Centros de Servicios Administrativos." },
+            { id: "POBALIN-040", category: "Estacionamientos", title: "Servicio de Estacionamientos", content: "El servicio de estacionamientos bajo administración de la Dirección General, según la capacidad disponible, se proporcionará a:\n\na) Vehículos oficiales; y\n\nb) Vehículos propiedad de servidores públicos que justifiquen plenamente requerir el servicio.\n\nDe acuerdo con la ubicación física de sus oficinas, las dependencias u organismos auxiliares por conducto de sus áreas de administración, solicitarán a la Dirección General la autorización e identificación de acceso respectiva.\n\nLas áreas de administración deberán notificar en el plazo de cinco días hábiles a la Dirección General, cualquier situación que modifique la autorización emitida, a efecto de determinar lo conducente.\n\nCorrerá a cargo de los servidores públicos usuarios el pago por concepto de reposición de la identificación, cambio de datos o el daño ocasionado al equipamiento para el funcionamiento de los estacionamientos." },
+            { id: "POBALIN-041", category: "Estacionamientos", title: "Uso Indebido", content: "El uso indebido de los medios de identificación de acceso a los estacionamientos será responsabilidad del titular del área de administración y de los servidores públicos a quienes les fue expedido. En este caso, queda expedita la facultad de la Dirección General para revocar la autorización respectiva, sin perjuicio de las demás responsabilidades que puedan derivarse." },
+            { id: "POBALIN-042", category: "Estacionamientos", title: "Control Interno", content: "Las dependencias, organismos auxiliares y tribunales administrativos que cuenten con área de estacionamiento en sus instalaciones, serán responsables de su adecuada operación y control, a través de las áreas de administración." },
+            { id: "POBALIN-043", category: "Estacionamientos", title: "Reglas de Uso", content: "Los servidores públicos a los que se les haya expedido medios de identificación de acceso, deberán observar las reglas establecidas por la Dirección General para el uso de las instalaciones de los estacionamientos.\n\nCuando el servidor público usuario del medio de identificación de acceso cause baja, deberá de entregar el mismo al área de administración correspondiente." },
+            { id: "POBALIN-044", category: "Seguros", title: "Contratación Consolidada", content: "En la contratación de seguros sujeta a operación consolidada, el titular del área de administración de la dependencia solicitante deberá remitir con sesenta días hábiles de anticipación al vencimiento de la vigencia del seguro de que se trate, junto con la solicitud respectiva, lo siguiente:\n\na) Listado certificado de bienes muebles, inmuebles o servidores públicos susceptibles de aseguramiento;\n\nb) Certificación que acredite la suficiencia presupuestal emitida por el titular del área de administración para tal concepto.\n\nSatisfechos los requisitos, la Dirección General substanciará el procedimiento administrativo conducente." },
+            { id: "POBALIN-045", category: "Seguros", title: "Contratación Anticipada", content: "En la contratación de seguros, el titular del área de administración de la dependencia solicitante deberá remitir con noventa días hábiles de anticipación al vencimiento de la vigencia del seguro de que se trate junto con la solicitud respectiva, lo siguiente:\n\na) Listado certificado de bienes muebles, inmuebles o servidores públicos susceptibles de aseguramiento; y\n\nb) Suficiencia presupuestal especificando la partida presupuestal a afectar; así como, el monto comprometido, emitida por el titular del área de administración para tal concepto.\n\nSatisfechos estos requisitos, la Dirección General substanciará el procedimiento administrativo conducente." },
+            { id: "POBALIN-046", category: "Seguros", title: "Organismos Auxiliares", content: "Los organismos auxiliares y tribunales administrativos contratarán los servicios de aseguramiento que requieran, previo dictamen de procedencia que emita la Dirección General debiendo enviar las especificaciones del seguro a contratar, con cuarenta y cinco días hábiles de anticipación al vencimiento de la vigencia del seguro de que se trate." },
+            { id: "POBALIN-047", category: "Seguros", title: "Vigencia y Altas", content: "Las áreas de administración serán las responsables de vigilar la vigencia de las pólizas de seguro y de realizar oportunamente las acciones necesarias para mantener asegurados los bienes.\n\nPara bienes de nueva adquisición las áreas de administración deberán remitir a la Dirección General lo siguiente, para el caso de:\n\nVehículos:\na) Copia simple de la factura o carta factura; y\nb) Copia simple de la tarjeta de resguardo.\n\nBienes Inmuebles, contenidos y equipo electrónico:\na) Formato de listado de bienes inmuebles y contenidos a asegurar; y\nb) Formato de desglose de equipo electrónico a asegurar.\n\nLos organismos auxiliares y los tribunales administrativos observarán en lo conducente las disposiciones de estas normas, bajo los formatos que cada uno establezca." },
+            { id: "POBALIN-048", category: "Seguros", title: "Bienes Reasignados", content: "Para el aseguramiento de bienes muebles reasignados, será necesario cumplir con los siguientes requisitos:\n\nVehículos:\na) Aviso de alta;\nb) Copia simple de la factura; y\nc) Copia simple de la tarjeta de resguardo actualizado.\n\nMobiliario y equipo electrónico:\na) Aviso de alta;\nb) Formato de listado de bienes inmuebles y contenidos a asegurar; y\nc) Formato de desglose de equipo electrónico a asegurar." },
+            { id: "POBALIN-049", category: "Seguros", title: "Pago de Primas", content: "Para el pago de las primas de seguros, las dependencias del sector central y organismos auxiliares adheridos al contrato vigente, deberán emitir el contra-recibo y/o cheque respectivo dentro de los 15 días naturales contados a partir de la recepción de la factura o recibo correspondiente." },
+            { id: "POBALIN-050", category: "Seguros", title: "Reporte de Siniestros", content: "La unidad administrativa responsable del bien asegurado deberá comunicar de inmediato el siniestro por daño o robo a la institución de seguros, así como a su órgano de control interno.\n\nIgualmente deberá informar a la Dirección General, dentro de un término de diez días hábiles contados a partir del siniestro, remitiendo el acta administrativa circunstanciada que deberá ser suscrita con la participación de su órgano de control interno.\n\nSi con motivo del siniestro se inicia averiguación previa ante el Ministerio Público, deberá remitirse carpeta de investigación con sellos y firmas originales." },
+            { id: "POBALIN-051", category: "Seguros", title: "Documentación Siniestros", content: "El Órgano de Control Interno determinará la sanción o penas a que haya lugar; así como, el pago de deducible correspondiente, cuando el siniestro se origine por el mal uso, negligencia o dolo por parte del servidor público.\n\nEl área de administración deberá recabar toda la información del siniestro y remitirla dentro de los veinte días hábiles contados a partir del informe a la Dirección General, para el caso de:\n\nI. Vehículos:\na) Dictamen de pérdida total;\nb) Original del último comprobante de verificación vehicular y/o manifestación en la carpeta de investigación de extravío del mismo;\nc) Formato original de la baja de placas tramitado ante la autoridad de tránsito competente;\nd) Original o copia certificada por la Dirección General de Recaudación de los recibos del impuesto sobre tenencia de vehículos de los últimos cinco años de acuerdo con el modelo de la unidad;\ne) Llaves del vehículo; y\nf) Factura original en caso de que obre en sus archivos, a falta de ésta, copia certificada por Notario Público.\n\nEn caso de robo total, además deberá remitirse original del aviso ante la Policía Federal Preventiva y original de la carpeta de investigación con sellos y firmas originales, que deberá contener la acreditación de la propiedad por parte del servidor público facultado para ello.\n\nII. Bienes muebles:\na) Acta administrativa con la participación del Órgano de Control Interno;\nb) Tarjeta de resguardo y/o factura original;\nc) Cotización actualizada del bien con características iguales o similares al siniestrado; y\nd) Noticia criminal original con sellos y firmas originales.\n\nIII. Bienes Inmuebles:\na) Copia de Escritura Pública y/o documentación que acredite la propiedad, así como el debido cumplimiento al Artículo 140 de la Ley General de Instituciones y Sociedades Mutualistas de Seguros.\n\nEn caso de incumplimiento de lo señalado en la presente, así como al término establecido, la Dirección General, notificará al Órgano de Control Interno de cada dependencia para que determine las sanciones correspondientes.\n\nLas áreas de administración de los organismos auxiliares observarán en lo conducente el contenido de la presente norma." },
+            { id: "POBALIN-052", category: "Seguros", title: "Pago de Deducible", content: "Cuando el Ministerio Público resuelva que el vehículo de la dependencia, organismo auxiliar o tribunal administrativo es responsable del siniestro, se deberá cubrir el deducible correspondiente, mismo que se pagará directamente a las instituciones de seguros, a través del formato establecido por la compañía aseguradora, ajustándose a los porcentajes establecidos para tal efecto." },
+            { id: "POBALIN-053", category: "Seguros", title: "Licencias de Conducir", content: "Para efectos del seguro, las áreas de administración verificarán que los servidores públicos que conduzcan vehículos oficiales cuenten con licencia para conducir vigente y del tipo adecuado al vehículo." },
+            { id: "POBALIN-054", category: "Seguros", title: "Seguro de Vida e Inhabilitación", content: "Será responsabilidad de las áreas de administración dar a conocer e incorporar a los servidores públicos que así lo soliciten al beneficio del Seguro Institucional de Vida o Inhabilitación total y Seguro de Separación Individualizada.\n\nEl Seguro de Separación Individualizado se otorgará a los servidores públicos siempre y cuando se cuente con suficiencia presupuestal.\n\nEl Seguro de Vida Colectivo se otorgará a los servidores públicos que pertenezcan a los cuerpos de seguridad pública, Coordinación de Servicios Aéreos y personal de logística que determine la Dirección General." },
+            { id: "POBALIN-055", category: "Seguros", title: "Indemnizaciones", content: "La Dirección General será la responsable de ingresar a la Caja General de Gobierno los recursos provenientes por pago de indemnizaciones o cualquier otro tipo de devolución de primas, realizados por las compañías aseguradoras.\n\nEn el caso de organismos auxiliares o tribunales administrativos, la indemnización se depositará en su propia área financiera y se dará aviso por escrito a la Dirección General dentro de los cinco días hábiles posteriores al ingreso correspondiente." },
+            { id: "POBALIN-056", category: "Adquisiciones", title: "Validación de Solicitudes", content: "Las solicitudes deberán ser validadas por los titulares de las unidades administrativas usuarias y de la coordinación administrativa respectiva, o su equivalente.\n\nA las solicitudes deberá adjuntarse la documentación e información que se señala a continuación y la adicional que, en su caso, sea requerida por la convocante.\n\na) Documento que avale la existencia de suficiencia presupuestal, debidamente certificado o constatado;\n\nb) En su caso, dictamen técnico acorde a lo dispuesto en las presentes Políticas, Bases y Lineamientos;\n\nc) En su caso, folletos, catálogos o fichas técnicas, cuando se trate de solicitudes de nuevo ingreso; y\n\nd) En el caso de ampliaciones de contrato, el escrito de sostenimiento del proveedor o prestador de servicio." },
+            { id: "POBALIN-057", category: "Adquisiciones", title: "Disponibilidad Presupuestal", content: "Las áreas de administración serán responsables de verificar, en forma previa a su tramitación, que los requerimientos de bienes y servicios cuenten con disponibilidad presupuestal." },
+            { id: "POBALIN-058", category: "Adquisiciones", title: "Adquisiciones en el Extranjero", content: "Tratándose de adquisiciones, arrendamientos o servicios que sólo pueden celebrarse en el extranjero, porque no existan proveedores o distribuidores en la República Mexicana, respecto de bienes o servicios que requieran las dependencias u organismos auxiliares, se regirán por la legislación del lugar donde se formalice el acto.\n\nNo obstante lo anterior, se deberá observar en el ámbito administrativo y en lo conducente, los ordenamientos jurídicos aplicables." },
+            { id: "POBALIN-059", category: "Adquisiciones", title: "Dictámenes Técnicos Previos", content: "Para la adquisición de los bienes y servicios que a continuación se indican, las unidades administrativas usuarias deberán obtener los siguientes dictámenes técnicos, en forma previa a su tramitación:\n\nI. Vehículos, tecnología y equipo de seguridad: Dictamen técnico de la Secretaría de Seguridad Ciudadana o Procuraduría General de Justicia del Estado de México;\n\nII. Equipo para telecomunicaciones: Dictamen técnico de la Dirección General del Sistema Estatal de Informática;\n\nIII. Equipo de cómputo, software y servicios relacionados con éstos: Dictamen técnico de la Dirección General del Sistema Estatal de Informática;\n\nIV. Mobiliario y equipo de administración, maquinaria y equipo agropecuario e industrial y vehículos y equipo de transporte: Dictamen técnico de la Dirección General;\n\nV. Impresión y encuadernación de publicaciones oficiales: Dictamen técnico del Consejo Editorial de la Administración Pública Estatal, de la Secretaría de Educación;\n\nVI. Bienes diferentes a formatos y papelería impresa que utilicen la imagen institucional: Dictamen técnico de la Coordinación General de Comunicación Social;\n\nVII. Bienes que contengan información geográfica, estadística y catastral: Dictamen técnico del Instituto de Información e Investigación Geográfica, Estadística y Catastral del Estado de México; y\n\nVIII. Equipo, instrumental y mobiliario médico y equipo auxiliar de diagnóstico: Dictamen técnico de la Coordinación de Hospitales de Alta Especialidad, de la Secretaría de Salud.\n\nPara la adquisición de bienes adicionales al amparo de un contrato vigente, será necesario nuevo dictamen de las áreas respectivas, a excepción del señalado en la fracción IV de la presente disposición." },
+            { id: "POBALIN-060", category: "Adquisiciones", title: "Visto Bueno de Bases", content: "Las áreas requirentes están obligadas a acudir ante la convocante a efecto de revisar y otorgar su visto bueno de las bases e invitaciones de los procedimientos adquisitivos solicitados, dentro de las 48 horas posteriores a la comunicación que para tal efecto realice la convocante. La inatendibilidad de lo dispuesto en la presente norma, será bajo la exclusiva responsabilidad de dichas áreas." },
+            { id: "POBALIN-061", category: "Adquisiciones", title: "Adhesión a Contratos", content: "Cuando los organismos auxiliares, tribunales administrativos y ayuntamientos, tengan interés en adherirse a los beneficios de los contratos celebrados por el Gobierno del Estado, será necesario se suscriba con la Secretaría de Finanzas el acuerdo de coordinación respectivo." },
+            { id: "POBALIN-062", category: "Adquisiciones", title: "Opinión Técnica", content: "Las áreas requirentes están obligadas a presentar por oficio ante la convocante, la opinión respecto del cumplimiento o incumplimiento de las propuestas técnicas presentadas por los oferentes en el procedimiento adquisitivo de que se trate, previo a la emisión del dictamen de adjudicación. La inatendibilidad de lo dispuesto en la presente disposición, será bajo la exclusiva responsabilidad de dichas áreas." },
+            { id: "POBALIN-063", category: "Adquisiciones", title: "Proyectos Integrales", content: "Para el desarrollo de proyectos denominados \"integrales o llave en mano\", en los que concurran diversos componentes tecnológicos y actos jurídicos, deberán obtenerse de las autoridades administrativas los dictámenes técnicos respectivos, cuando las disposiciones que rigen su actuación así lo determinen o a falta de lo anterior, deberá recabarse su opinión técnica o valorada con el propósito de orientar su ejecución." },
+            { id: "POBALIN-064", category: "Adquisiciones", title: "Criterios de Evaluación", content: "El criterio para determinar el procedimiento de evaluación de propuestas, será determinado por la convocante, considerando la opinión de las unidades administrativas requirentes y podrá ser binario o de puntos y porcentajes.\n\nEn el criterio de evaluación binario las propuestas se evaluarán únicamente determinando si cumplen o no con los requisitos establecidos en bases.\n\nEn el criterio de evaluación de puntos y porcentajes la convocante sólo procederá a realizar la evaluación de las propuestas económicas, de aquellas que resulten técnicamente solventes por haber obtenido la puntuación o unidades porcentuales iguales o superiores al mínimo establecido en la convocatoria o invitación para las propuestas técnicas, pudiendo asignar la puntuación o unidades porcentuales de conformidad con lo siguiente:\n\nIgualdad en la propuesta técnica. La puntuación o unidades porcentuales a obtener en la propuesta técnica pueden ser consideradas evidente y, por tanto, descalificada, desacuerdo con lo siguiente:\n\nLa característica técnica de los bienes o servicios. Serán consideradas las especificaciones técnicas que constan en el objeto de la proposición lectura de conformidad con las características solicitadas y de especificidad técnica relativa. Serán considerados, además de aquellos aspectos que la convocante considere pertinente incluir para obtener resultados, como pueden ser la durabilidad o vida útil del bien, o las características de esta especialidad de acuerdo a los requerimientos de los órganos designados correspondientes. Se establecerán en la convocatoria o invitación los documentos necesarios para que cada licitante acredite los aspectos a que se refiere este rubro.\n\nCapacidad del licitante. Consiste en los recursos económicos, técnicos y de equipamiento con que cuente el licitante para poder prestar los bienes o servicios en el tiempo requerido y en condiciones de funcionamiento, servicios de mantenimiento o cualquier otro incidente. Sin que se insista el cumplimiento de las obligaciones previstas en el contrato; en la convocatoria o invitación, se establecerán los documentos necesarios para que cada licitante acredite los aspectos a que se refiere este rubro. En este inciso, se deberá otorgar puntuación o unidades porcentuales a MIPYMES;\n\nExperiencia y especialidad del licitante. En la experiencia se tomará en cuenta el tiempo en que el licitante ha suministrado a cualquier persona bienes o servicios de la misma naturaleza de los que son objeto del procedimiento de contratación de que se trate. En la especialidad deberá valorarse si los bienes o servicios que ha venido suministrando el licitante, corresponden a las características específicas y a los volúmenes y condiciones similares a los requeridos por la convocante; en la convocatoria o invitación, se establecerán los documentos necesarios para que cada licitante acredite los aspectos a que se refiere este rubro; y\n\nCumplimiento de contratos. Se ocupa de medir el desempeño o cumplimiento que ha tenido el licitante en la entrega oportuna y adecuada de los bienes o servicios de la misma naturaleza objeto del procedimiento de contratación de que se trate, que hubieren sido adquiridos por alguna dependencia, entidad o cualquier otra persona en el plazo que determine la convocante; en la convocatoria o invitación, se establecerán los documentos necesarios para que cada licitante acredite los aspectos a que se refiere este rubro.\n\nA cada uno de los rubros señalados en los incisos anteriores, la convocante deberá asignarle puntuación o unidades porcentuales, la cual a su vez se repartirá entre los distintos subrubros de cada uno de los rubros.\n\nLa suma de la puntuación o unidades porcentuales de todos los rubros con sus respectivos subrubros deberá ser igual a 50.\n\nPara la asignación de puntuación o unidades porcentuales en cada rubro, la convocante deberá considerar como mínimo lo siguiente:\n\nI. Características del bien o servicio objeto de la propuesta técnica. Este rubro podrá tener un rango de 20 a 35 puntos o unidades porcentuales.\n\nLa convocante para distribuir la puntuación o unidades porcentuales asignadas, deberá considerar, por lo menos, los siguientes subrubros que serán objeto de evaluación, pudiendo darle a cada uno de ellos la que corresponda de acuerdo a su importancia:\n\n1.1) Característica técnica I. 1.2) Característica técnica II.\n\nEn cada uno de los subrubros relativos a características técnicas, la convocante deberá determinar y detallar una especificación o requisito de carácter técnico con el que deba contar el bien o servicio.\n\nDurabilidad o vida útil del bien. Se deberá considerar este subrubro cuando la convocante requiera al licitante, la presentación de constancias o pruebas documentales sobre la durabilidad o resistencia del bien o la realización de pruebas de laboratorio.\n\nII. Capacidad del licitante. Este rubro podrá tener un rango de 5 a 10 puntos o unidades porcentuales. La convocante para distribuir la puntuación o unidades porcentuales asignadas, deberá considerar, por lo menos, los siguientes subrubros:\n\na) Capacidad de los recursos económicos, técnicos y de equipamiento que la convocante considere necesaria para que el licitante cumpla con el contrato, conforme a los requerimientos establecidos en la convocatoria o invitación;\n\nb) Participación de MIPYMES; la convocante deberá asignar en todos los casos puntuación o unidades porcentuales a este subrubro, las cuales sólo se otorgarán cuando el licitante acredite su registro como tal, ante la instancia correspondiente;\n\nc) Extensión del tiempo mínimo exigido para garantizar el funcionamiento del bien; y\n\nd) Servicios adicionales que el licitante puede ofrecer para mantener los bienes o servicios en condiciones óptimas.\n\nIII. Experiencia y especialidad del licitante. Este rubro podrá tener un rango de 5 a 10 puntos o unidades porcentuales.\n\nLa convocante deberá distribuir la puntuación o unidades porcentuales asignadas, únicamente entre los siguientes subrubros:\n\na) Experiencia. Mayor tiempo suministrando bienes o servicios similares a los requeridos en el procedimiento de contratación de que se trate, y\n\nb) Especialidad. Mayor número de contratos o documentos con los cuales el licitante puede acreditar que ha suministrado bienes o servicios con las características específicas, en condiciones y cantidades similares a las establecidas en la convocatoria o invitación de que se trate.\n\nLa convocante deberá asignar el máximo de puntuación o unidades porcentuales que haya determinado, al licitante que acredite mayor número de años de experiencia y presente el mayor número de contratos o documentos que cubran los supuestos antes señalados. A partir de este máximo asignado, la convocante deberá efectuar un reparto proporcional de puntuación o unidades porcentuales entre el resto de los licitantes, en razón de los años de experiencia y del número de contratos o documentos presentados respecto de la especialidad. En caso de que dos o más licitantes acrediten el mismo número de años de experiencia y presenten el mismo número de contratos o documentos para la especialidad, la convocante deberá dar la misma puntuación o unidades porcentuales a los licitantes que se encuentren en este supuesto, y\n\nIV. Cumplimiento de contratos. El rango de puntuación o unidades porcentuales que corresponde a este rubro podrá ser de 5 a 10.\n\nSe deberá asignar mayor puntuación o unidades porcentuales al licitante que demuestre documentalmente tener más contratos cumplidos, a partir del mínimo establecido por la convocante, y al resto de los licitantes se les asignarán puntuación o unidades porcentuales de manera proporcional al número de contratos que acreditó haber cumplido. En caso de no presentar el mínimo de contratos requerido, no se asignará puntuación o unidades porcentuales. En caso de que dos o más licitantes presenten el mismo número de contratos o documentos para acreditar el cumplimiento de contratos, la convocante deberá dar la misma puntuación o unidades porcentuales a los licitantes que se encuentren en este supuesto;\n\nII. Evaluación de la Propuesta Económica.\n\nPara efectos de proceder a la evaluación de la propuesta económica, se deberá del precio ofertado por el licitante el Impuesto al Valor Agregado.\n\nEl total de puntuación o unidades porcentuales de la propuesta económica, deberá tener un valor numérico máximo de 50, por lo que la propuesta económica que resulte ser la más baja de las técnicamente aceptadas, deberá asignársele la puntuación o las unidades porcentuales máximas.\n\nPara determinar la puntuación o unidades porcentuales que correspondan a la propuesta económica de cada participante, la convocante aplicará la siguiente fórmula:\n\nPPE = MPemb x 50 / MPi\n\nDonde:\n\nPPE = Puntuación o unidades porcentuales que corresponden a la Propuesta Económica\n\nMPemb = Monto de la Propuesta económica más baja\n\nMPi = Monto de la i-ésima Propuesta económica\n\nIII. Resultado Final de la Evaluación.\n\nPara calcular el resultado final de la puntuación o unidades porcentuales que obtuvo cada propuesta, la convocante aplicará la siguiente fórmula:\n\nPTj = TPT + PPE Para toda j = 1, 2,.....,n\n\nDonde:\n\nPTj = Puntuación o unidades porcentuales Totales de la proposición\n\nTPT = Total de Puntuación o unidades porcentuales asignados a la propuesta Técnica PPE = Puntuación o unidades porcentuales asignados a la Propuesta Económica, y\n\nEl subíndice \"j\" representa a las demás propuestas determinadas como solventes como resultado de la evaluación.\n\nLa propuesta solvente más conveniente para el Estado, será aquélla que reúna la mayor puntuación o unidades porcentuales conforme a lo dispuesto." },
+            { id: "POBALIN-065", category: "Adquisiciones", title: "Modificaciones a Contratos", content: "Los contratos de bienes o servicios podrán modificarse por incremento o prórroga, previa presentación de la documentación correspondiente y del escrito de sostenimiento de la persona física o jurídica colectiva adjudicada, sobre las condiciones originalmente pactadas." },
+            { id: "POBALIN-066", category: "Adquisiciones", title: "Recepción de Bienes", content: "Las unidades administrativas usuarias bajo su responsabilidad, podrán recibir bienes o servicios que superen o mejoren las características y especificaciones técnicas establecidas en los contratos, siempre y cuando se respeten los precios pactados y sean compatibles con los bienes o servicios originalmente requeridos, debiendo informar de tal circunstancia a la contratante y a su órgano de control interno, dentro de los tres días hábiles siguientes a la fecha de recepción de los bienes o servicios; asimismo deberán conservar en sus expedientes la evidencia documental que acredite las mejoras." },
+            { id: "POBALIN-067", category: "Adquisiciones", title: "Fondo Fijo", content: "Las adquisiciones que se realicen por fondo fijo de caja, no requerirán de la intervención de los Comités de Adquisiciones y Servicios, se sujetarán a las normas establecidas para su ejercicio y control." },
+            { id: "POBALIN-068", category: "Adjudicaciones", title: "Adjudicación Directa", content: "Las áreas de administración serán responsables de revisar e integrar la documentación comprobatoria de las adjudicaciones directas y de los contratos pedido, para la afectación del gasto en el presupuesto correspondiente." },
+            { id: "POBALIN-069", category: "Adjudicaciones", title: "Límite Anual Adjudicaciones", content: "El importe anual de las adjudicaciones que se realicen en forma directa a través de contratos pedido, no podrá exceder el 20% del presupuesto autorizado a las unidades administrativas, para los Capítulos de Gasto 2000, 3000 y 5000." },
+            { id: "POBALIN-070", category: "Almacenes", title: "Control de Almacenes", content: "Los bienes que sean adquiridos deberán ingresar preferentemente a los almacenes de las unidades administrativas. Los titulares de las áreas de administración serán responsables de implantar un sistema para la conservación control y distribución de los bienes que tengan en resguardo en sus almacenes." },
+            { id: "POBALIN-071", category: "Almacenes", title: "Existencias e Inventarios", content: "Las existencias físicas disponibles en los almacenes deberán ser las estrictamente necesarias para el cumplimiento de las funciones sustantivas y programas de las unidades administrativas, debiendo realizarse inventarios físicos en los meses de junio y diciembre de cada año, en los que se deberá contar, invariablemente, con la presencia de un representante del órgano de control interno." },
+            { id: "POBALIN-072", category: "Almacenes", title: "Fechas de Inventarios", content: "La Dirección General podrá, en casos debidamente justificados autorizar la realización de inventarios físicos en fechas distintas a las marcadas en la norma anterior, previa solicitud de las unidades administrativas interesadas." },
+            { id: "POBALIN-073", category: "Almacenes", title: "Bienes de Lento Movimiento", content: "Los titulares de las áreas de administración deberán presentar ante la Dirección General, durante los primeros cinco días hábiles de los meses de enero, mayo y septiembre, un informe sobre los bienes de lento o nulo movimiento que tengan en sus almacenes; con el propósito de que puedan ser aprovechados por las dependencias, organismos auxiliares y tribunales administrativos. En todo caso, una copia del informe sobre estos bienes se remitirá a su órgano de control interno." },
+            { id: "POBALIN-074", category: "Almacenes", title: "Intercambio de Bienes", content: "Las dependencias, organismos auxiliares y tribunales administrativos podrán intercambiar bienes de consumo entre sus almacenes así como con otras instituciones públicas, informando de ello a sus órganos de control interno." },
+            { id: "POBALIN-075", category: "Mantenimiento", title: "Proveedores de Mantenimiento", content: "El servicio de mantenimiento que requieran los bienes muebles propiedad del Gobierno del Estado de México, deberá preverse por las unidades administrativas, considerando el presupuesto autorizado y se proporcionará por los proveedores o prestadores registrados en el catálogo de proveedores y prestadores de servicios, que garanticen el cumplimiento de los requerimientos, y serán contratados directamente por las unidades administrativas usuarias, siempre que su importe no rebase el monto equivalente a la cantidad de setecientas veces el salario mínimo general vigente en la capital del Estado de México.\n\nExcepcionalmente en casos plenamente justificados y bajo la responsabilidad del Coordinador Administrativo o su equivalente, el servicio de mantenimiento podrá ser proporcionado por proveedores o prestadores que no se encuentren registrados en el catálogo de proveedores y prestadores de servicios." },
+            { id: "POBALIN-076", category: "Mantenimiento", title: "Bienes Arrendados", content: "El mantenimiento que requieran los bienes muebles arrendados por el Gobierno del Estado de México, será proporcionado por la persona física o jurídica colectiva a la que se adjudicó el contrato correspondiente, sin ningún cargo presupuestal por dicho concepto, salvo que se pacte lo contrario en cuyo caso se requerirá autorización de la contratante." },
+            { id: "POBALIN-077", category: "Mantenimiento", title: "Garantía de Servicio", content: "Todo servicio de mantenimiento proporcionado por los proveedores o prestadores de servicios autorizados deberá tener como mínimo una garantía de sesenta días naturales. No se autorizarán reparaciones de los bienes muebles que se encuentren dentro del período de garantía, salvo que medie justificación y ésta sea autorizada por el Coordinador Administrativo o su equivalente." },
+            { id: "POBALIN-078", category: "Mantenimiento", title: "Remodelación en Edificio Sede", content: "Las dependencias y organismos auxiliares que tengan asignadas instalaciones u oficinas en el interior del edificio sede del Poder Ejecutivo, para remodelar éstas, deberán presentar previamente a la Dirección General, la memoria técnica que especifique los nuevos requerimientos de servicios hidrosanitarios y eléctricos, con el objeto de determinar si las instalaciones existentes cuentan con las capacidades de las nuevas demandas y así mantener la funcionalidad y arquitectura del inmueble.\n\nLa Dirección General podrá, en cualquier momento supervisar los efectos de remodelación en el edificio sede del Poder Ejecutivo." },
+            { id: "POBALIN-079", category: "Mantenimiento", title: "Garantía Vehicular", content: "El servicio de mantenimiento para vehículos automotores autorizadas, bien por las talleres o empresas automotrices autorizadas, bienes vehículos nuevos o de reciente uso durante el período de garantía de garantía establecido por el fabricante en los manuales técnicos o en los contratos correspondientes." },
+            { id: "POBALIN-080", category: "Mantenimiento", title: "Vehículos Particulares", content: "En ningún caso se podrá autorizar la prestación o el pago del servicio de mantenimiento para vehículos particulares." },
+            { id: "POBALIN-081", category: "Mantenimiento", title: "Mantenimiento Urgente", content: "El servicio de mantenimiento urgente que requieran los vehículos oficiales, será atendido en forma directa por las unidades administrativas usuarias, previa autorización del Coordinador Administrativo o su equivalente. El gasto del mismo se comprobará en el fondo fijo de caja." },
+            { id: "POBALIN-082", category: "Mantenimiento", title: "Llantas y Acumuladores", content: "Las llantas y acumuladores sólo serán suministrados cuando se cubra el período de vida o kilometraje establecido por los fabricantes. En el caso de llantas, únicamente se autorizarán las de uso convencional, recomendadas por los fabricantes de los vehículos o por las compañías automotrices, de acuerdo con el tipo de vehículo y con la autorización del Coordinador Administrativo o su equivalente.\n\nLa marca y medida de las llantas que se instalen, deberán ser registradas en la bitácora de cada vehículo y dichas llantas serán marcadas con la imagen que determine la Dirección General. Siendo la responsabilidad del Coordinador Administrativo o su equivalente verificar que las llantas que se sustituyan correspondan a las que se instalaron.\n\nLas llantas y acumuladores que por las condiciones de uso o algún otro motivo, requieran ser sustituidas antes del período determinado técnicamente, tendrán que justificarse ante el Coordinador Administrativo o su equivalente." },
+            { id: "POBALIN-083", category: "Mantenimiento", title: "Destino de Piezas", content: "Las llantas reemplazadas, así como las demás piezas que puedan representar ingresos para el erario estatal, deberán ser remitidas a la Dirección General para su resguardo y determinación de su destino final. En los organismos auxiliares las áreas de administración serán responsables de esta función.\n\nLas demás piezas o refacciones que no puedan tener otro uso serán desechadas por las áreas de administración con la intervención del órgano de control interno." },
+            { id: "POBALIN-084", category: "Mantenimiento", title: "Instalaciones Eléctricas", content: "El servicio de mantenimiento a las instalaciones eléctricas de los inmuebles que ocupan las dependencias y organismos auxiliares se contratará con apego a la normatividad en la materia." },
+            { id: "POBALIN-085", category: "Servicios", title: "Asignación de Servicios", content: "La asignación y uso de los servicios administrativos (combustibles, lubricantes y aditivos; energía eléctrica; fotocopiado impresión y digitalización; limpieza y vigilancia de inmuebles) relacionados con la operación de las unidades administrativas de las dependencias, serán autorizados por la Dirección General.\n\nPara tal facto, las unidades administrativas de las dependencias deberán remitir a la Dirección General su requerimiento debidamente validado y autorizado por el Coordinador Administrativo o su equivalente a más tardar el treinta y uno de agosto de cada ejercicio fiscal, anexando copia del anteproyecto de presupuesto. Así mismo, una vez que se cuente con la autorización del presupuesto, deberá remitirse mediante oficio a dicha Dirección General." },
+            { id: "POBALIN-086", category: "Servicios", title: "Adhesión a Servicios", content: "Cuando los organismos auxiliares y tribunales administrativos, tengan interés en adherirse a los beneficios de los contratos de los servicios de combustibles, lubricantes y aditivos, limpieza y vigilancia de inmuebles, fotocopiado, impresión y digitalización, celebrados por el Gobierno del Estado, será necesario se suscriba con la Dirección General el acuerdo de coordinación respectivo; asimismo tendrán la obligación de reportar dentro de los primeros cinco días hábiles del mes siguiente el monto ejercido por la prestación de dichos servicios." },
+            { id: "POBALIN-087", category: "Servicios", title: "Cambio de Domicilio", content: "Los titulares de las unidades administrativas, deberán notificar a la Dirección General, dentro de los diez días hábiles anteriores a la fecha del cambio de domicilio o baja de las oficinas, a fin de que ésta notifique a los diversos prestadores de los servicios, para que éste proceda a realizar lo solicitado." },
+            { id: "POBALIN-088", category: "Servicios", title: "Medidas de Austeridad", content: "Las unidades administrativas, deberán apegarse a las medidas de austeridad y disciplina presupuestal que emita el Gobierno del Estado para optimizar y racionalizar los servicios de combustible, lubricantes y aditivos, energía eléctrica, fotocopiado, impresión y digitalización, limpieza y vigilancia de inmuebles.\n\nLos titulares de las unidades administrativas evaluarán semestralmente los resultados obtenidos y deberán remitir un informe a la Dirección General, durante los primeros cinco días hábiles de los meses de enero y julio." },
+            { id: "POBALIN-089", category: "Fotocopiado", title: "Asignación Fotocopiado", content: "El servicio de fotocopiado, impresión y digitalización se asignará conforme a las políticas que establezca la Secretaría de Finanzas, con base en las necesidades específicas de las unidades administrativas y tomando en consideración las condiciones de los contratos correspondientes.\n\nCualquier equipo de fotocopiado, impresión y digitalización adicional al requerido originalmente por las unidades administrativas, sólo podrá ser autorizado por la Dirección General siempre y cuando se justifique plenamente y se cuente con disponibilidad presupuestal.\n\nCualquier deficiencia o anomalía en la prestación del servicio, deberá notificarse a la Dirección General dentro de los cinco días hábiles siguientes a la fecha en que ocurra el hecho, para que se realicen las acciones necesarias que permitan la adecuada prestación del servicio." },
+            { id: "POBALIN-090", category: "Fotocopiado", title: "Equipo a Color", content: "Solo podrá realizarse la adquisición o arrendamiento de equipos de fotocopiado a color, previa autorización de la Dirección General y plena justificación." },
+            { id: "POBALIN-091", category: "Fotocopiado", title: "Uso de Equipos", content: "Las fotocopiadoras que sean asignadas a las unidades administrativas, se utilizarán únicamente para la reproducción de documentos oficiales relacionados con sus funciones. El uso adecuado y racional del equipo de fotocopiado, impresión o digitalización asignado, quedará bajo la responsabilidad del Coordinador Administrativo o su equivalente de la unidad administrativa donde se preste el servicio." },
+            { id: "POBALIN-092", category: "Fotocopiado", title: "Validación de Facturas", content: "Los titulares de las áreas de administración revisarán y validarán las facturas del servicio de fotocopiado, impresión y digitalización dentro de los cinco primeros días hábiles del mes siguiente, debiendo realizar la afectación presupuestal y/o anotar en la factura la clave presupuestaria a afectarse y verificar que los datos establecidos en la factura sean correctos." },
+            { id: "POBALIN-093", category: "Energía Eléctrica", title: "Ahorro de Energía", content: "El servicio de energía eléctrica deberá apegarse a las medidas de ahorro que establezcan las propias unidades administrativas, acorde a las condiciones particulares de cada inmueble, preferentemente haciendo uso de la luz natural o en su caso, utilizando focos, lámparas y contactos al mínimo, o apagándolos y desconectándolos a falta de uso; siendo las responsables de su verificación los titulares de las unidades administrativas." },
+            { id: "POBALIN-094", category: "Energía Eléctrica", title: "Contratación", content: "La contratación del servicio de energía eléctrica será exclusivo para los inmuebles y oficinas que sean propiedad del Gobierno del Estado del Estado de México, o arrendadas por las unidades administrativas, por lo que los contratos del servicio de energía eléctrica, invariablemente deberán suscribirse a nombre del Gobierno del Estado de México." },
+            { id: "POBALIN-095", category: "Energía Eléctrica", title: "Solicitud de Servicio", content: "Las unidades administrativas deberán presentar con anticipación oportuna, sus solicitudes de servicios de energía eléctrica ante la Dirección General en el formato establecido, adjuntando la documentación especificada en el mismo, que permita realizar las gestiones para la contratación del servicio en tiempo y forma." },
+            { id: "POBALIN-096", category: "Energía Eléctrica", title: "Validación de Recibos", content: "Las relaciones de recibos por concepto de consumo de energía eléctrica emitidos por la Comisión Federal de Electricidad, serán validados, autorizados y devueltos dentro del término establecido en el formato para tal efecto, a fin de evitar que la Paraestatal los excluya del Convenio de Cobranza Centralizada o realice el corte del suministro de energía eléctrica, en apego a lo dispuesto en la Ley de la materia, caso contrario será responsabilidad de la unidad administrativa, la afectación que pudieran tener en dicho servicio." },
+            { id: "POBALIN-097", category: "Energía Eléctrica", title: "Regularización", content: "Las unidades administrativas deberán gestionar la regularización de los servicios a fin de evitar que la Comisión Federal de Electricidad realice ajustes en la facturación y en su caso la exclusión del Convenio de Cobranza Centralizada." },
+            { id: "POBALIN-098", category: "Combustibles", title: "Dotación Mensual", content: "Los combustibles, lubricantes y aditivos para los vehículos oficiales de las unidades administrativas, serán proporcionados por la Coordinación Administrativa o su equivalente, mediante una dotación mensual de litros por vehículo.\n\nAquellos meses en los que se presenten períodos vacacionales, la dotación se reducirá en un 50%, salvo en aquellos casos en que se justifiquen plenamente, ante la Dirección General.\n\nSólo se podrán asignar dotaciones extraordinarias de combustibles, lubricantes y aditivos, cuando se cuente con la autorización de la Dirección General. En el caso de los organismos auxiliares y Tribunales Administrativos, la autorización de dotación extraordinaria corresponderá a los titulares de sus unidades administrativas." },
+            { id: "POBALIN-099", category: "Combustibles", title: "Requisitos de Dotación", content: "Sólo se proporcionará dotación de combustibles, lubricantes y aditivos a los vehículos oficiales que se encuentren en operación, inventariados y asegurados. Será responsabilidad del Coordinador Administrativo o su equivalente reducir las cantidades de las asignaciones mensuales autorizadas, cuando los vehículos se encuentren en reparaciones o estén fuera de circulación por período mayor a quince días naturales." },
+            { id: "POBALIN-100", category: "Combustibles", title: "Vehículos Particulares", content: "La Dirección General solo proporcionará dotación de combustibles, lubricantes y aditivos a vehículos particulares, previa justificación, siempre y cuando no cuente con parque vehicular oficial.\n\nTratándose de organismos auxiliares o Tribunales Administrativos, dicha autorización deberá emitirla el titular de la unidad administrativa correspondiente, previa justificación." },
+            {
+                id: "POBALIN-101",
+                category: "Combustibles",
+                title: "Límites por Nivel",
+                content: "La dotación mensual de combustibles, lubricantes y aditivos que se proporcione para los vehículos de asignación directa de los servidores públicos de las unidades administrativas, tendrá que ajustarse como máximo, a las cantidades siguientes:\n\n*Nota: El tipo de combustible que se suministre deberá ser el sugerido por el fabricante del vehículo.\n\nSerá responsabilidad de los titulares de las unidades administrativas vigilar el adecuado consumo de combustibles, lubricantes y aditivos, cotejando el ticket que emite el sistema para el control de combustibles, con el que emite la bomba de las estaciones de servicio.\n\nLos titulares de las Coordinaciones Administrativas o sus equivalentes deberán remitir a la Dirección General, los reportes de consumo mensuales debidamente validados, dentro de los primeros cinco días hábiles del mes siguiente.\n\nEl Secretario de Finanzas y/o el Subsecretario de Administración, podrán autorizar incrementos en la dotación de combustibles, lubricantes y aditivos, en casos debidamente justificados y de acuerdo con las funciones que desempeñan los servidores públicos referidos. Tratándose de organismos auxiliares o Tribunales Administrativos esta facultad corresponderá a los Coordinadores Administrativos o sus equivalentes.",
+                tableData: {
+                    headers: ["Nivel", "Dotación Mensual (Litros)"],
+                    rows: [
+                        ["Secretario y Procurador General", "630"],
+                        ["Coordinador General", "540"],
+                        ["Subsecretario, Delegado Regional de la Procuraduría y Subprocurador", "470"],
+                        ["Director General o equivalente", "315"],
+                        ["Director y Subdirector de Área o equivalente", "160"]
+                    ]
+                }
+            },
+            {
+                id: "POBALIN-102",
+                category: "Combustibles",
+                title: "Límites Operativos",
+                content: "La asignación mensual de combustibles, lubricantes y aditivos para los vehículos operativos de las unidades administrativas, se determinará considerando el número de cilindros del motor de conformidad con las siguientes cantidades:\n\n*Nota: El tipo de combustible que se suministre deberá ser el sugerido por el fabricante del vehículo.\n\nSerá responsabilidad de los titulares de las unidades administrativas vigilar el adecuado consumo de combustibles, lubricantes y aditivos, cotejando el ticket que emite el sistema para el control de combustibles, con el que emite la bomba de las estaciones de servicio.\n\nLos titulares de las Coordinaciones Administrativas o su equivalente deberán remitir a la Dirección General, los reportes de consumo mensuales debidamente validados, dentro de los primeros cinco días hábiles del mes siguiente. La Dirección General podrá autorizar incrementos en la dotación de combustibles, lubricantes y aditivos, en casos debidamente justificados y de acuerdo con su operación. Tratándose organismos auxiliares o Tribunales esta facultad corresponderá a los Coordinadores Administrativos o sus equivalentes.",
+                tableData: {
+                    headers: ["TIPO DE VEHÍCULOS AUTOMOTORES", "10 CIL.", "8 CIL.", "6 CIL.", "4 CIL.", "2 CIL.", "1 CIL."],
+                    rows: [
+                        ["Camión", "800", "-", "-", "-", "-", "-"],
+                        ["Camioneta 5 Ton.", "800", "-", "-", "-", "-", "-"],
+                        ["Camioneta 3 Ton.", "-", "-", "700", "600", "-", "-"],
+                        ["Pick Up 3/4 Ton. o similar", "-", "-", "600", "500", "400", "-"],
+                        ["Automóvil", "-", "500", "400", "300", "-", "-"],
+                        ["Moto", "-", "-", "-", "-", "80", "60"],
+                        ["Cuatrimoto", "-", "-", "-", "-", "60", "50"]
+                    ]
+                }
+            },
+            { id: "POBALIN-103", category: "Combustibles", title: "Odómetros", content: "Los titulares de las unidades administrativas serán responsables de supervisar que los odómetros de los vehículos de trabajo se encuentren en condiciones óptimas de funcionamiento, y que las lecturas de los mismos correspondan a los registrados por los usuarios en el sistema que opera para el control del combustible.\n\nSi de las supervisiones que se realicen, se desprende que los odómetros de los vehículos de trabajo no funcionan, se ordenará su reparación inmediata.\n\nDe no acreditarse las reparaciones dentro de tres días hábiles siguientes contados a partir de la fecha de la supervisión, la Coordinación Administrativa o su equivalente podrán suspender la dotación del suministro que corresponda a dicho vehículo." },
+            { id: "POBALIN-104", category: "Combustibles", title: "Reembolsos", content: "Los vehículos de las unidades administrativas que cuenten con dotación autorizada de combustibles, lubricantes y aditivos, no podrán solicitar reembolsos por este concepto, mediante facturas expedidas por gasolineras." },
+            { id: "POBALIN-105", category: "Combustibles", title: "Maquinaria y Equipos", content: "Los combustibles, lubricantes y aditivos requeridos en la operación de calderas, bombas, plantas de energía y equipos similares, se suministrarán conforme a las bitácoras de consumo respectivas, que para tal efecto implementen las unidades administrativas." },
+            { id: "POBALIN-106", category: "Combustibles", title: "Folio de Afectación", content: "Las unidades administrativas deberán solicitar a la Dirección General el folio del sistema, mediante el que se realizará la afectación presupuestal, dentro de los cinco días hábiles posteriores a la fecha de entrega de la dotación, remitiendo el original validado y autorizado; así mismo debiendo remitir copia a la Contaduría General Gubernamental." },
+            { id: "POBALIN-107", category: "Eventos", title: "Logística de Eventos", content: "Los servicios logísticos para la celebración de los actos y eventos oficiales de las unidades administrativas, incluyendo el de edecanes, serán proporcionados por la Dirección General, únicamente en casos debidamente justificados, conforme a los requerimientos indicados en la solicitud de servicios, la cual deberá presentarse por lo menos con diez días hábiles de anticipación a la fecha de su realización. Cuando éstos impliquen un costo, se deberá presentar el oficio de disponibilidad presupuestal." },
+            { id: "POBALIN-108", category: "Eventos", title: "Servicios Incluidos", content: "Los servicios de apoyo logístico para la celebración de los actos y eventos oficiales de las unidades administrativas que podrá proporcionar la Dirección General de Recursos Materiales, en términos de los contratos respectivos, son los siguientes:\n\na) Mesas, sillas, tablones y manteles;\n\nb) Lonas;\n\nc) Carpas;\n\nd) Gradas;\n\ne) Audio;\n\nf) Video;\n\ng) Transporte terrestre de personal; y\n\nh) Letrinas.\n\nLos servicios que no se encuentran listados, podrán contratarse por los Coordinadores Administrativos o sus equivalentes, previa autorización de la Dirección General, para lo cual deberán solicitarlo dentro de los diez días hábiles anteriores a la celebración del evento.\n\nLos servicios de apoyo logístico tales como: mamparas, templetes, vallas, entre otros, que no impliquen un costo y se tenga la capacidad material y humana de proporcionarse, estarán sujetos a disponibilidad de acuerdo a la agenda de trabajo del Titular del Poder Ejecutivo." },
+            { id: "POBALIN-109", category: "Eventos", title: "Justificación de Eventos", content: "Los actos y eventos oficiales sólo se llevarán a cabo cuando su propósito esté justificado plenamente, por el titular de la unidad administrativa solicitante y se relacionen con las actividades sustantivas de la gestión gubernamental. Tendrán prioridad los actos de carácter institucional previamente determinados." },
+            { id: "POBALIN-110", category: "Eventos", title: "Eventos Culturales", content: "La realización de audiciones, conciertos y espectáculos culturales se limitará a las unidades administrativas que tengan atribuciones o funciones relacionadas directamente con la educación y la cultura. Tratándose de unidades administrativas que no tengan tal atribución o función, deberán justificarlo por escrito con un mínimo de diez días hábiles previos al evento, ante la Dirección General, quien resolverá lo conducente." },
+            { id: "POBALIN-111", category: "Eventos", title: "Lugar del Evento", content: "Los actos y eventos oficiales deberán realizarse preferentemente en instalaciones propiedad del Gobierno del Estado de México. Cuando se requiera realizarlos en otros lugares que impliquen un costo, se deberá contar con la suficiencia presupuestal, debiendo obtener previamente autorización de la Dirección General." },
+            { id: "POBALIN-112", category: "Eventos", title: "Gastos Extraordinarios", content: "En la realización de actos y eventos oficiales, se deberá evitar en lo posible los gastos por concepto de lonas, edecanes, transporte, equipos especiales y alimentación, entre otros. La Dirección General determinará los casos en que éstos podrán contratarse.\n\nLos servicios de hospedaje, arreglos florales, plantas de ornato, entre otros, no son considerados un apoyo logístico." },
+            { id: "POBALIN-113", category: "Eventos", title: "Compromisos Institucionales", content: "Las dependencias, organismos auxiliares o tribunales administrativos podrán tramitar apoyo logístico para atender compromisos que correspondan a sus atribuciones, facultades, funciones u objeto social." },
+            { id: "POBALIN-114", category: "Limpieza y Vigilancia", title: "Prestación del Servicio", content: "Los servicios de limpieza y vigilancia de inmuebles que requieran las unidades administrativas, serán proporcionados por las empresas que, conforme a la normatividad correspondiente, contrate la Dirección General, organismos auxiliares o tribunales administrativos. El servicio se prestará en las condiciones y características señaladas en los contratos respectivos.\n\nLos servicios de limpieza y vigilancia de inmuebles que se proporcionen a las unidades administrativas, serán supervisados por las áreas de administración de las propias unidades administrativas." },
+            { id: "POBALIN-115", category: "Limpieza y Vigilancia", title: "Reporte de Anomalías", content: "Cualquier deficiencia o anomalía en la prestación de los servicios de limpieza y vigilancia de inmuebles, deberá notificarse a la contratante dentro de los cinco días hábiles siguientes a la fecha en que ocurra el hecho, para que se realicen las acciones necesarias que permitan la adecuada prestación del servicio." },
+            { id: "POBALIN-116", category: "Limpieza y Vigilancia", title: "Validación de Facturas", content: "Las facturas por concepto de los servicios de limpieza y vigilancia de inmuebles deberán ser validadas y autorizadas dentro de los cinco primeros días hábiles del mes siguiente, por los titulares de las áreas de administración.\n\nEn caso de incumplimiento a las condiciones del contrato, dicha situación le será informada al prestador del servicio, con la finalidad que éste lo descuente en la facturación, o bien, para que emita la nota de crédito correspondiente. Las unidades administrativas que cuenten con el servicio de limpieza, se abstendrán de adquirir materiales de limpieza y jarcería, excepto papel higiénico, jabón y toallas desechables para manos, salvo que se justifique plenamente, previa autorización del Coordinador Administrativo o su equivalente." },
+            { id: "POBALIN-117", category: "Transporte", title: "Transporte de Personal y Carga", content: "La Dirección General y las unidades administrativas autorizadas por ésta, proporcionarán el servicio de transporte de personal y de carga, a aquellas que carezcan de vehículos apropiados para estos fines, siempre y cuando se justifique plenamente su utilización." }
+        ];
+
+        const CATEGORIES = [...new Set(POBALINES_DB.map(p => p.category))];
+
+        // --- GEMINI API INTEGRATION ---
+        const callGemini = async (prompt, apiKey) => {
+            if (!apiKey) {
+                return "Por favor ingresa tu API Key de Gemini en el menú lateral para usar esta función.";
+            }
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            // Exponential backoff retry logic
+            const maxRetries = 3;
+            let delay = 1000;
+
+            for (let i = 0; i <= maxRetries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo generar una respuesta.";
+                } catch (error) {
+                    if (i === maxRetries) return `Error de conexión: ${error.message}`;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        };
+
+        // --- COMPONENTS ---
+
+        const AIAssistant = ({ content, title, apiKey, onOpenSettings }) => {
+            const [response, setResponse] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [query, setQuery] = useState('');
+            const [mode, setMode] = useState('initial'); // initial, responding, chat
+
+            const handleAction = async (actionType) => {
+                setLoading(true);
+                setMode('responding');
+                setResponse('');
+
+                let prompt = "";
+                if (actionType === 'summarize') {
+                    prompt = `Actúa como un asistente legal experto. Resume la siguiente norma (${title}) de manera concisa y clara, destacando los puntos clave:\n\n"${content}"`;
+                } else if (actionType === 'explain') {
+                    prompt = `Actúa como un mentor amable. Explica la siguiente norma (${title}) en lenguaje sencillo y cotidiano, como si se lo explicaras a un empleado nuevo que no conoce términos legales:\n\n"${content}"`;
+                }
+
+                const result = await callGemini(prompt, apiKey);
+                setResponse(result);
+                setLoading(false);
+            };
+
+            const handleChat = async () => {
+                if (!query.trim()) return;
+                setLoading(true);
+                setMode('responding');
+
+                const prompt = `Contexto: La siguiente es una norma oficial llamada "${title}": "${content}".\n\nUsuario: ${query}\n\nInstrucción: Responde a la pregunta del usuario basándote ÚNICAMENTE en el contexto proporcionado. Sé directo y profesional.`;
+
+                const result = await callGemini(prompt, apiKey);
+                setResponse(result);
+                setLoading(false);
+            };
+
+            return (
+                <div className="mt-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 overflow-hidden shadow-sm">
+                    <div className="p-4 bg-white/50 border-b border-indigo-100 flex items-center justify-between">
+                        <div className="flex items-center space-x-2 text-indigo-700">
+                            <Sparkles size={18} className="text-amber-500 fill-amber-500 animate-pulse" />
+                            <span className="font-bold text-sm uppercase tracking-wide">Asistente Inteligente Gemini</span>
+                        </div>
+                        {mode !== 'initial' && (
+                            <button
+                                onClick={() => { setMode('initial'); setResponse(''); setQuery(''); }}
+                                className="text-xs text-indigo-400 hover:text-indigo-700 flex items-center transition-colors"
+                            >
+                                <RotateCcw size={14} className="mr-1" /> Reiniciar
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="p-6">
+                        {!apiKey && mode === 'initial' && (
+                            <div className="mb-4 p-4 bg-amber-50 text-amber-800 text-sm rounded-xl border border-amber-200 flex flex-col items-center text-center">
+                                <Key size={24} className="mb-2 opacity-50" />
+                                <p className="mb-3 font-medium">Se requiere una API Key de Gemini para activar las funciones de IA.</p>
+                                <button
+                                    onClick={onOpenSettings}
+                                    className="px-4 py-2 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-700 transition-colors shadow-sm"
+                                >
+                                    Configurar API Key
+                                </button>
+                            </div>
+                        )}
+
+                        {mode === 'initial' && (
+                            <div className="space-y-4">
+                                <p className="text-slate-600 text-sm">¿Cómo puedo ayudarte a entender esta norma hoy?</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => handleAction('summarize')}
+                                        disabled={!apiKey}
+                                        className="flex items-center justify-center space-x-2 px-4 py-3 bg-white hover:bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-700 transition-all hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <FileText size={18} className="group-hover:scale-110 transition-transform" />
+                                        <span className="font-medium">Resumir Norma ✨</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleAction('explain')}
+                                        disabled={!apiKey}
+                                        className="flex items-center justify-center space-x-2 px-4 py-3 bg-white hover:bg-purple-50 border border-purple-100 rounded-lg text-purple-700 transition-all hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <MessageSquare size={18} className="group-hover:scale-110 transition-transform" />
+                                        <span className="font-medium">Explicar Sencillo ✨</span>
+                                    </button>
+                                </div>
+
+                                <div className="relative mt-2">
+                                    <input
+                                        type="text"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleChat()}
+                                        placeholder="O haz una pregunta específica..."
+                                        disabled={!apiKey}
+                                        className="w-full pl-4 pr-12 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all disabled:bg-slate-50"
+                                    />
+                                    <button
+                                        onClick={handleChat}
+                                        disabled={!query.trim() || !apiKey}
+                                        className="absolute right-2 top-2 p-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <Send size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {(mode === 'responding' || loading) && (
+                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                {loading ? (
+                                    <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                                        <Loader2 size={32} className="text-indigo-500 animate-spin" />
+                                        <span className="text-sm text-indigo-400 font-medium">Gemini está analizando la norma...</span>
+                                    </div>
+                                ) : (
+                                    <div className="bg-white p-5 rounded-lg border border-indigo-50 shadow-sm">
+                                        <h4 className="text-xs font-bold text-indigo-300 uppercase mb-2">Respuesta Generada</h4>
+                                        <div className="prose prose-sm prose-indigo max-w-none text-slate-700 leading-relaxed">
+                                            {response.split('\n').map((line, i) => (
+                                                <p key={i} className="mb-2 last:mb-0">{line}</p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const Sidebar = ({ categories, activeCategory, onSelectCategory, isOpen, onClose, apiKey, onOpenSettings }) => (
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 h-full bg-slate-900 text-slate-100 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:block shadow-2xl flex flex-col sidebar-container`}>
+                <div className="p-4 border-b border-slate-700">
+                    <div className="flex flex-col items-center">
+                        <div className="w-full bg-white p-2 rounded-lg mb-4 shadow-inner">
+                            <img
+                                src="assets/logo.png"
+                                alt="Logo Edo Mex"
+                                className="w-full h-auto object-contain"
+                            />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-xl font-serif font-bold tracking-widest text-amber-400">POBALINES</span>
+                        </div>
+                    </div>
+                    {isOpen && (
+                        <button onClick={onClose} className="absolute top-4 right-4 lg:hidden text-slate-400 hover:text-white">
+                            <X size={24} />
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar sidebar-scrollbar" style={{ flex: '1 1 0%', minHeight: 0 }}>
+                    <div className="p-4">
+                        <h3 className="text-xs uppercase text-slate-500 font-semibold tracking-wider mb-3 px-2">Navegación</h3>
+                        <nav className="space-y-1">
+                            <a
+                                href="../index.html"
+                                className="w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 border border-slate-700/50 mb-4"
+                            >
+                                <IconWrapper size={16} className="mr-3"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></IconWrapper>
+                                Entrada Principal
+                            </a>
+                            <button
+                                onClick={() => onSelectCategory('Todas')}
+                                className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${activeCategory === 'Todas' ? 'bg-amber-500 text-slate-900' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                            >
+                                <Filter size={16} className="mr-3" />
+                                Todas las Pobalines
+                            </button>
+                            <button
+                                onClick={() => onSelectCategory('Favoritos')}
+                                className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${activeCategory === 'Favoritos' ? 'bg-amber-500 text-slate-900' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                            >
+                                <Bookmark size={16} className="mr-3" />
+                                Mis Favoritos
+                            </button>
+                        </nav>
+
+                        <h3 className="text-xs uppercase text-slate-500 font-semibold tracking-wider mt-8 mb-3 px-2">Categorías</h3>
+                        <nav className="space-y-1">
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => onSelectCategory(cat)}
+                                    className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors group ${activeCategory === cat ? 'bg-slate-800 text-amber-400 border-l-2 border-amber-400' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}`}
+                                >
+                                    <span>{cat}</span>
+                                    {activeCategory === cat && <ChevronRight size={14} />}
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
+                </div>
+
+                {/* Configuración de API Quick Link */}
+                <div className="p-4 bg-slate-800/50 border-t border-slate-700 group cursor-pointer hover:bg-slate-800 transition-colors" onClick={onOpenSettings}>
+                    <div className="flex items-center justify-between text-slate-400">
+                        <div className="flex items-center space-x-2">
+                            <div className={`w-2 h-2 rounded-full ${apiKey ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`}></div>
+                            <span className="text-xs font-semibold uppercase tracking-wider">{apiKey ? 'IA - Lista' : 'IA - Requiere Key'}</span>
+                        </div>
+                        <Settings size={14} className="group-hover:rotate-90 transition-transform duration-500" />
+                    </div>
+                </div>
+
+                <div className="p-6 border-t border-slate-800 bg-slate-900">
+                    <div className="flex items-center space-x-3 text-slate-400 text-xs">
+                        <Info size={14} />
+                        <span>v3.0 - Offline Ready</span>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const PobalinCard = ({ item, onClick, isFavorite }) => (
+            <div
+                onClick={() => onClick(item)}
+                className="group bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-200 transition-all duration-300 cursor-pointer relative overflow-hidden fade-in"
+            >
+                <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-amber-500 transition-colors"></div>
+                <div className="flex justify-between items-start mb-2 pl-3">
+                    <span className="inline-block px-2 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded uppercase tracking-wide group-hover:bg-amber-100 group-hover:text-amber-700 transition-colors">
+                        {item.id}
+                    </span>
+                    {isFavorite && <Bookmark size={16} className="text-amber-500 fill-current" />}
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2 pl-3 group-hover:text-amber-600 transition-colors line-clamp-2">
+                    {item.title}
+                </h3>
+                <p className="text-slate-500 text-sm pl-3 line-clamp-3 leading-relaxed">
+                    {item.content}
+                </p>
+                <div className="mt-4 pl-3 flex items-center text-amber-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
+                    Leer completo <ChevronRight size={16} className="ml-1" />
+                </div>
+            </div>
+        );
+
+        const DetailView = ({ item, onClose, toggleFavorite, isFavorite, apiKey, onOpenSettings }) => {
+            const generatePDF = () => {
+                if (!window.jspdf) {
+                    alert("El módulo de PDF se está cargando, intenta de nuevo en unos segundos.");
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Header Decoration
+                doc.setFillColor(245, 158, 11); // Amber-500
+                doc.rect(0, 0, 210, 30, 'F');
+                doc.setTextColor(255, 255, 255);
+
+                // Add Logo to PDF if possible
+                // Note: Image must be base64 or reachable URL. For now using text style 
+                // to avoid issues with local file loading in jspdf if not handled.
+                doc.setFontSize(18);
+                doc.setFont("helvetica", "bold");
+                doc.text("GOBIERNO DEL ESTADO DE MÉXICO", 105, 15, null, null, "center");
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.text("POBALINES - Sistema de Consulta de Normatividad", 105, 23, null, null, "center");
+
+                let yPosition = 40;
+
+                // Content
+                doc.setTextColor(30, 41, 59); // Slate-800
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Categoría: ${item.category}`, 20, yPosition);
+
+                yPosition += 15;
+                doc.setFontSize(22);
+                doc.setFont("helvetica", "bold");
+                doc.text(`${item.id}: ${item.title}`, 20, yPosition);
+
+                yPosition += 5;
+                doc.setLineWidth(0.5);
+                doc.line(20, yPosition, 190, yPosition);
+
+                yPosition += 15;
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+
+                // Render content using autoTable to handle multi-page text automatically
+                doc.autoTable({
+                    startY: yPosition,
+                    body: [[item.content]],
+                    theme: 'plain',
+                    styles: {
+                        fontSize: 12,
+                        lineColor: 200,
+                        lineWidth: 0,
+                        cellPadding: { top: 0, right: 0, bottom: 0, left: 0 },
+                        textColor: [51, 65, 85], // Slate-700
+                        valign: 'top'
+                    },
+                    margin: { left: 20, right: 20 },
+                    didParseCell: function (data) {
+                        data.cell.styles.font = "helvetica";
+                    }
+                });
+
+                yPosition = doc.lastAutoTable.finalY + 10;
+
+                // Add data table if exists
+                if (item.tableData) {
+                    doc.autoTable({
+                        startY: yPosition,
+                        head: [item.tableData.headers],
+                        body: item.tableData.rows,
+                        theme: 'striped',
+                        headStyles: { fillColor: [245, 158, 11] }, // Amber-500
+                        styles: { fontSize: 10, cellPadding: 3 },
+                        margin: { left: 20, right: 20 }
+                    });
+                }
+
+                // Footer (at the bottom of page)
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(10);
+                    doc.setTextColor(150);
+                    doc.text("Generado por la App Web de Consulta Pobalines", 105, 280, null, null, "center");
+                }
+
+                doc.save(`${item.id}_Consulta.pdf`);
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--overlay)] backdrop-blur-sm fade-in animate-in fade-in zoom-in duration-200">
+                    <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        {/* Header */}
+                        <div className="bg-slate-50 border-b border-slate-200 p-6 flex justify-between items-start sticky top-0 bg-white z-10">
+                            <div>
+                                <div className="flex items-center space-x-3 mb-2">
+                                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full border border-amber-200">
+                                        {item.id}
+                                    </span>
+                                    <span className="text-slate-500 text-sm font-medium flex items-center">
+                                        <ChevronRight size={14} className="mx-1" /> {item.category}
+                                    </span>
+                                </div>
+                                <h2 className="text-2xl font-serif font-bold text-slate-800">{item.title}</h2>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-8 overflow-y-auto custom-scrollbar main-scrollbar flex-1 bg-white">
+                            <div className="prose prose-slate max-w-none">
+                                <p className="text-lg text-slate-700 leading-8 whitespace-pre-line text-justify">
+                                    {item.content}
+                                </p>
+                            </div>
+
+                            {/* Render Table if exists */}
+                            {item.tableData && (
+                                <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                                    <table className="w-full text-sm text-left text-slate-600">
+                                        <thead className="bg-slate-50 text-slate-800 uppercase font-bold text-xs tracking-wider border-b border-slate-200">
+                                            <tr>
+                                                {item.tableData.headers.map((header, index) => (
+                                                    <th key={index} className="px-6 py-4 whitespace-nowrap bg-slate-100/50">{header}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {item.tableData.rows.map((row, rowIndex) => (
+                                                <tr key={rowIndex} className="hover:bg-amber-50/30 transition-colors">
+                                                    {row.map((cell, cellIndex) => (
+                                                        <td key={cellIndex} className="px-6 py-4 whitespace-normal font-medium text-slate-700">
+                                                            {cell}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* GEMINI AI ASSISTANT SECTION */}
+                            <AIAssistant content={item.content} title={item.title} apiKey={apiKey} onOpenSettings={onOpenSettings} />
+
+                            <div className="mt-12 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                <h4 className="text-sm font-bold text-slate-900 mb-2">Nota Importante:</h4>
+                                <p className="text-sm text-slate-600">
+                                    Este lineamiento es de observancia obligatoria para las dependencias y organismos auxiliares del Poder Ejecutivo Estatal. El incumplimiento será sancionado en términos de la Ley de Responsabilidades.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 z-10">
+                            <button
+                                onClick={toggleFavorite}
+                                className={`flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl font-bold transition-all ${isFavorite ? 'bg-amber-100 text-amber-700 shadow-sm border border-amber-200' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50 hover:shadow-md'}`}
+                            >
+                                <Bookmark size={18} className={isFavorite ? "fill-current" : ""} />
+                                <span>{isFavorite ? 'Guardado en Favoritos' : 'Guardar en Favoritos'}</span>
+                            </button>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-all hover:shadow-md" onClick={() => window.print()}>
+                                    <Printer size={18} />
+                                    <span>Imprimir</span>
+                                </button>
+                                <button
+                                    onClick={generatePDF}
+                                    className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 active:scale-95"
+                                >
+                                    <Download size={18} />
+                                    <span>Exportar en PDF</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const SettingsModal = ({ isOpen, onClose, apiKey, setApiKey }) => {
+            const [localKey, setLocalKey] = useState(apiKey);
+            const [showKey, setShowKey] = useState(false);
+            const [saved, setSaved] = useState(false);
+
+            useEffect(() => {
+                if (isOpen) {
+                    setLocalKey(apiKey);
+                    setSaved(false);
+                }
+            }, [isOpen, apiKey]);
+
+            const handleSave = () => {
+                setApiKey(localKey);
+                localStorage.setItem('pobalines-api-key', localKey);
+                setSaved(true);
+                setTimeout(() => {
+                    setSaved(false);
+                }, 3000);
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md fade-in animate-in fade-in zoom-in duration-200">
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <div className="flex items-center space-x-2">
+                                <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                                    <Settings size={20} />
+                                </div>
+                                <h2 className="text-xl font-bold text-slate-800">Configuración</h2>
+                            </div>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-8">
+                            <div className="mb-6">
+                                <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center justify-between">
+                                    <span>Gemini API Key</span>
+                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-xs text-amber-600 hover:underline font-medium">Obtener Key gratuita →</a>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showKey ? "text" : "password"}
+                                        value={localKey}
+                                        onChange={(e) => setLocalKey(e.target.value)}
+                                        placeholder="Pega tu API Key aquí..."
+                                        className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-mono text-sm"
+                                    />
+                                    <button
+                                        onClick={() => setShowKey(!showKey)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        {showKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                <p className="mt-2 text-xs text-slate-500">
+                                    Tu API Key se guarda localmente en tu navegador y se usa para las funciones de Inteligencia Artificial.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={handleSave}
+                                className={`w-full py-3 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all ${saved ? 'bg-green-500 text-white shadow-green-100' : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98] shadow-lg shadow-slate-900/20'}`}
+                            >
+                                {saved ? (
+                                    <>
+                                        <CheckCircle size={20} />
+                                        <span>¡Guardado correctamente!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Guardar Configuración</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+            const [activeCategory, setActiveCategory] = useState('Todas');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedPobalin, setSelectedPobalin] = useState(null);
+            const [favorites, setFavorites] = useState([]);
+            const [apiKey, setApiKey] = useState(localStorage.getItem('pobalines-api-key') || '');
+            const [settingsOpen, setSettingsOpen] = useState(false);
+            const [userMenuOpen, setUserMenuOpen] = useState(false);
+            const [language, setLanguage] = useState('ES');
+            const [theme, setTheme] = useState(localStorage.getItem('pobalines-theme') || 'light');
+            const userMenuRef = useRef(null);
+
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('pobalines-theme', theme);
+            }, [theme]);
+
+            // Keyboard listener for ESC to clear search
+            useEffect(() => {
+                const handleEsc = (e) => {
+                    if (e.key === 'Escape') setSearchQuery('');
+                };
+                window.addEventListener('keydown', handleEsc);
+                return () => window.removeEventListener('keydown', handleEsc);
+            }, []);
+
+            // Click outside to close user menu
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                        setUserMenuOpen(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+
+            const toggleFavorite = (id) => {
+                if (favorites.includes(id)) {
+                    setFavorites(favorites.filter(favId => favId !== id));
+                } else {
+                    setFavorites([...favorites, id]);
+                }
+            };
+
+            const generateSummaryPDF = () => {
+                if (favorites.length === 0) {
+                    alert("No tienes POBALINES favoritos para exportar.");
+                    return;
+                }
+
+                if (!window.jspdf) {
+                    alert("El módulo de PDF se está cargando, intenta de nuevo en unos segundos.");
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const favItems = POBALINES_DB.filter(item => favorites.includes(item.id));
+
+                // Configuración de estilo
+                const amber = [245, 158, 11];
+                const slate = [30, 41, 59];
+
+                favItems.forEach((item, index) => {
+                    if (index > 0) doc.addPage();
+
+                    // Header
+                    doc.setFillColor(...amber);
+                    doc.rect(0, 0, 210, 25, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(14);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("RESUMEN DE POBALINES FAVORITOS", 105, 12, null, null, "center");
+                    doc.setFontSize(9);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`Página ${index + 1} de ${favItems.length}`, 105, 19, null, null, "center");
+
+                    let yPos = 40;
+
+                    // Item ID and Title
+                    doc.setTextColor(...slate);
+                    doc.setFontSize(10);
+                    doc.text(`Categoría: ${item.category}`, 20, yPos);
+
+                    yPos += 10;
+                    doc.setFontSize(18);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${item.id}: ${item.title}`, 20, yPos);
+
+                    yPos += 4;
+                    doc.setDrawColor(...amber);
+                    doc.setLineWidth(0.5);
+                    doc.line(20, yPos, 190, yPos);
+
+                    yPos += 12;
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "normal");
+
+                    const splitText = doc.splitTextToSize(item.content, 170);
+                    doc.text(splitText, 20, yPos);
+                    yPos += (splitText.length * 6) + 10;
+
+                    if (item.tableData) {
+                        doc.autoTable({
+                            startY: yPos,
+                            head: [item.tableData.headers],
+                            body: item.tableData.rows,
+                            theme: 'striped',
+                            headStyles: { fillColor: amber },
+                            margin: { left: 20, right: 20 },
+                            styles: { fontSize: 9 }
+                        });
+                    }
+                });
+
+                doc.save(`POBALINES_Resumen_Favoritos_${new Date().toLocaleDateString()}.pdf`);
+            };
+
+            const filteredPobalines = useMemo(() => {
+                return POBALINES_DB.filter(pobalin => {
+                    const matchesCategory =
+                        activeCategory === 'Todas' ? true :
+                            activeCategory === 'Favoritos' ? favorites.includes(pobalin.id) :
+                                pobalin.category === activeCategory;
+
+                    const matchesSearch =
+                        pobalin.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        pobalin.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        pobalin.content.toLowerCase().includes(searchQuery.toLowerCase());
+
+                    return matchesCategory && matchesSearch;
+                });
+            }, [activeCategory, searchQuery, favorites]);
+
+            return (
+                <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
+
+                    {/* Sidebar */}
+                    <Sidebar
+                        categories={CATEGORIES}
+                        activeCategory={activeCategory}
+                        onSelectCategory={(cat) => {
+                            setActiveCategory(cat);
+                            setSidebarOpen(false);
+                        }}
+                        isOpen={sidebarOpen}
+                        onClose={() => setSidebarOpen(false)}
+                        apiKey={apiKey}
+                        onOpenSettings={() => { setSettingsOpen(true); setSidebarOpen(false); }}
+                    />
+
+                    {/* Main Content */}
+                    <div className="flex-1 flex flex-col h-full min-w-0 bg-white main-layout-container">
+
+                        {/* Top Navbar */}
+                        <header className="bg-white border-b border-slate-200 min-h-[5rem] h-auto flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 lg:px-10 py-4 sm:py-0 z-10 gap-4">
+                            <div className="flex items-center space-x-4 sm:space-x-6 w-full sm:w-auto">
+                                <button
+                                    onClick={() => setSidebarOpen(true)}
+                                    className="lg:hidden p-2 text-slate-600 hover:text-slate-900 bg-slate-100 rounded-lg active:scale-95 transition-transform"
+                                >
+                                    <Menu size={24} />
+                                </button>
+                                <div className="hidden sm:block h-12 w-px bg-slate-200 shadow-[1px_0_0_rgba(255,255,255,0.8)]"></div>
+                                <div className="flex-1">
+                                    <h1 className="text-xl lg:text-3xl font-serif font-bold text-slate-900 tracking-tight leading-none">POBALINES</h1>
+                                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-amber-600 font-bold mt-1">Consulta de Normatividad Estatal</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                <img
+                                    src="assets/logo.png"
+                                    alt="Logo Edo Mex"
+                                    className="hidden lg:block h-12 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+                                />
+                                <div className="h-8 w-px bg-slate-200 mx-2 hidden lg:block"></div>
+                                <div className="flex items-center space-x-3">
+                                    {/* Theme Selector */}
+                                    <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                                        <button
+                                            onClick={() => setTheme('light')}
+                                            className={`p-1.5 rounded-md transition-all ${theme === 'light' ? 'bg-white shadow-sm text-amber-500' : 'text-slate-400 hover:text-slate-600'}`}
+                                            title="Modo Claro"
+                                        >
+                                            <Sun size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => setTheme('dark')}
+                                            className={`p-1.5 rounded-md transition-all ${theme === 'dark' ? 'bg-slate-800 shadow-sm text-amber-400' : 'text-slate-400 hover:text-slate-600'}`}
+                                            title="Modo Oscuro"
+                                        >
+                                            <Moon size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => setTheme('sepia')}
+                                            className={`p-1.5 rounded-md transition-all ${theme === 'sepia' ? 'bg-[#fdf6e3] shadow-sm text-[#d97706]' : 'text-slate-400 hover:text-slate-600'}`}
+                                            title="Modo Sepia"
+                                        >
+                                            <Coffee size={18} />
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setSettingsOpen(true)}
+                                        className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all"
+                                        title="Configuración de IA"
+                                    >
+                                        <Settings size={20} />
+                                    </button>
+
+                                    <div className="hidden md:flex items-center space-x-2 text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-md border border-slate-200">
+                                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                        <span>Sistema Activo</span>
+                                    </div>
+
+                                    <div className="relative" ref={userMenuRef}>
+                                        <div
+                                            onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                            className="h-10 w-10 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold cursor-pointer shadow-lg border-2 border-white/20 hover:scale-105 transition-transform active:scale-95"
+                                        >
+                                            CP
+                                        </div>
+
+                                        {userMenuOpen && (
+                                            <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 animate-in fade-in zoom-in duration-200 origin-top-right">
+                                                <div className="p-4 border-b border-slate-50 bg-slate-50/50">
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Usuario</p>
+                                                    <p className="text-sm font-bold text-slate-900">Control Patrimonial</p>
+                                                </div>
+                                                <div className="p-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setFavorites([]);
+                                                            setUserMenuOpen(false);
+                                                        }}
+                                                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors group"
+                                                    >
+                                                        <div className="p-1.5 bg-slate-100 group-hover:bg-red-100 rounded-lg transition-colors">
+                                                            <Trash size={16} />
+                                                        </div>
+                                                        <span className="font-medium">Limpiar Favoritos</span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            generateSummaryPDF();
+                                                            setUserMenuOpen(false);
+                                                        }}
+                                                        className="w-full flex items-center space-x-3 px-3 py-2.5 text-sm text-slate-600 hover:bg-amber-50 hover:text-amber-600 rounded-xl transition-colors group"
+                                                    >
+                                                        <div className="p-1.5 bg-slate-100 group-hover:bg-amber-100 rounded-lg transition-colors">
+                                                            <Download size={16} />
+                                                        </div>
+                                                        <div className="flex flex-col items-start text-left">
+                                                            <span className="font-medium">Exportar Resumen</span>
+                                                            <span className="text-[10px] text-slate-400">PDF con favoritos</span>
+                                                        </div>
+                                                    </button>
+                                                </div>
+                                                <div className="p-2 bg-slate-50 mt-1">
+                                                    <button className="w-full flex items-center space-x-3 px-3 py-2 text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                                                        <LogOut size={14} />
+                                                        <span>Cerrar Sesión</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Search and Filters Area */}
+                        <div className="px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
+                            <div className="max-w-4xl mx-auto">
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Search size={20} className="text-slate-400 group-focus-within:text-amber-500 transition-colors" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por ID (001), título o palabra clave..."
+                                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-lg"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                    {searchQuery && (
+                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                                            <button
+                                                onClick={() => setSearchQuery('')}
+                                                className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
+                                                title="Limpiar búsqueda"
+                                            >
+                                                <X size={20} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                                    <span className="text-slate-400 py-1">Sugerencias:</span>
+                                    {['Vehículos', 'Viáticos', 'Adquisiciones', 'Mantenimiento'].map(tag => (
+                                        <button
+                                            key={tag}
+                                            onClick={() => setSearchQuery(tag)}
+                                            className="px-3 py-1 bg-white border border-slate-200 rounded-full text-slate-600 hover:border-amber-400 hover:text-amber-600 transition-colors"
+                                        >
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Results Grid */}
+                        <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10 custom-scrollbar main-scrollbar bg-slate-50">
+                            <div className="max-w-6xl mx-auto">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-lg font-bold text-slate-800">
+                                        {activeCategory === 'Todas' ? 'Catálogo Completo' : activeCategory}
+                                        <span className="ml-2 text-sm font-normal text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">
+                                            {filteredPobalines.length}
+                                        </span>
+                                    </h2>
+                                </div>
+
+                                {filteredPobalines.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {filteredPobalines.map(pobalin => (
+                                            <PobalinCard
+                                                key={pobalin.id}
+                                                item={pobalin}
+                                                onClick={setSelectedPobalin}
+                                                isFavorite={favorites.includes(pobalin.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
+                                        <FileText size={64} className="text-slate-300 mb-4" />
+                                        <h3 className="text-xl font-medium text-slate-600">No se encontraron resultados</h3>
+                                        <p className="text-slate-400 mt-2">Intenta con otros términos de búsqueda o cambia de categoría.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Detail Modal */}
+                    {selectedPobalin && (
+                        <DetailView
+                            item={selectedPobalin}
+                            onClose={() => setSelectedPobalin(null)}
+                            toggleFavorite={() => toggleFavorite(selectedPobalin.id)}
+                            isFavorite={favorites.includes(selectedPobalin.id)}
+                            apiKey={apiKey}
+                            onOpenSettings={() => setSettingsOpen(true)}
+                        />
+                    )}
+
+                    {/* Settings Modal */}
+                    <SettingsModal
+                        isOpen={settingsOpen}
+                        onClose={() => setSettingsOpen(false)}
+                        apiKey={apiKey}
+                        setApiKey={setApiKey}
+                    />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

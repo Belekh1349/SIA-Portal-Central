@@ -774,6 +774,11 @@
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        try {
+            db.settings({ experimentalForceLongPolling: true });
+        } catch (e) {
+            console.warn("Error en settings de Firestore:", e);
+        }
         const recordsCol = db.collection('movimientos');
         const recordsBienesCol = db.collection('movimientos_bienes');
 
