@@ -305,6 +305,40 @@
         .instruction-content::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        /* Tooltip Premium */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+
+        [data-tooltip]:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 
@@ -648,7 +682,7 @@
                                         <th>Origen / Destino</th>
                                         <th>Bienes</th>
                                         <th>Solicita</th>
-                                        <th class="text-right">Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="historyBody">
@@ -804,7 +838,7 @@
                                         <th>Tipo / Área</th>
                                         <th>Solicitante</th>
                                         <th>Bienes</th>
-                                        <th class="text-right">Acciones</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="historyBodySolicitud">
@@ -1068,15 +1102,15 @@
                             <div class="font-bold text-white">${rec.solicita}</div>
                             <div class="text-[10px] uppercase tracking-tighter text-slate-500">${rec.puesto}</div>
                         </td>
-                        <td class="text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                <button onclick="exportRecordPDF('${rec.id}')" class="p-2 text-slate-600 hover:text-rose-500 transition-colors" title="Descargar Vale">
+                        <td class="text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="exportRecordPDF('${rec.id}')" class="p-2 text-slate-600 hover:text-rose-500 transition-colors" data-tooltip="Descargar Vale">
                                     <i data-lucide="file-down" class="w-4 h-4"></i>
                                 </button>
-                                <button onclick="checkAuth(() => editRecord('${rec.id}'))" class="p-2 text-slate-600 hover:text-amber-500 transition-colors" title="Editar (Protegido con Contraseña)">
+                                <button onclick="checkAuth(() => editRecord('${rec.id}'))" class="p-2 text-slate-600 hover:text-amber-500 transition-colors" data-tooltip="Modificar Registro">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </button>
-                                <button onclick="checkAuth(() => deleteRecord('${rec.id}'))" class="p-2 text-slate-600 hover:text-red-400 transition-colors" title="Eliminar (Protegido con Contraseña)">
+                                <button onclick="checkAuth(() => deleteRecord('${rec.id}'))" class="p-2 text-slate-600 hover:text-red-400 transition-colors" data-tooltip="Eliminar Registro">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
@@ -1985,11 +2019,17 @@
                         </td>
                         <td class="text-sm text-white font-medium">${rec.solicitante}</td>
                         <td class="text-xs text-slate-400 font-mono">${itemsText}</td>
-                        <td class="text-right">
-                            <div class="flex justify-end gap-1">
-                                <button onclick="exportSolicitudPDF('${rec.id}')" class="p-2 text-slate-400 hover:text-rose-500" title="Ver PDF"><i data-lucide="file-text" class="w-4 h-4"></i></button>
-                                <button onclick="checkAuth(() => editSolicitud('${rec.id}'))" class="p-2 text-slate-400 hover:text-amber-500" title="Editar (Protegido con Contraseña)"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                                <button onclick="checkAuth(() => deleteSolicitud('${rec.id}'))" class="p-2 text-slate-400 hover:text-red-500" title="Eliminar (Protegido con Contraseña)"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-1">
+                                <button onclick="exportSolicitudPDF('${rec.id}')" class="p-2 text-slate-400 hover:text-rose-500" data-tooltip="Descargar PDF">
+                                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="checkAuth(() => editSolicitud('${rec.id}'))" class="p-2 text-slate-400 hover:text-amber-500" data-tooltip="Modificar Solicitud">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="checkAuth(() => deleteSolicitud('${rec.id}'))" class="p-2 text-slate-400 hover:text-red-500" data-tooltip="Eliminar Solicitud">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
                             </div>
                         </td>
                     `;
