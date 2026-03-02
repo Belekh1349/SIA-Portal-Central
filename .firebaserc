@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "sirecoa-pro",
+    "default": "sia-control",
     "sia": "sia-control"
   },
   "targets": {
