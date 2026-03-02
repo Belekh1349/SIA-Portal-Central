@@ -245,6 +245,64 @@
                 transform: translate3d(4px, 0, 0);
             }
         }
+
+        /* Sliding Instruction Panel */
+        .instruction-panel {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: #0f172a;
+            z-index: 150;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 450px) {
+            .instruction-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        .instruction-panel.open {
+            right: 0;
+        }
+
+        .instruction-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 140;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .instruction-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .instruction-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .instruction-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .instruction-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .instruction-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
 
@@ -605,10 +663,16 @@
                             class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
                             <i data-lucide="file-signature" class="w-24 h-24"></i>
                         </div>
-                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
-                            Nueva Solicitud
-                        </h3>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold flex items-center gap-2">
+                                <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
+                                Nueva Solicitud
+                            </h3>
+                            <button onclick="toggleInstructions(true)"
+                                class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-all border border-white/5 flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                                <i data-lucide="help-circle" class="w-4 h-4 text-amber-500"></i> Guía
+                            </button>
+                        </div>
 
                         <form id="formSolicitud" class="space-y-4">
                             <div class="space-y-2">
@@ -2102,11 +2166,145 @@
 
         // Final Init Call to protect initial section
         showSection('entradas-salidas');
+
+        // Instructions Panel Logic
+        function toggleInstructions(open) {
+            const panel = document.getElementById('instructionPanel');
+            const overlay = document.getElementById('instructionOverlay');
+            if (open) {
+                panel.classList.add('open');
+                overlay.classList.add('active');
+                lucide.createIcons(); // Ensure icons in panel are rendered
+            } else {
+                panel.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        }
     </script>
 
     <script>
         lucide.createIcons();
     </script>
+
+    <!-- Instruction Panel Overlay -->
+    <div id="instructionOverlay" onclick="toggleInstructions(false)" class="instruction-overlay"></div>
+
+    <!-- Instruction Panel -->
+    <div id="instructionPanel" class="instruction-panel flex flex-col">
+        <div class="p-6 border-b border-white/5 flex items-center justify-between bg-slate-900/50">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-amber-500/10 rounded-lg">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-amber-500"></i>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold leading-none">Guía de Llenado</h3>
+                    <p class="text-slate-400 text-[10px] uppercase tracking-widest mt-1">Movimiento de Bienes</p>
+                </div>
+            </div>
+            <button onclick="toggleInstructions(false)"
+                class="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 instruction-content space-y-8">
+            <!-- Introducción -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-amber-500">
+                    <i data-lucide="info" class="w-4 h-4"></i>
+                    <h4 class="font-bold uppercase tracking-wider text-xs">Paso Inicial</h4>
+                </div>
+                <p class="text-sm text-slate-300 leading-relaxed bg-white/5 p-4 rounded-2xl border border-white/5">
+                    Desplazarse en el panel lateral a la sección <span class="text-white font-bold">"Solicitud de
+                        Movimiento de Bienes Muebles"</span>.
+                </p>
+            </section>
+
+            <!-- Campos -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-amber-500">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                    <h4 class="font-bold uppercase tracking-wider text-xs">Llenado de Campos</h4>
+                </div>
+                <ul class="space-y-3">
+                    <li class="flex gap-3 text-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <span class="text-slate-300"><strong class="text-white">Folio:</strong> Es automático, se genera
+                            con cada nueva solicitud.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <span class="text-slate-300"><strong class="text-white">Fecha:</strong> Seleccione la fecha de
+                            la solicitud.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <span class="text-slate-300"><strong class="text-white">Área:</strong> Indique el área que
+                            solicita el movimiento.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <span class="text-slate-300"><strong class="text-white">Solicitante:</strong> Nombre de quien
+                            requisita la solicitud.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <span class="text-slate-300"><strong class="text-white">Motivo:</strong> Describa detalles a
+                            realizar y/o tomar en cuenta.</span>
+                    </li>
+                    <li class="flex gap-3 text-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <span class="text-slate-300"><strong class="text-white">Visto Bueno:</strong> Nombre y cargo (se
+                            recomienda nivel Titular).</span>
+                    </li>
+                    <li class="flex gap-3 text-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                        <span class="text-slate-300"><strong class="text-white">Bienes:</strong> En caso de no conocer
+                            el inventario, dejar en blanco o poner <code
+                                class="bg-white/10 px-1 rounded text-amber-500 font-mono">S/N</code>.</span>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Acciones -->
+            <section class="space-y-4">
+                <div class="flex items-center gap-2 text-amber-500">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    <h4 class="font-bold uppercase tracking-wider text-xs">Finalización</h4>
+                </div>
+                <div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl space-y-3">
+                    <p class="text-sm text-slate-300">
+                        Al terminar, revise los datos y presione <span
+                            class="text-white font-bold text-xs bg-amber-600 px-2 py-1 rounded">GUARDAR
+                            SOLICITUD</span>.
+                    </p>
+                    <p class="text-sm text-slate-300">
+                        La solicitud aparecerá en el panel derecho para poder <span
+                            class="text-white font-bold underline">Descargar PDF</span>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Soporte -->
+            <section class="p-6 bg-slate-800 rounded-3xl border border-white/5 space-y-3">
+                <div class="flex items-center gap-2 text-white">
+                    <i data-lucide="phone-call" class="w-4 h-4"></i>
+                    <h4 class="font-bold text-sm">¿Necesitas cambios?</h4>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Para modificaciones por error de captura o eliminación, contacte vía correo institucional o teléfono
+                    al área de <span class="text-white font-bold">Control Patrimonial</span>.
+                </p>
+            </section>
+        </div>
+
+        <div class="p-6 bg-slate-900/80 border-t border-white/5">
+            <button onclick="toggleInstructions(false)"
+                class="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-all border border-white/10 uppercase tracking-widest text-xs">
+                Entendido
+            </button>
+        </div>
+    </div>
 </body>
 
 </html>
