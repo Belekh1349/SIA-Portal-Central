@@ -392,21 +392,68 @@
             color: #334155;
         }
 
-        /* --- Protección de contrastes --- */
+        /* --- Protección de contrastes y elementos de marca --- */
         body.light-mode .text-white:not(.btn-guinda *, .bg-guinda *, .bg-rose-600 *, .bg-slate-950 *, .bg-slate-900 *, .instruction-panel *) {
             color: #0f172a !important;
         }
 
-        body.light-mode .text-slate-400:not(.btn-guinda *, .bg-guinda *) {
+        body.light-mode .btn-guinda,
+        body.light-mode .bg-guinda {
+            background-color: #8B1A2D !important;
+            color: white !important;
+        }
+
+        body.light-mode .btn-guinda i,
+        body.light-mode .bg-guinda i,
+        body.light-mode .bg-amber-600 i,
+        body.light-mode .bg-rose-600 i {
+            color: white !important;
+        }
+
+        body.light-mode .text-slate-400:not(.btn-guinda *, .bg-guinda *, .bg-slate-950 *, .bg-slate-900 *) {
             color: #475569 !important;
         }
 
-        body.light-mode .text-slate-500:not(.btn-guinda *, .bg-guinda *) {
+        body.light-mode .text-slate-500:not(.btn-guinda *, .bg-guinda *, .bg-slate-950 *, .bg-slate-900 *) {
             color: #334155 !important;
         }
 
-        body.light-mode .text-slate-300:not(.btn-guinda *, .bg-guinda *) {
+        body.light-mode .text-slate-300:not(.btn-guinda *, .bg-guinda *, .bg-slate-950 *, .bg-slate-900 *) {
             color: #1e293b !important;
+        }
+
+        /* Botón Guardar: Menos saturado y con texto claro forzado */
+        body.light-mode .btn-guinda {
+            background: linear-gradient(135deg, #7a1627, #5c0f1d) !important;
+            border: none;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(139, 26, 45, 0.2);
+        }
+
+        body.light-mode .btn-guinda:hover {
+            background: linear-gradient(135deg, #8B1A2D, #6b1422) !important;
+            box-shadow: 0 6px 20px rgba(139, 26, 45, 0.3);
+        }
+
+        /* Logo Sidebar: Mantener fondo guinda */
+        body.light-mode #sidebar .bg-guinda {
+            background-color: #8B1A2D !important;
+            box-shadow: 0 4px 12px rgba(139, 26, 45, 0.15);
+        }
+
+        body.light-mode .title-gradient {
+            background: linear-gradient(to bottom, var(--guinda), #4c0519);
+            background: linear-gradient(to bottom, #8B1A2D, #4c0519);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        body:not(.light-mode) .title-gradient {
+            background: linear-gradient(to bottom, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         body.light-mode .bg-white\/5 {
@@ -423,38 +470,6 @@
 
         body.light-mode .bg-slate-900 {
             background-color: #e2e8f0 !important;
-        }
-
-        /* Botón Guardar más suave en modo claro */
-        body.light-mode .btn-guinda {
-            background: linear-gradient(135deg, #8B1A2D, #641121);
-            box-shadow: 0 4px 15px rgba(139, 26, 45, 0.2);
-        }
-
-        body.light-mode .btn-guinda:hover {
-            box-shadow: 0 6px 20px rgba(139, 26, 45, 0.3);
-            transform: translateY(-1px);
-        }
-
-        /* Logo Sidebar y Botón Principal */
-        body.light-mode #sidebar .bg-guinda i,
-        body.light-mode .btn-guinda i,
-        body.light-mode #sidebarOverlay i {
-            color: white !important;
-        }
-
-        body.light-mode .title-gradient {
-            background: linear-gradient(to bottom, var(--guinda), #4c0519);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        body:not(.light-mode) .title-gradient {
-            background: linear-gradient(to bottom, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         body.light-mode .light-icon {
