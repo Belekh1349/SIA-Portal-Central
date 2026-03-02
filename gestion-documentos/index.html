@@ -279,12 +279,14 @@
             z-index: 140;
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
             transition: all 0.3s ease;
         }
 
         .instruction-overlay.active {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
 
         .instruction-content::-webkit-scrollbar {
@@ -397,6 +399,16 @@
                         <i data-lucide="archive" class="w-5 h-5"></i>
                         <span class="font-semibold">Archivo Morto</span>
                     </button>
+
+                    <div class="pt-4 mt-4 border-t border-white/5">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4 px-4">Soporte</p>
+                        <button onclick="toggleInstructions(true)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-amber-500/10 transition-all group">
+                            <i data-lucide="help-circle"
+                                class="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform"></i>
+                            <span class="font-semibold">Guía de Llenado</span>
+                        </button>
+                    </div>
                 </nav>
             </div>
 
@@ -668,8 +680,8 @@
                                 <i data-lucide="plus-circle" class="text-amber-500 w-5 h-5"></i>
                                 Nueva Solicitud
                             </h3>
-                            <button onclick="toggleInstructions(true)"
-                                class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-all border border-white/5 flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                            <button id="btnGuiaForm" onclick="toggleInstructions(true)"
+                                class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-all border border-white/5 flex items-center gap-2 text-xs font-bold uppercase tracking-wider relative z-20">
                                 <i data-lucide="help-circle" class="w-4 h-4 text-amber-500"></i> Guía
                             </button>
                         </div>
