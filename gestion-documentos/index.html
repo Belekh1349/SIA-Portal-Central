@@ -356,22 +356,22 @@
         }
 
         body.light-mode .glass {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-color: rgba(0, 0, 0, 0.08);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
         }
 
         body.light-mode .sidebar-item:not(.active) {
-            color: #64748b;
+            color: #475569;
         }
 
         body.light-mode .sidebar-item:hover:not(.active) {
-            background: rgba(0, 0, 0, 0.03);
-            color: #0f172a;
+            background: rgba(139, 26, 45, 0.05);
+            color: var(--guinda);
         }
 
         body.light-mode .input-premium {
-            background: white;
+            background: #f8fafc;
             border-color: #e2e8f0;
             color: #0f172a;
         }
@@ -384,35 +384,37 @@
 
         body.light-mode .custom-table th {
             background: #f1f5f9;
-            color: #64748b;
+            color: #475569;
         }
 
         body.light-mode .custom-table td {
             border-bottom-color: #f1f5f9;
+            color: #334155;
         }
 
-        body.light-mode .text-white {
+        /* --- Protección de contrastes --- */
+        body.light-mode .text-white:not(.btn-guinda *, .bg-guinda *, .bg-rose-600 *, .bg-slate-950 *, .bg-slate-900 *, .instruction-panel *) {
             color: #0f172a !important;
         }
 
-        body.light-mode .text-slate-400 {
+        body.light-mode .text-slate-400:not(.btn-guinda *, .bg-guinda *) {
             color: #475569 !important;
         }
 
-        body.light-mode .text-slate-500 {
-            color: #64748b !important;
+        body.light-mode .text-slate-500:not(.btn-guinda *, .bg-guinda *) {
+            color: #334155 !important;
         }
 
-        body.light-mode .text-slate-300 {
+        body.light-mode .text-slate-300:not(.btn-guinda *, .bg-guinda *) {
             color: #1e293b !important;
         }
 
         body.light-mode .bg-white\/5 {
-            background-color: rgba(0, 0, 0, 0.03) !important;
+            background-color: rgba(0, 0, 0, 0.04) !important;
         }
 
         body.light-mode .border-white\/5 {
-            border-color: rgba(0, 0, 0, 0.05) !important;
+            border-color: rgba(0, 0, 0, 0.08) !important;
         }
 
         body.light-mode .bg-slate-800 {
@@ -420,14 +422,39 @@
         }
 
         body.light-mode .bg-slate-900 {
-            background-color: #f8fafc !important;
+            background-color: #e2e8f0 !important;
         }
 
-        /* Excepciones para mantener contraste en elementos guinda/amber */
-        body.light-mode .btn-guinda .text-white,
-        body.light-mode .bg-guinda .text-white,
-        body.light-mode .bg-amber-600 .text-white {
+        /* Botón Guardar más suave en modo claro */
+        body.light-mode .btn-guinda {
+            background: linear-gradient(135deg, #8B1A2D, #641121);
+            box-shadow: 0 4px 15px rgba(139, 26, 45, 0.2);
+        }
+
+        body.light-mode .btn-guinda:hover {
+            box-shadow: 0 6px 20px rgba(139, 26, 45, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Logo Sidebar y Botón Principal */
+        body.light-mode #sidebar .bg-guinda i,
+        body.light-mode .btn-guinda i,
+        body.light-mode #sidebarOverlay i {
             color: white !important;
+        }
+
+        body.light-mode .title-gradient {
+            background: linear-gradient(to bottom, var(--guinda), #4c0519);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        body:not(.light-mode) .title-gradient {
+            background: linear-gradient(to bottom, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         body.light-mode .light-icon {
