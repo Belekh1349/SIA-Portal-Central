@@ -339,6 +339,112 @@
             visibility: visible;
             transform: translateX(-50%) translateY(0);
         }
+
+        /* --- MODO CLARO --- */
+        body.light-mode {
+            --bg-body: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .bg-mesh {
+            background-image:
+                radial-gradient(at 0% 0%, rgba(139, 26, 45, 0.05) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.05) 0, transparent 50%);
+        }
+
+        body.light-mode .glass {
+            background: white;
+            border-color: rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        body.light-mode .sidebar-item:not(.active) {
+            color: #64748b;
+        }
+
+        body.light-mode .sidebar-item:hover:not(.active) {
+            background: rgba(0, 0, 0, 0.03);
+            color: #0f172a;
+        }
+
+        body.light-mode .input-premium {
+            background: white;
+            border-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        body.light-mode .input-premium:focus {
+            background: white;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        }
+
+        body.light-mode .custom-table th {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        body.light-mode .custom-table td {
+            border-bottom-color: #f1f5f9;
+        }
+
+        body.light-mode .text-white {
+            color: #0f172a !important;
+        }
+
+        body.light-mode .text-slate-400 {
+            color: #475569 !important;
+        }
+
+        body.light-mode .text-slate-500 {
+            color: #64748b !important;
+        }
+
+        body.light-mode .text-slate-300 {
+            color: #1e293b !important;
+        }
+
+        body.light-mode .bg-white\/5 {
+            background-color: rgba(0, 0, 0, 0.03) !important;
+        }
+
+        body.light-mode .border-white\/5 {
+            border-color: rgba(0, 0, 0, 0.05) !important;
+        }
+
+        body.light-mode .bg-slate-800 {
+            background-color: #f1f5f9 !important;
+        }
+
+        body.light-mode .bg-slate-900 {
+            background-color: #f8fafc !important;
+        }
+
+        /* Excepciones para mantener contraste en elementos guinda/amber */
+        body.light-mode .btn-guinda .text-white,
+        body.light-mode .bg-guinda .text-white,
+        body.light-mode .bg-amber-600 .text-white {
+            color: white !important;
+        }
+
+        body.light-mode .light-icon {
+            display: block;
+        }
+
+        body.light-mode .dark-icon {
+            display: none;
+        }
+
+        body:not(.light-mode) .light-icon {
+            display: none;
+        }
+
+        body:not(.light-mode) .dark-icon {
+            display: block;
+        }
     </style>
 </head>
 
@@ -472,7 +578,13 @@
                                 (CLEAN-UI)</span></p>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleTheme()" id="themeToggle"
+                        class="p-3 glass rounded-xl text-slate-400 hover:text-amber-500 transition-all active:scale-95 group"
+                        data-tooltip="Cambiar Tema">
+                        <i data-lucide="moon" class="w-5 h-5 dark-icon"></i>
+                        <i data-lucide="sun" class="w-5 h-5 light-icon"></i>
+                    </button>
                     <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
                         <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span class="text-xs font-bold uppercase tracking-widest text-emerald-500">Sistema Activo</span>
@@ -2223,6 +2335,20 @@
     </script>
 
     <script>
+        // Theme Logic
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            localStorage.setItem('sia-theme', isLight ? 'light' : 'dark');
+            lucide.createIcons();
+        }
+
+        // Apply theme on load
+        if (localStorage.getItem('sia-theme') === 'light') {
+            document.body.classList.add('light-mode');
+        }
+
         function toggleInstructions(open) {
             console.log("Toggle Instructions:", open);
             const panel = document.getElementById('instructionPanel');
