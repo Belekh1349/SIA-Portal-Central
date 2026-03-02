@@ -599,6 +599,24 @@
             color: var(--text-main) !important;
         }
 
+        /* Button visibility fixes for light/sepia */
+        body.light .btn-outline,
+        body.sepia .btn-outline {
+            border-color: var(--border) !important;
+        }
+
+        body.light .mode-btn:not(.active),
+        body.sepia .mode-btn:not(.active) {
+            color: var(--text-main) !important;
+            background: var(--glass) !important;
+        }
+
+        body.light .ai-assistant,
+        body.sepia .ai-assistant {
+            background: var(--glass) !important;
+            border-color: var(--border) !important;
+        }
+
         .nav-btn i {
             width: 20px;
             text-align: center;
@@ -932,7 +950,7 @@
         .btn-outline {
             background: transparent;
             border: 1px solid var(--border);
-            color: #fff;
+            color: var(--text-main);
         }
 
         .btn-outline:hover {
@@ -1503,7 +1521,43 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
+
+        /* CRITICAL CONTRAST FIXES - LAST RESORT */
+        body.light .btn-outline,
+        body.sepia .btn-outline {
+            color: #0f172a !important;
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        body.light .mode-btn:not(.active),
+        body.sepia .mode-btn:not(.active) {
+            color: #334155 !important;
+        }
+
+        body.light .ai-assistant,
+        body.sepia .ai-assistant {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        }
+
+        body.light .report-section h3,
+        body.sepia .report-section h3,
+        body.light .ai-assistant div,
+        body.sepia .ai-assistant div {
+            color: #0f172a !important;
+        }
+
+        body.light .mode-btn,
+        body.sepia .mode-btn {
+            color: #334155 !important;
+        }
+
+        body.light .mode-btn.active,
+        body.sepia .mode-btn.active {
+            color: #ffffff !important;
+        }
     </style>
+
 </head>
 
 <body>
