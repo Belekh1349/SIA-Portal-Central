@@ -2167,22 +2167,27 @@
         // Final Init Call to protect initial section
         showSection('entradas-salidas');
 
-        // Instructions Panel Logic
+
+    </script>
+
+    <script>
         function toggleInstructions(open) {
+            console.log("Toggle Instructions:", open);
             const panel = document.getElementById('instructionPanel');
             const overlay = document.getElementById('instructionOverlay');
+            if (!panel || !overlay) {
+                console.error("Panel/Overlay no encontrados");
+                return;
+            }
             if (open) {
                 panel.classList.add('open');
                 overlay.classList.add('active');
-                lucide.createIcons(); // Ensure icons in panel are rendered
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             } else {
                 panel.classList.remove('open');
                 overlay.classList.remove('active');
             }
         }
-    </script>
-
-    <script>
         lucide.createIcons();
     </script>
 
