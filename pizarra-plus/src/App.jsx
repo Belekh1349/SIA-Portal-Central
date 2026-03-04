@@ -19,13 +19,13 @@ import {
 
 // --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
-    apiKey: "AIzaSyAHI5_yqSRwhLGcXYdvTfZANDt_iWQ-K_M",
+    apiKey: "AIzaSyAhOVUwOUiwjpVmAjL3-QMIUqy4izRTRwk",
     authDomain: "sia-control.firebaseapp.com",
     projectId: "sia-control",
     storageBucket: "sia-control.firebasestorage.app",
     messagingSenderId: "933718961367",
-    appId: "1:933718961367:web:2cbae344c58b3bbccdd492",
-    measurementId: "G-3XP86VY2B4"
+    appId: "1:933718961367:web:f58d03b39e0bd925cdd492",
+    measurementId: "G-W6C3PFP743"
 };
 
 // Initialize Firebase only once
