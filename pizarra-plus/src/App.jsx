@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, onSnapshot, query, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot, query, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, getDocs, orderBy } from 'firebase/firestore';
 import {
     getAuth,
     signInAnonymously,
@@ -318,7 +318,20 @@ export default function App() {
                             </div>
                         </div>
                         <button
-                            onClick={() => setIsAdmin(!isAdmin)}
+                            onClick={() => {
+                                if (isAdmin) {
+                                    setIsAdmin(false);
+                                    showToast('Sesión admin cerrada');
+                                } else {
+                                    const pass = window.prompt('Clave de administrador:');
+                                    if (pass === 'Admin-Pizarra-2024') {
+                                        setIsAdmin(true);
+                                        showToast('¡Modo Admin activo!');
+                                    } else if (pass !== null) {
+                                        showToast('Clave incorrecta', 'error');
+                                    }
+                                }
+                            }}
                             className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${isAdmin ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400'}`}
                         >
                             {isAdmin ? 'Admin Mode (On)' : 'Unlock Admin'}
