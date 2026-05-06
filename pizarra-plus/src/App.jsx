@@ -4,11 +4,12 @@ import {
     ChevronRight, ExternalLink, Search, MessageSquare, Image as ImageIcon,
     Clock, Presentation, Sparkles, Send, Loader2, Mail, CheckCircle2,
     AlertCircle, FileSearch, Zap, Upload, File, X, Users, Filter, ArrowRight,
-    Menu, Moon, Sun, MoreVertical, Trash2, Edit3
+    Menu, Moon, Sun, MoreVertical, Trash2, Edit3, ShieldCheck, MessageCircle, Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, onSnapshot, query, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, getDocs, orderBy } from 'firebase/firestore';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import {
     getAuth,
     signInAnonymously,
@@ -32,10 +33,11 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'pizarra-v2';
 
 // --- INTEGRACIÓN GEMINI API ---
-const apiKey = ""; // La API Key debería venir de una variable de entorno idealmente
+const apiKey = "AIzaSyDfPvnAO6elDQUx68IqYFNcAa0ACbUW338";
 
 const callGemini = async (prompt, systemInstruction = "") => {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
@@ -106,12 +108,17 @@ export default function App() {
     const [formContent, setFormContent] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
     const [notifyStaff, setNotifyStaff] = useState(true);
+    const [notifyWhatsApp, setNotifyWhatsApp] = useState(false);
+    const [whatsAppTarget, setWhatsAppTarget] = useState('');
+    const [showAdminLogin, setShowAdminLogin] = useState(false);
+    const [adminPassInput, setAdminPassInput] = useState('');
 
     // Estados de Datos
     const [announcements, setAnnouncements] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [documents, setDocuments] = useState([]);
     const [events, setEvents] = useState([]);
+    const [contacts, setContacts] = useState([]);
 
     // Chat Asistente
     const [chatMessages, setChatMessages] = useState([
@@ -135,7 +142,8 @@ export default function App() {
                 announcements: collection(db, 'artifacts', appId, 'public', 'data', 'announcements'),
                 tasks: collection(db, 'artifacts', appId, 'public', 'data', 'tasks'),
                 documents: collection(db, 'artifacts', appId, 'public', 'data', 'documents'),
-                events: collection(db, 'artifacts', appId, 'public', 'data', 'events')
+                events: collection(db, 'artifacts', appId, 'public', 'data', 'events'),
+                contacts: collection(db, 'artifacts', appId, 'public', 'data', 'contacts')
             };
 
             const unsubs = Object.entries(paths).map(([key, ref]) => {
@@ -145,6 +153,7 @@ export default function App() {
                     if (key === 'tasks') setTasks(data);
                     if (key === 'documents') setDocuments(data);
                     if (key === 'events') setEvents(data);
+                    if (key === 'contacts') setContacts(data);
                 });
             });
 
@@ -159,24 +168,43 @@ export default function App() {
     const filteredData = useMemo(() => {
         const q = searchQuery.toLowerCase();
 
+        const isNotBlank = (item) => item.title?.trim() || item.content?.trim();
+
         const filterBySearch = (item) =>
             item.title?.toLowerCase().includes(q) ||
             item.content?.toLowerCase().includes(q) ||
             item.assignedTo?.toLowerCase().includes(q);
 
         switch (activeTab) {
-            case 'inicio': return announcements.filter(filterBySearch);
+            case 'inicio': return announcements.filter(isNotBlank).filter(filterBySearch);
             case 'tareas':
-                return tasks.filter(t => {
+                return tasks.filter(isNotBlank).filter(t => {
                     const matchesSearch = filterBySearch(t);
                     if (filterType === 'all') return matchesSearch;
-                    return matchesSearch && t.status === filterType;
+                    return matchesSearch && (t.status === filterType || (!t.status && filterType === 'pendiente'));
                 });
-            case 'documentos': return documents.filter(filterBySearch);
-            case 'calendario': return events.filter(filterBySearch);
+            case 'documentos': return documents.filter(isNotBlank).filter(filterBySearch);
+            case 'calendario': return events.filter(isNotBlank).filter(filterBySearch);
+            case 'contactos': return contacts.filter(isNotBlank).filter(filterBySearch);
             default: return [];
         }
-    }, [activeTab, searchQuery, filterType, announcements, tasks, documents, events]);
+    }, [activeTab, searchQuery, filterType, announcements, tasks, documents, events, contacts]);
+
+    const handleDelete = async (coll, id) => {
+        if (!window.confirm('¿Seguro que quieres eliminar esta entrada?')) return;
+        const tabToCollection = {
+            'inicio': 'announcements',
+            'tareas': 'tasks',
+            'documentos': 'documents',
+            'calendario': 'events',
+            'contactos': 'contacts'
+        };
+        try {
+            const collectionName = tabToCollection[coll] || coll;
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, id));
+            showToast('Entrada eliminada');
+        } catch (e) { showToast('Error al eliminar', 'error'); }
+    };
 
     // --- ACCIONES IA ---
 
@@ -215,35 +243,85 @@ export default function App() {
 
     const handleAddItem = async (e) => {
         e.preventDefault();
-        setIsUploading(true);
 
-        // Simulación de carga
-        if (selectedFile) {
-            for (let i = 0; i <= 100; i += 25) {
-                setUploadProgress(i);
-                await new Promise(r => setTimeout(r, 150));
-            }
+        if (!formTitle.trim() || !formContent.trim()) {
+            showToast('El título y contenido no pueden estar vacíos', 'error');
+            return;
         }
 
-        const data = {
-            title: formTitle,
-            content: formContent,
-            createdAt: new Date().toISOString(),
-            author: user?.uid || 'anon',
-            ...(activeTab === 'tareas' && { status: 'pendiente', priority: e.target.priority?.value || 'normal', assignedTo: e.target.assignedTo?.value }),
-            ...(activeTab === 'documentos' && { fileName: selectedFile?.name, fileSize: (selectedFile?.size / 1024).toFixed(1) + ' KB' }),
-            ...(activeTab === 'calendario' && { date: e.target.date?.value, time: e.target.time?.value })
-        };
+        setIsUploading(true);
+        setUploadProgress(0);
+
+        let fileUrl = "";
 
         try {
-            let coll = activeTab === 'inicio' ? 'announcements' : activeTab;
-            if (coll === 'calendario') coll = 'events';
+            // --- SUBIDA REAL A FIREBASE STORAGE ---
+            if (selectedFile) {
+                const fileRef = ref(storage, `pizarra/${appId}/${Date.now()}_${selectedFile.name}`);
+                const uploadTask = uploadBytesResumable(fileRef, selectedFile);
+
+                fileUrl = await new Promise((resolve, reject) => {
+                    uploadTask.on('state_changed',
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            setUploadProgress(progress);
+                        },
+                        (error) => {
+                            console.error("Storage error:", error);
+                            reject(error);
+                        },
+                        async () => {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            resolve(downloadURL);
+                        }
+                    );
+                });
+            }
+
+            const data = {
+                title: formTitle,
+                content: formContent,
+                createdAt: new Date().toISOString(),
+                author: user?.uid || 'anon',
+                ...(activeTab === 'tareas' && { status: 'pendiente', priority: e.target.priority?.value || 'normal', assignedTo: e.target.assignedTo?.value }),
+                ...(activeTab === 'documentos' && {
+                    fileName: selectedFile?.name,
+                    fileSize: (selectedFile?.size / 1024).toFixed(1) + ' KB',
+                    fileUrl: fileUrl
+                }),
+                ...(activeTab === 'calendario' && { date: e.target.date?.value, time: e.target.time?.value }),
+                ...(activeTab === 'contactos' && { whatsapp: e.target.contactPhone?.value, email: e.target.contactEmail?.value })
+            };
+
+            const tabToCollection = {
+                'inicio': 'announcements',
+                'tareas': 'tasks',
+                'documentos': 'documents',
+                'calendario': 'events',
+                'contactos': 'contacts'
+            };
+            const coll = tabToCollection[activeTab] || activeTab;
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', coll), data);
+
+            // --- LOGICA DE NOTIFICACIÓN WHATSAPP ---
+            if (notifyWhatsApp && whatsAppTarget.trim()) {
+                const message = encodeURIComponent(`📢 *NIUEVA PUBLICACIÓN EN PIZARRA PLUS*\n\n📌 *Título:* ${formTitle}\n📝 *Contenido:* ${formContent}\n\n🔗 _Consulta los detalles en la app._`);
+                // Limpiar el número de espacios y caracteres especiales
+                const cleanTarget = whatsAppTarget.replace(/\D/g, '');
+                const waUrl = cleanTarget.length >= 8
+                    ? `https://wa.me/${cleanTarget}?text=${message}`
+                    : `https://wa.me/?text=${message}`; // Si es grupo o vacío el número, abre share genérico
+
+                window.open(waUrl, '_blank');
+            }
+
             showToast('¡Fijado en la pizarra con éxito!');
             setShowAddModal(false);
             setFormTitle('');
             setFormContent('');
             setSelectedFile(null);
+            setNotifyWhatsApp(false);
+            setWhatsAppTarget('');
         } catch (err) {
             showToast('Error al guardar', 'error');
         } finally {
@@ -256,6 +334,17 @@ export default function App() {
         try {
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.id), { status: newStatus });
         } catch (e) { console.error(e); }
+    };
+
+    const handleAdminLogin = () => {
+        if (adminPassInput === 'Admin_00') {
+            setIsAdmin(true);
+            setShowAdminLogin(false);
+            setAdminPassInput('');
+            showToast('¡Acceso concedido!');
+        } else {
+            showToast('Clave incorrecta', 'error');
+        }
     };
 
     return (
@@ -292,13 +381,23 @@ export default function App() {
                     {[
                         { id: 'inicio', icon: Bell, label: 'Comunicados' },
                         { id: 'tareas', icon: CheckSquare, label: 'Flujo de Tareas' },
+                        { id: 'contactos', icon: Users, label: 'Directorio' },
                         { id: 'documentos', icon: FileText, label: 'Biblioteca' },
                         { id: 'calendario', icon: Calendar, label: 'Eventos' },
                         { id: 'asistente', icon: Sparkles, label: 'Asistente IA', premium: true }
                     ].map(item => (
                         <button
                             key={item.id}
-                            onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
+                            onClick={() => {
+                                if (item.id === 'asistente' && !isAdmin) {
+                                    showToast('Desbloquea el modo admin para acceder al asistente', 'error');
+                                    setShowAdminLogin(true);
+                                    setIsSidebarOpen(false);
+                                } else {
+                                    setActiveTab(item.id);
+                                    setIsSidebarOpen(false);
+                                }
+                            }}
                             className={`w-full sidebar-link ${activeTab === item.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}
                         >
                             <item.icon className={`w-5 h-5 ${item.premium && activeTab !== item.id ? 'text-indigo-400' : ''}`} />
@@ -321,15 +420,11 @@ export default function App() {
                             onClick={() => {
                                 if (isAdmin) {
                                     setIsAdmin(false);
+                                    if (activeTab === 'asistente') setActiveTab('inicio');
                                     showToast('Sesión admin cerrada');
                                 } else {
-                                    const pass = window.prompt('Clave de administrador:');
-                                    if (pass === 'Admin-Pizarra-2024') {
-                                        setIsAdmin(true);
-                                        showToast('¡Modo Admin activo!');
-                                    } else if (pass !== null) {
-                                        showToast('Clave incorrecta', 'error');
-                                    }
+                                    setIsSidebarOpen(false); // Cierra el sidebar al abrir el modal
+                                    setShowAdminLogin(true);
                                 }
                             }}
                             className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all ${isAdmin ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400'}`}
@@ -351,195 +446,308 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center gap-6">
+                        {/* Search Bar - Solo en Escritorio */}
                         <div className="hidden md:flex relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                             <input
                                 type="text"
                                 placeholder="Buscar en la pizarra..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-12 pr-6 py-2.5 bg-white border-none rounded-2xl w-64 shadow-sm focus:ring-2 focus:ring-indigo-500/20 text-sm outline-none transition-all"
+                                className="w-80 h-11 pl-12 pr-4 bg-white/50 border border-slate-200/50 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all backdrop-blur-sm"
                             />
                         </div>
-                        {isAdmin && activeTab !== 'asistente' && (
+
+                        {isAdmin ? (
                             <button
                                 onClick={() => setShowAddModal(true)}
-                                className="btn-primary flex items-center gap-2"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-2xl font-black text-sm hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95"
                             >
-                                <Plus className="w-5 h-5" />
-                                <span className="hidden sm:inline">Nueva Entrada</span>
+                                <Plus className="w-4 h-4" />
+                                <span>Nueva Entrada</span>
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => showToast('Desbloquea el modo admin para editar', 'error')}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-400 rounded-2xl font-black text-sm cursor-not-allowed opacity-50"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Nueva Entrada</span>
                             </button>
                         )}
                     </div>
                 </header>
 
-                {/* Scrollable Content */}
-                <main className="flex-1 overflow-y-auto p-8 space-y-8">
-
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab + searchQuery + filterType}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.3 }}
-                        >
-
-                            {/* VISTA: INICIO / COMUNICADOS */}
-                            {activeTab === 'inicio' && (
-                                <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
-                                    {filteredData.map((item, idx) => (
-                                        <Card key={item.id} className="relative overflow-hidden">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-3 mb-3">
-                                                        <Badge variant="indigo">Comunicado</Badge>
-                                                        <span className="text-[10px] text-slate-400 flex items-center gap-1 font-bold"><Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString()}</span>
-                                                    </div>
-                                                    <h3 className="text-2xl font-black text-slate-800 mb-3 leading-tight">{item.title}</h3>
-                                                    <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-wrap">{item.content}</p>
-                                                </div>
-                                                <div className="ml-4 w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-                                                    <Bell className="w-6 h-6" />
-                                                </div>
+                <main className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-premium">
+                    <div className="max-w-7xl mx-auto h-full">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                {activeTab === 'inicio' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        {filteredData.length === 0 ? (
+                                            <div className="col-span-full h-96 flex flex-col items-center justify-center text-slate-400 opacity-60">
+                                                <Presentation className="w-20 h-20 mb-6 stroke-1 animate-pulse" />
+                                                <p className="font-medium text-lg italic">Silencio en el mural...</p>
                                             </div>
-                                        </Card>
-                                    ))}
-                                    {filteredData.length === 0 && <div className="text-center py-20 text-slate-400 font-bold italic opacity-50">Silencio en el mural...</div>}
-                                </div>
-                            )}
+                                        ) : (
+                                            filteredData.map((item) => (
+                                                <Card key={item.id} className="relative overflow-hidden group">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-4">
+                                                                <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-wider">Comunicado</span>
+                                                                <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                            <h3 className="text-2xl font-black text-slate-800 mb-3 leading-tight">{item.title || "Sin Título"}</h3>
+                                                            <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-wrap">{item.content || "Sin contenido..."}</p>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-2">
+                                                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                                                                <Bell className="w-6 h-6" />
+                                                            </div>
+                                                            {isAdmin && (
+                                                                <button onClick={() => handleDelete('inicio', item.id)} className="p-2 text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100">
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
 
-                            {/* VISTA: TAREAS */}
-                            {activeTab === 'tareas' && (
-                                <div className="max-w-5xl mx-auto space-y-6">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <div className="flex items-center gap-2 bg-white/50 p-1 rounded-2xl border border-white">
-                                            {['all', 'pendiente', 'completada'].map(f => (
-                                                <button
-                                                    key={f}
-                                                    onClick={() => setFilterType(f)}
-                                                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-tighter transition-all ${filterType === f ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                                                >
-                                                    {f === 'all' ? 'Todas' : f}
-                                                </button>
+                                {/* VISTA: TAREAS */}
+                                {activeTab === 'tareas' && (
+                                    <div className="max-w-5xl mx-auto space-y-6">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="flex items-center gap-2 bg-white/50 p-1 rounded-2xl border border-white">
+                                                {['all', 'pendiente', 'completada'].map(f => (
+                                                    <button
+                                                        key={f}
+                                                        onClick={() => setFilterType(f)}
+                                                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-tighter transition-all ${filterType === f ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    >
+                                                        {f === 'all' ? 'Todas' : f}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {filteredData.map(task => (
+                                                <Card key={task.id} className={`relative group border-l-4 ${task.status === 'completada' ? 'border-l-emerald-500 grayscale-[0.5]' : 'border-l-indigo-500'}`}>
+                                                    <div className="flex items-start gap-4">
+                                                        <button
+                                                            onClick={() => toggleTask(task)}
+                                                            className={`mt-1 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${task.status === 'completada' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-indigo-400'}`}
+                                                        >
+                                                            {task.status === 'completada' && <CheckCircle2 className="w-5 h-5" />}
+                                                        </button>
+                                                        <div className="flex-1">
+                                                            <div className="flex justify-between items-start">
+                                                                <h4 className={`text-lg font-bold ${task.status === 'completada' ? 'line-through text-slate-400' : 'text-slate-800'}`}>{task.title || "Sin Título"}</h4>
+                                                                {isAdmin && (
+                                                                    <button onClick={() => handleDelete('tareas', task.id)} className="p-1 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex gap-2 my-2">
+                                                                <Badge variant={task.priority === 'alta' ? 'danger' : 'default'}>{task.priority || 'Normal'}</Badge>
+                                                                {task.assignedTo && <span className="text-[10px] font-bold text-indigo-500 flex items-center gap-1"><Users className="w-3 h-3" /> {task.assignedTo}</span>}
+                                                            </div>
+                                                            <p className="text-sm text-slate-500">{task.content || "Sin contenido..."}</p>
+                                                        </div>
+                                                    </div>
+                                                </Card>
                                             ))}
+                                            {activeTab === 'tareas' && filteredData.length === 0 && (
+                                                <div className="col-span-full py-20 text-center text-slate-400">
+                                                    <CheckSquare className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                                    <p>No hay tareas que coincidan con el filtro.</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
+                                )}
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {filteredData.map(task => (
-                                            <Card key={task.id} className={`border-l-4 ${task.status === 'completada' ? 'border-l-emerald-500 grayscale-[0.5]' : 'border-l-indigo-500'}`}>
-                                                <div className="flex items-start gap-4">
+                                {/* VISTA: DOCUMENTOS */}
+                                {activeTab === 'documentos' && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {filteredData.map(doc => (
+                                            <Card key={doc.id} className="group cursor-pointer relative">
+                                                <div className="bg-slate-50 rounded-2xl h-40 flex items-center justify-center mb-4 transition-colors group-hover:bg-indigo-50">
+                                                    <FileSearch className="w-12 h-12 text-slate-300 group-hover:text-indigo-400 transition-all transform group-hover:scale-110" />
+                                                </div>
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h4 className="font-bold text-slate-800 truncate">{doc.title || "Sin Título"}</h4>
+                                                    {isAdmin && (
+                                                        <button onClick={(e) => { e.stopPropagation(); handleDelete('documentos', doc.id); }} className="p-1 text-slate-200 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{doc.fileSize || 'Desconocido'}</p>
+                                                <div className="mt-4 flex gap-2">
                                                     <button
-                                                        onClick={() => toggleTask(task)}
-                                                        className={`mt-1 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${task.status === 'completada' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-indigo-400'}`}
+                                                        onClick={() => doc.fileUrl ? window.open(doc.fileUrl, '_blank') : showToast('Sin URL del archivo', 'error')}
+                                                        className="flex-1 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-xl active:scale-95 transition-all text-center"
                                                     >
-                                                        {task.status === 'completada' && <CheckCircle2 className="w-5 h-5" />}
+                                                        Ver Ahora
                                                     </button>
-                                                    <div className="flex-1">
-                                                        <h4 className={`text-lg font-bold ${task.status === 'completada' ? 'line-through text-slate-400' : 'text-slate-800'}`}>{task.title}</h4>
-                                                        <div className="flex gap-2 my-2">
-                                                            <Badge variant={task.priority === 'alta' ? 'danger' : 'default'}>{task.priority || 'Normal'}</Badge>
-                                                            {task.assignedTo && <span className="text-[10px] font-bold text-indigo-500 flex items-center gap-1"><Users className="w-3 h-3" /> {task.assignedTo}</span>}
-                                                        </div>
-                                                        <p className="text-sm text-slate-500">{task.content}</p>
-                                                    </div>
+                                                    <button
+                                                        onClick={() => doc.fileUrl ? window.open(doc.fileUrl, '_blank') : showToast('Sin enlace', 'error')}
+                                                        className="w-10 h-10 border border-slate-100 flex items-center justify-center rounded-xl hover:bg-slate-50 text-slate-400"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             </Card>
                                         ))}
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* VISTA: DOCUMENTOS */}
-                            {activeTab === 'documentos' && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredData.map(doc => (
-                                        <Card key={doc.id} className="group cursor-pointer">
-                                            <div className="bg-slate-50 rounded-2xl h-40 flex items-center justify-center mb-4 transition-colors group-hover:bg-indigo-50">
-                                                <FileSearch className="w-12 h-12 text-slate-300 group-hover:text-indigo-400 transition-all transform group-hover:scale-110" />
-                                            </div>
-                                            <h4 className="font-bold text-slate-800 truncate mb-1">{doc.title}</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{doc.fileSize || 'Desconocido'}</p>
-                                            <div className="mt-4 flex gap-2">
-                                                <button className="flex-1 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-xl active:scale-95 transition-all">Ver Ahora</button>
-                                                <button className="w-10 h-10 border border-slate-100 flex items-center justify-center rounded-xl hover:bg-slate-50 text-slate-400"><ExternalLink className="w-4 h-4" /></button>
-                                            </div>
-                                        </Card>
-                                    ))}
-                                </div>
-                            )}
+                                {/* VISTA: CALENDARIO */}
+                                {activeTab === 'calendario' && (
+                                    <div className="max-w-4xl mx-auto space-y-4">
+                                        {filteredData.map(event => {
+                                            // Localized date parsing to avoid timezone offset issues (e.g. 10th becoming 9th)
+                                            const dateStr = event.date || "";
+                                            const [y, m, d] = dateStr.split('-').map(Number);
+                                            const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                                            const day = d || "--";
+                                            const month = m ? months[m - 1] : "---";
 
-                            {/* VISTA: CALENDARIO */}
-                            {activeTab === 'calendario' && (
-                                <div className="max-w-4xl mx-auto space-y-4">
-                                    {filteredData.map(event => (
-                                        <Card key={event.id} className="flex gap-8 group">
-                                            <div className="w-20 h-24 bg-premium-dark rounded-3xl flex flex-col items-center justify-center text-white shadow-xl transform transition-transform group-hover:rotate-2">
-                                                <span className="text-[10px] font-black opacity-50 uppercase tracking-widest">{new Date(event.date).toLocaleString('es-ES', { month: 'short' })}</span>
-                                                <span className="text-3xl font-black">{new Date(event.date).getDate()}</span>
-                                            </div>
-                                            <div className="flex-1 py-1">
-                                                <h3 className="text-xl font-black text-slate-800 mb-2">{event.title}</h3>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-xs font-bold text-indigo-500 flex items-center gap-1.5 bg-indigo-50 px-3 py-1 rounded-full"><Clock className="w-4 h-4" /> {event.time}</span>
-                                                </div>
-                                                <p className="mt-4 text-sm text-slate-400 leading-relaxed italic">{event.content}</p>
-                                            </div>
-                                        </Card>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* VISTA: ASISTENTE IA */}
-                            {activeTab === 'asistente' && (
-                                <div className="max-w-4xl mx-auto h-[75vh] flex flex-col glass-card rounded-[40px] overflow-hidden border-indigo-200">
-                                    <div className="p-6 bg-indigo-600 text-white flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-2 bg-white/20 rounded-xl"><Sparkles className="w-6 h-6" /></div>
-                                            <div>
-                                                <h3 className="font-black tracking-tight">Cerebro Digital Pizarra</h3>
-                                                <p className="text-[10px] font-bold opacity-60">IA impulsada por Gemini 2.0 Flash</p>
-                                            </div>
-                                        </div>
-                                        <Badge variant="success">Online</Badge>
+                                            return (
+                                                <Card key={event.id} className="flex gap-8 group">
+                                                    <div className="w-20 h-24 bg-premium-dark rounded-3xl flex flex-col items-center justify-center text-white shadow-xl transform transition-transform group-hover:rotate-2">
+                                                        <span className="text-[10px] font-black opacity-50 uppercase tracking-widest">{month}</span>
+                                                        <span className="text-3xl font-black">{day}</span>
+                                                    </div>
+                                                    <div className="flex-1 py-1">
+                                                        <div className="flex justify-between items-start">
+                                                            <h3 className="text-xl font-black text-slate-800 mb-2">{event.title || "Sin Título"}</h3>
+                                                            {isAdmin && (
+                                                                <button onClick={() => handleDelete('calendario', event.id)} className="p-1 text-slate-200 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100">
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-4">
+                                                            <span className="text-xs font-bold text-indigo-500 flex items-center gap-1.5 bg-indigo-50 px-3 py-1 rounded-full"><Clock className="w-4 h-4" /> {event.time || "N/A"}</span>
+                                                        </div>
+                                                        <p className="mt-4 text-sm text-slate-400 leading-relaxed italic">{event.content || "Sin contenido..."}</p>
+                                                    </div>
+                                                </Card>
+                                            );
+                                        })}
                                     </div>
+                                )}
 
-                                    <div className="flex-1 overflow-y-auto p-8 space-y-6">
-                                        {chatMessages.map((msg, i) => (
-                                            <motion.div
-                                                key={i}
-                                                initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                            >
-                                                <div className={`max-w-[80%] p-5 rounded-3xl shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border border-slate-100 text-slate-700 rounded-tl-none font-medium'}`}>
-                                                    {msg.text}
+                                {/* VISTA: CONTACTOS */}
+                                {activeTab === 'contactos' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {filteredData.map(contact => (
+                                            <Card key={contact.id} className="relative group overflow-hidden border-2 border-transparent hover:border-indigo-100 transition-all">
+                                                <div className="flex flex-col items-center text-center">
+                                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-2xl font-black mb-4 shadow-lg shadow-indigo-200">
+                                                        {contact.title?.charAt(0)}
+                                                    </div>
+                                                    <h3 className="text-lg font-black text-slate-800 leading-tight mb-1">{contact.title}</h3>
+                                                    <p className="text-xs font-bold text-slate-400 mb-3">{contact.content}</p>
+
+                                                    <div className="flex w-full gap-2 mt-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                const num = contact.whatsapp?.replace(/\D/g, '');
+                                                                window.open(`https://wa.me/${num}`, '_blank');
+                                                            }}
+                                                            className="flex-1 py-3 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center gap-2 hover:bg-emerald-500 hover:text-white transition-all active:scale-95"
+                                                        >
+                                                            <Phone className="w-4 h-4" />
+                                                            <span className="text-[10px] font-black uppercase">WhatsApp</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => window.location.href = `mailto:${contact.email}`}
+                                                            className="flex-1 py-3 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center gap-2 hover:bg-indigo-600 hover:text-white transition-all active:scale-95"
+                                                        >
+                                                            <Mail className="w-4 h-4" />
+                                                            <span className="text-[10px] font-black uppercase">Email</span>
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </motion.div>
+
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={() => handleDelete('contactos', contact.id)}
+                                                        className="absolute top-4 right-4 p-2 text-slate-200 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </Card>
                                         ))}
-                                        {aiLoading && <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity }} className="w-12 h-8 bg-slate-100 rounded-full flex items-center justify-center"><Loader2 className="w-4 h-4 animate-spin text-indigo-600" /></motion.div>}
                                     </div>
+                                )}
 
-                                    <form onSubmit={handleChatSubmit} className="p-6 bg-white border-t border-slate-100 flex gap-3">
-                                        <input
-                                            type="text"
-                                            value={chatInput}
-                                            onChange={(e) => setChatInput(e.target.value)}
-                                            placeholder="Pregunta lo que sea sobre el trabajo..."
-                                            className="flex-1 bg-slate-50 border-none rounded-2xl px-6 outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium"
-                                        />
-                                        <button type="submit" disabled={aiLoading || !chatInput.trim()} className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-600/20 active:scale-90 transition-all">
-                                            <Send className="w-6 h-6" />
-                                        </button>
-                                    </form>
-                                </div>
-                            )}
+                                {/* VISTA: ASISTENTE IA */}
+                                {activeTab === 'asistente' && (
+                                    <div className="max-w-4xl mx-auto h-[75vh] flex flex-col glass-card rounded-[40px] overflow-hidden border-indigo-200">
+                                        <div className="p-6 bg-indigo-600 text-white flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 bg-white/20 rounded-xl"><Sparkles className="w-6 h-6" /></div>
+                                                <div>
+                                                    <h3 className="font-black tracking-tight">Cerebro Digital Pizarra</h3>
+                                                    <p className="text-[10px] font-bold opacity-60">IA impulsada por Gemini 2.0 Flash</p>
+                                                </div>
+                                            </div>
+                                            <Badge variant="success">Online</Badge>
+                                        </div>
 
-                        </motion.div>
-                    </AnimatePresence>
+                                        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                                            {chatMessages.map((msg, i) => (
+                                                <motion.div
+                                                    key={i}
+                                                    initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                                >
+                                                    <div className={`max-w-[80%] p-5 rounded-3xl shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border border-slate-100 text-slate-700 rounded-tl-none font-medium'}`}>
+                                                        {msg.text}
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                            {aiLoading && <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity }} className="w-12 h-8 bg-slate-100 rounded-full flex items-center justify-center"><Loader2 className="w-4 h-4 animate-spin text-indigo-600" /></motion.div>}
+                                        </div>
+
+                                        <form onSubmit={handleChatSubmit} className="p-6 bg-white border-t border-slate-100 flex gap-3">
+                                            <input
+                                                type="text"
+                                                value={chatInput}
+                                                onChange={(e) => setChatInput(e.target.value)}
+                                                placeholder="Pregunta lo que sea sobre el trabajo..."
+                                                className="flex-1 bg-slate-50 border-none rounded-2xl px-6 outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium"
+                                            />
+                                            <button type="submit" disabled={aiLoading || !chatInput.trim()} className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-600/20 active:scale-90 transition-all">
+                                                <Send className="w-6 h-6" />
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
                 </main>
             </div>
+
 
             {/* MODAL MODERNO */}
             <AnimatePresence>
@@ -569,29 +777,25 @@ export default function App() {
                             <form onSubmit={handleAddItem} className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
 
                                 {activeTab === 'documentos' && (
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Archivo / Documento</label>
+                                    <div className="space-y-4">
                                         <div className="relative group overflow-hidden bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-8 transition-all hover:border-indigo-400 hover:bg-indigo-50/50">
                                             <input type="file" onChange={(e) => { setSelectedFile(e.target.files[0]); if (!formTitle) setFormTitle(e.target.files[0]?.name.split('.')[0]); }} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                                            <div className="flex flex-col items-center gap-2 text-center">
-                                                <Upload className="w-10 h-10 text-indigo-400 group-hover:scale-110 transition-transform" />
-                                                <p className="text-xs font-bold text-slate-600">{selectedFile ? selectedFile.name : 'Suelta archivos o haz clic para subir'}</p>
+                                            <div className="flex flex-col items-center gap-2 text-center text-slate-400">
+                                                <Upload className="w-10 h-10 group-hover:scale-110 transition-transform" />
+                                                <p className="text-xs font-bold text-slate-600">{selectedFile ? selectedFile.name : 'Subir archivo'}</p>
                                             </div>
-                                            {isUploading && <motion.div className="absolute bottom-0 left-0 h-1 bg-indigo-600" animate={{ width: `${uploadProgress}%` }} />}
                                         </div>
                                     </div>
                                 )}
-
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Título de la Entrada</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Título</label>
                                     <div className="relative">
                                         <input
-                                            name="title"
                                             required
                                             value={formTitle}
                                             onChange={(e) => setFormTitle(e.target.value)}
                                             className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-slate-800 font-bold outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                            placeholder="Ej: Reporte Mensual Q1"
+                                            placeholder="Ej: Aviso importante"
                                         />
                                         <button
                                             type="button"
@@ -632,6 +836,19 @@ export default function App() {
                                     </div>
                                 )}
 
+                                {activeTab === 'contactos' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Número WhatsApp</label>
+                                            <input name="contactPhone" type="text" placeholder="521..." required className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 text-sm font-bold" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Email Público</label>
+                                            <input name="contactEmail" type="email" placeholder="correo@gob.mx" required className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3 text-sm font-bold" />
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Cuerpo / Detalles</label>
                                     <textarea
@@ -644,17 +861,58 @@ export default function App() {
                                     />
                                 </div>
 
-                                <div className="p-6 bg-slate-50 rounded-3xl flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><Mail className="w-4 h-4" /></div>
-                                        <span className="text-xs font-bold text-slate-700">Notificar por Email</span>
+                                <div className="space-y-4">
+                                    <div className="p-6 bg-slate-50 rounded-3xl flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><Mail className="w-4 h-4" /></div>
+                                            <span className="text-xs font-bold text-slate-700">Notificar por Email</span>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={notifyStaff}
+                                            onChange={(e) => setNotifyStaff(e.target.checked)}
+                                            className="w-5 h-5 rounded-lg text-indigo-600 focus:ring-indigo-500"
+                                        />
                                     </div>
-                                    <input
-                                        type="checkbox"
-                                        checked={notifyStaff}
-                                        onChange={(e) => setNotifyStaff(e.target.checked)}
-                                        className="w-5 h-5 rounded-lg text-indigo-600 focus:ring-indigo-500"
-                                    />
+
+                                    <div className={`p-6 bg-slate-50 transition-all duration-300 rounded-3xl ${notifyWhatsApp ? 'ring-2 ring-emerald-500 bg-emerald-50/30' : ''}`}>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg ${notifyWhatsApp ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-600'}`}>
+                                                    <MessageCircle className="w-4 h-4" />
+                                                </div>
+                                                <span className={`text-xs font-bold ${notifyWhatsApp ? 'text-emerald-700' : 'text-slate-700'}`}>Notificar por WhatsApp</span>
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                checked={notifyWhatsApp}
+                                                onChange={(e) => setNotifyWhatsApp(e.target.checked)}
+                                                className="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                        {notifyWhatsApp && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                className="space-y-3"
+                                            >
+                                                <label className="text-[9px] font-black text-emerald-600 uppercase tracking-widest pl-1">Número Destino o Link Grupo</label>
+                                                <div className="relative">
+                                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-400" />
+                                                    <input
+                                                        type="text"
+                                                        value={whatsAppTarget}
+                                                        onChange={(e) => setWhatsAppTarget(e.target.value)}
+                                                        placeholder="Ej: 521XXXXXXXXXX o link..."
+                                                        className="w-full bg-white border-2 border-emerald-100 rounded-2xl pl-10 pr-5 py-3 text-xs font-bold text-emerald-800 outline-none focus:border-emerald-500"
+                                                    />
+                                                </div>
+                                                <p className="text-[9px] text-emerald-500 italic px-1 opacity-70">
+                                                    * Incluye código de país (ej: 34 para España, 52 para MX).
+                                                </p>
+                                            </motion.div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <button
@@ -675,20 +933,91 @@ export default function App() {
                 {[
                     { id: 'inicio', icon: Bell },
                     { id: 'tareas', icon: CheckSquare },
+                    { id: 'contactos', icon: Users },
                     { id: 'asistente', icon: Sparkles },
                     { id: 'calendario', icon: Calendar },
                     { id: 'documentos', icon: FileText }
                 ].map(item => (
                     <button
                         key={item.id}
-                        onClick={() => setActiveTab(item.id)}
+                        onClick={() => {
+                            if (item.id === 'asistente' && !isAdmin) {
+                                showToast('Solo admin puede acceder', 'error');
+                                setShowAdminLogin(true);
+                            } else {
+                                setActiveTab(item.id);
+                            }
+                        }}
                         className={`p-3 rounded-2xl transition-all ${activeTab === item.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400'}`}
                     >
                         <item.icon className="w-6 h-6" />
                     </button>
                 ))}
             </nav>
+            {/* MODAL LOGIN ADMIN */}
+            <AnimatePresence>
+                {showAdminLogin && (
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
+                        <motion.div
+                            key="modal-overlay"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowAdminLogin(false)}
+                            className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl"
+                        />
+                        <motion.div
+                            key="modal-content"
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl overflow-hidden"
+                        >
+                            <div className="flex flex-col items-center text-center space-y-6">
+                                <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+                                    <ShieldCheck className="w-10 h-10" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-bold text-slate-900">Acceso Protegido</h3>
+                                    <p className="text-slate-500 text-sm">Ingresa la clave de administrador para realizar cambios en la pizarra.</p>
+                                </div>
 
+                                <div className="w-full space-y-4">
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        autoFocus
+                                        className="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center text-xl tracking-widest focus:border-indigo-500 focus:bg-white outline-none transition-all placeholder:text-slate-300"
+                                        value={adminPassInput}
+                                        onChange={(e) => setAdminPassInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleAdminLogin();
+                                            if (e.key === 'Escape') setShowAdminLogin(false);
+                                        }}
+                                    />
+
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={() => { setShowAdminLogin(false); setAdminPassInput(''); }}
+                                            className="flex-1 py-4 text-slate-500 font-semibold hover:bg-slate-50 rounded-2xl transition-colors"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={handleAdminLogin}
+                                            className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-95"
+                                        >
+                                            Entrar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            <div id="debug-app-info" style={{ display: 'none' }} data-app-id={appId} data-is-admin={isAdmin}></div>
         </div>
     );
 }

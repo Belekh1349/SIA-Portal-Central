@@ -4,13 +4,10 @@
     "sia": "sia-control"
   },
   "targets": {
-    "sirecoa-pro": {
+    "sia-control": {
       "hosting": {
         "sia": [
           "sia-control"
-        ],
-        "sirecoa": [
-          "sirecoa-pro"
         ]
       }
     }

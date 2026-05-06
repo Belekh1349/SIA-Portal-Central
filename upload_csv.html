@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir CSV a Firebase</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #status { margin-top: 20px; font-weight: bold; }
+        .log { font-family: monospace; font-size: 12px; color: #555; white-space: pre-wrap; height: 300px; overflow-y: auto; background: #f0f0f0; padding: 10px; margin-top: 10px;}
+    </style>
+</head>
+<body>
+    <h1>Restaurar Base de Datos desde CSV</h1>
+    <p>Selecciona tu archivo <b>PLANTILLA DE PERSONAL.csv</b> para subirlo a tu nueva base de datos en <b>sirelulabel</b>.</p>
+    <input type="file" id="csvFile" accept=".csv" />
+    <button id="uploadBtn">Comenzar Subida</button>
+    <div id="status">Esperando archivo...</div>
+    <div id="log" class="log"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzpZiPbfwsu1Lv1YxTPrqGMwqljoLfjcA",
+            authDomain: "sirelulabel.firebaseapp.com",
+            projectId: "sirelulabel",
+            storageBucket: "sirelulabel.firebasestorage.app",
+            messagingSenderId: "207980901617",
+            appId: "1:207980901617:web:b211ca47bd20d791bba550",
+            measurementId: "G-G84X6JV00C"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function log(msg) {
+            const div = document.getElementById('log');
+            div.innerHTML += msg + "<br>";
+            div.scrollTop = div.scrollHeight;
+        }
+
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files.length) {
+                alert("Por favor selecciona el archivo CSV primero.");
+                return;
+            }
+
+            document.getElementById('status').innerText = "Procesando...";
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                
+                // Assuming CSV structure: CLAVE,NOMBRE,TIPO DE PLAZA,DIRECCIÓN,DEPARTAMENTO,COMISIÓN,FECHA ALTA ORIGINAL,FECHA  ANTIGÜEDAD
+                // But with possible quotes.
+                function parseLine(line) {
+                    const result = [];
+                    let current = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        if (char === '"' && line[i+1] === '"') { current += '"'; i++; }
+                        else if (char === '"') { inQuotes = !inQuotes; }
+                        else if (char === ',' && !inQuotes) { result.push(current); current = ''; }
+                        else { current += char; }
+                    }
+                    result.push(current);
+                    return result.map(s => s.trim());
+                }
+
+                const headers = parseLine(lines[0]);
+                log("Encontradas " + (lines.length - 1) + " filas de datos.");
+
+                let count = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    const data = parseLine(lines[i]);
+                    if (data.length < 2) continue;
+
+                    const clave = data[0];
+                    const record = {
+                        clave: data[0] || "",
+                        nombre: data[1] || "",
+                        tipoPlaza: data[2] || "",
+                        direccion: data[3] || "",
+                        departamento: data[4] || "",
+                        comision: data[5] || "",
+                        fechaAlta: data[6] || "",
+                        fechaAntiguedad: data[7] || "",
+                        status: "Activo",
+                        diasVacaciones: 0,
+                        horario: "No Asignado",
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+
+                    try {
+                        // Use clave as document ID if available, else auto-generate
+                        if (clave) {
+                            await db.collection('empleados').doc(clave).set(record);
+                        } else {
+                            await db.collection('empleados').add(record);
+                        }
+                        count++;
+                        log(`Subido [${i}/${lines.length-1}]: ${record.nombre}`);
+                    } catch (err) {
+                        log(`<span style="color:red">Error subiendo fila ${i}: ${err.message}</span>`);
+                    }
+                }
+                
+                document.getElementById('status').innerText = `¡Proceso completado! Se subieron ${count} registros.`;
+                document.getElementById('status').style.color = "green";
+                log("¡Finalizado! Ya puedes cerrar esta ventana.");
+            };
+
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>

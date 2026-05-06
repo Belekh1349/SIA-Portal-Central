@@ -2198,13 +2198,13 @@
     <script>
         // --- CONFIGURACIÓN DE FIREBASE (SIA-CONTROL) ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAHI5_yqSRwhLGcXYdvTfZANDt_iWQ-K_M",
-            authDomain: "sia-control.firebaseapp.com",
-            projectId: "sia-control",
-            storageBucket: "sia-control.firebasestorage.app",
-            messagingSenderId: "933718961367",
-            appId: "1:933718961367:web:2cbae344c58b3bbccdd492",
-            measurementId: "G-3XP86VY2B4"
+            apiKey: "AIzaSyCzpZiPbfwsu1Lv1YxTPrqGMwqljoLfjcA",
+            authDomain: "sirelulabel.firebaseapp.com",
+            projectId: "sirelulabel",
+            storageBucket: "sirelulabel.firebasestorage.app",
+            messagingSenderId: "207980901617",
+            appId: "1:207980901617:web:b211ca47bd20d791bba550",
+            measurementId: "G-G84X6JV00C"
         };
 
         // Inicializar Firebase si no se ha hecho
@@ -3015,22 +3015,48 @@
                     return;
                 }
                 const rawRecs = records[targetDateStr];
-                const recsArray = Array.isArray(rawRecs) ? rawRecs : (typeof rawRecs === 'string' ? [{ text: rawRecs, status: 'N/A', reqs: 'N/A' }] : [rawRecs]);
+                let recsArray = [];
+                if (Array.isArray(rawRecs)) {
+                    recsArray = rawRecs;
+                } else if (rawRecs && rawRecs.activities) {
+                    recsArray = rawRecs.activities;
+                } else if (typeof rawRecs === 'string') {
+                    recsArray = [{ text: rawRecs, status: 'N/A', reqs: 'N/A' }];
+                } else if (rawRecs) {
+                    recsArray = [rawRecs];
+                }
+
                 recsArray.forEach(r => {
                     const text = typeof r === 'string' ? r : (r.text || '');
-                    const status = typeof r === 'string' ? 'N/A' : (r.status || 'Pendiente');
-                    const reqs = typeof r === 'string' ? 'N/A' : (r.reqs || 'Ninguno');
-                    dataRows.push([targetDateStr, text, status, reqs]);
+                    if (text.trim()) {
+                        const status = typeof r === 'string' ? 'N/A' : (r.status || 'Pendiente');
+                        const reqs = typeof r === 'string' ? 'N/A' : (r.reqs || 'Ninguno');
+                        dataRows.push([targetDateStr, text, status, reqs]);
+                    }
                 });
                 rangeText = targetDateStr;
             } else if (view === 'weekly') {
                 let monday;
+                // Si estamos en vista semanal, solo usamos customVal si es tipo 'week'
                 if (periodType === 'week' && customVal) {
                     const [y, w] = customVal.split('-W');
                     monday = getMondayOfISOWeek(parseInt(w), parseInt(y));
                 } else {
-                    const baseDateStr = (periodType !== 'current' && customVal) ? customVal : (selectedDate || formatDate(new Date()));
-                    const baseDate = parseLocalDate(baseDateStr.split('-W')[0]);
+                    // Fallback a selectedDate o hoy, asegurando formato YYYY-MM-DD
+                    const baseDateStr = (periodType === 'day' && customVal) ? customVal : (selectedDate || formatDate(new Date()));
+                    // Limpieza básica del string de fecha
+                    const datePart = baseDateStr.split('T')[0].split(' ')[0];
+                    let baseDate;
+                    if (datePart.includes('-W')) {
+                        const [y, w] = datePart.split('-W');
+                        baseDate = getMondayOfISOWeek(parseInt(w), parseInt(y));
+                    } else if (datePart.split('-').length === 2) {
+                        // Es un mes YYYY-MM, usamos el día 1
+                        baseDate = parseLocalDate(datePart + '-01');
+                    } else {
+                        baseDate = parseLocalDate(datePart);
+                    }
+
                     const dayOfWeek = baseDate.getDay();
                     const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
                     monday = new Date(baseDate);
@@ -3043,12 +3069,24 @@
                     const ds = formatDate(currentDay);
                     if (records[ds]) {
                         const rawRecs = records[ds];
-                        const recsArray = Array.isArray(rawRecs) ? rawRecs : (typeof rawRecs === 'string' ? [{ text: rawRecs, status: 'N/A', reqs: 'N/A' }] : [rawRecs]);
+                        let recsArray = [];
+                        if (Array.isArray(rawRecs)) {
+                            recsArray = rawRecs;
+                        } else if (rawRecs && rawRecs.activities) {
+                            recsArray = rawRecs.activities;
+                        } else if (typeof rawRecs === 'string') {
+                            recsArray = [{ text: rawRecs, status: 'N/A', reqs: 'N/A' }];
+                        } else if (rawRecs) {
+                            recsArray = [rawRecs];
+                        }
+
                         recsArray.forEach(r => {
                             const text = typeof r === 'string' ? r : (r.text || '');
-                            const status = typeof r === 'string' ? 'N/A' : (r.status || 'Pendiente');
-                            const reqs = typeof r === 'string' ? 'N/A' : (r.reqs || 'Ninguno');
-                            dataRows.push([ds, text, status, reqs]);
+                            if (text.trim()) {
+                                const status = typeof r === 'string' ? 'N/A' : (r.status || 'Pendiente');
+                                const reqs = typeof r === 'string' ? 'N/A' : (r.reqs || 'Ninguno');
+                                dataRows.push([ds, text, status, reqs]);
+                            }
                         });
                     }
                 }
@@ -3074,12 +3112,24 @@
                     .sort((a, b) => a[0].localeCompare(b[0]))
                     .filter(([date]) => date.startsWith(monthPrefix))
                     .forEach(([date, rawRecs]) => {
-                        const recsArray = Array.isArray(rawRecs) ? rawRecs : (typeof rawRecs === 'string' ? [{ text: rawRecs, status: 'N/A', reqs: 'N/A' }] : [rawRecs]);
+                        let recsArray = [];
+                        if (Array.isArray(rawRecs)) {
+                            recsArray = rawRecs;
+                        } else if (rawRecs && rawRecs.activities) {
+                            recsArray = rawRecs.activities;
+                        } else if (typeof rawRecs === 'string') {
+                            recsArray = [{ text: rawRecs, status: 'N/A', reqs: 'N/A' }];
+                        } else if (rawRecs) {
+                            recsArray = [rawRecs];
+                        }
+
                         recsArray.forEach(r => {
                             const text = typeof r === 'string' ? r : (r.text || '');
-                            const status = typeof r === 'string' ? 'N/A' : (r.status || 'Pendiente');
-                            const reqs = typeof r === 'string' ? 'N/A' : (r.reqs || 'Ninguno');
-                            dataRows.push([date, text, status, reqs]);
+                            if (text.trim()) {
+                                const status = typeof r === 'string' ? 'N/A' : (r.status || 'Pendiente');
+                                const reqs = typeof r === 'string' ? 'N/A' : (r.reqs || 'Ninguno');
+                                dataRows.push([date, text, status, reqs]);
+                            }
                         });
                     });
                 rangeText = `${monthNames[targetMonth]} ${targetYear}`;
