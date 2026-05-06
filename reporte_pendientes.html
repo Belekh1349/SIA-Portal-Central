@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte de Pendientes — Control Patrimonial</title>
+<style>
+/* ═══════════════ PANTALLA ═══════════════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; background: #f5f4f2; min-height: 100vh; }
+.app { padding: 1.5rem; max-width: 880px; margin: 0 auto; }
+h1 { font-size: 18px; font-weight: 600; color: #7a1f3d; margin-bottom: 1.5rem; }
+.section-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+.card { background: #fff; border-radius: 12px; border: 0.5px solid #e5e2e0; padding: 1.25rem; margin-bottom: 1.25rem; }
+.header-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-group { display: flex; flex-direction: column; gap: 5px; }
+.field-group label { font-size: 11px; color: #888; }
+.field-group input { font-size: 13px; padding: 8px 10px; border: 0.5px solid #ddd; border-radius: 8px; background: #fafafa; color: #111; font-family: inherit; }
+.field-group input:focus { outline: none; border-color: #7a1f3d; }
+.item-form-grid { display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 12px; }
+.field-group textarea { font-size: 13px; padding: 8px 10px; border: 0.5px solid #ddd; border-radius: 8px; background: #fafafa; color: #111; font-family: inherit; resize: vertical; min-height: 60px; line-height: 1.5; }
+.field-group textarea:focus { outline: none; border-color: #7a1f3d; }
+.btn { padding: 8px 16px; font-size: 12px; font-weight: 500; border-radius: 8px; cursor: pointer; border: 0.5px solid #ccc; background: #fff; color: #111; font-family: inherit; transition: background 0.15s; }
+.btn:hover { background: #f5f5f5; }
+.btn-primary { background: #7a1f3d; color: #fff; border-color: #7a1f3d; }
+.btn-primary:hover { background: #621830; }
+.btn-sm { padding: 4px 9px; font-size: 11px; color: #a32d2d; border-color: #f09595; }
+.btn-sm:hover { background: #fcebeb; }
+.item-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+.item-row { display: grid; grid-template-columns: 1fr 1.5fr 1.5fr auto; gap: 10px; align-items: center; padding: 9px 12px; border: 0.5px solid #eee; border-radius: 8px; margin-bottom: 6px; background: #fff; }
+.item-row .cell { font-size: 12px; color: #222; line-height: 1.5; }
+.item-row .lbl { font-size: 10px; color: #aaa; display: block; margin-bottom: 2px; }
+.empty { text-align: center; padding: 1.5rem; color: #bbb; font-size: 12px; border: 0.5px dashed #ddd; border-radius: 8px; }
+.divider { border: none; border-top: 0.5px solid #eee; margin: 1.25rem 0; }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+.preview-wrapper { border: 0.5px solid #ddd; border-radius: 10px; overflow: hidden; background: #eceae7; padding: 16px; }
+.list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+/* Vista previa */
+.hoja { background: #fff; color: #111; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.hoja-carta { width: 100%; max-width: 680px; margin: 0 auto; padding: 36px 52px 0; }
+.hoja-a5    { width: 100%; max-width: 480px; margin: 0 auto; padding: 28px 38px 0; }
+.hoja-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.cp-main { font-size: 22px; font-weight: 800; color: #7a1f3d; line-height: 1.1; }
+.cp-sub  { font-size: 9px; font-weight: 500; color: #bbb; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 3px; }
+.hoja-meta { text-align: right; font-size: 11.5px; color: #444; line-height: 1.8; }
+.hoja-divider      { border: none; border-top: 1.5px solid #7a1f3d; margin: 0 0 4px; }
+.hoja-divider-thin { border: none; border-top: 0.5px solid #ddd; margin: 0 0 18px; }
+.hoja-area { font-size: 11px; color: #555; margin-bottom: 18px; }
+.hoja-table { width: 100%; border-collapse: collapse; }
+.hoja-table thead th { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #fff; background: #7a1f3d; padding: 7px 10px; text-align: left; }
+.hoja-table tbody tr { border-bottom: 0.5px solid #ece8e6; }
+.hoja-table tbody tr:nth-child(even) { background: #faf7f8; }
+.hoja-table tbody td { font-size: 11px; color: #222; padding: 9px 10px; vertical-align: top; line-height: 1.55; }
+.hoja-table tbody td.num { font-size: 10px; color: #bbb; font-weight: 600; text-align: center; }
+.hoja-a5 .cp-main { font-size: 17px; }
+.hoja-a5 .hoja-table thead th { font-size: 8.5px; padding: 6px 8px; }
+.hoja-a5 .hoja-table tbody td { font-size: 10px; padding: 7px 8px; }
+
+/* ═══════════════ IMPRESIÓN ═══════════════ */
+#print-doc { display: none; }
+
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+  .app { display: none !important; }
+
+  #print-doc {
+    display: flex !important;
+    flex-direction: column;
+    height: 100vh;         /* llena exactamente el área de contenido de la @page */
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #111;
+    background: #fff;
+  }
+
+  /* Encabezado */
+  .pd-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .pd-cp-main { font-weight: 800; color: #7a1f3d; line-height: 1.1; }
+  .pd-cp-sub  { font-size: 6.5pt; color: #bbb; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 3px; }
+  .pd-meta { text-align: right; color: #444; line-height: 1.8; }
+
+  /* Divisores */
+  .pd-hr-red  { border: none; border-top: 1.5px solid #7a1f3d; margin-bottom: 3px; }
+  .pd-hr-thin { border: none; border-top: 0.5px solid #ddd;    margin-bottom: 14px; }
+
+  /* Área */
+  .pd-area { font-size: 8.5pt; color: #555; margin-bottom: 12px; }
+
+  /* Tabla — ocupa el espacio sobrante */
+  .pd-table { width: 100%; border-collapse: collapse; }
+  .pd-table-wrap { flex: 1; overflow: hidden; }
+  .pd-table thead th { font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #fff; background: #7a1f3d; padding: 6px 8px; text-align: left; }
+  .pd-table tbody tr { border-bottom: 0.5px solid #ece8e6; }
+  .pd-table tbody tr:last-child { border-bottom: none; }
+  .pd-table tbody tr:nth-child(even) { background: #faf7f8; }
+  .pd-table tbody td { padding: 7px 8px; vertical-align: top; line-height: 1.45; color: #222; }
+  .pd-table tbody td.num { color: #bbb; font-weight: 600; text-align: center; }
+
+  /* Bloque inferior: firma + SVG — siempre al fondo */
+  .pd-bottom { margin-top: auto; }
+
+  .pd-firma {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 0 10px;
+    border-top: 0.5px solid #e5e5e5;
+    margin-top: 10px;
+  }
+  .pd-firma-inner { text-align: center; }
+  .pd-firma-line  { width: 180px; border-top: 0.5px solid #888; margin: 0 auto 5px; }
+  .pd-firma-name  { font-size: 10pt; font-weight: 600; color: #222; }
+  .pd-firma-cargo { font-size: 8pt; color: #888; margin-top: 2px; }
+
+  .pd-svg { display: block; width: 100%; height: 52px; margin-top: 6px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Capa de impresión (oculta en pantalla, visible al imprimir) -->
+<div id="print-doc"></div>
+
+<div class="app">
+  <h1>Control Patrimonial — Reporte de pendientes</h1>
+
+  <div class="section-label">Datos del reporte</div>
+  <div class="card">
+    <div class="header-fields">
+      <div class="field-group">
+        <label>Área / Unidad</label>
+        <input type="text" id="area" placeholder="Ej. Dirección de Programación" />
+      </div>
+      <div class="field-group">
+        <label>Responsable</label>
+        <input type="text" id="responsable" placeholder="Nombre completo" />
+      </div>
+      <div class="field-group">
+        <label>Cargo</label>
+        <input type="text" id="cargo" placeholder="Ej. Director de Área" />
+      </div>
+      <div class="field-group">
+        <label>Fecha</label>
+        <input type="date" id="fecha" />
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Agregar pendiente</div>
+  <div class="card">
+    <div class="item-form-grid">
+      <div class="field-group">
+        <label>Tema</label>
+        <textarea id="inp-tema" placeholder="Asunto o tema..."></textarea>
+      </div>
+      <div class="field-group">
+        <label>Acción pendiente</label>
+        <textarea id="inp-accion" placeholder="Descripción de la acción..."></textarea>
+      </div>
+      <div class="field-group">
+        <label>Observación</label>
+        <textarea id="inp-obs" placeholder="Notas, plazos, responsable..."></textarea>
+      </div>
+    </div>
+    <div class="item-actions">
+      <button class="btn btn-primary" onclick="addItem()">+ Agregar pendiente</button>
+    </div>
+  </div>
+
+  <div class="list-header">
+    <span class="section-label" style="margin:0;">Pendientes (<span id="count">0</span>)</span>
+    <button class="btn btn-primary" id="btn-add-more" onclick="addMoreRows()" style="display:none;font-size:12px;">+ Agregar filas vacías</button>
+  </div>
+  <div id="items-list" style="margin-bottom:1.25rem;">
+    <div class="empty">Sin pendientes aún. Agrega el primero arriba.</div>
+  </div>
+
+  <hr class="divider">
+  <div class="toolbar">
+    <span class="section-label" style="margin:0;">Vista previa y descarga</span>
+    <div style="display:flex;gap:8px;margin-left:auto;align-items:center;">
+      <select id="fmt" style="font-size:12px;padding:7px 10px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-family:inherit;">
+        <option value="carta">Carta (8.5 × 11")</option>
+        <option value="a5">A5 (148 × 210 mm)</option>
+      </select>
+      <button class="btn btn-primary" onclick="downloadPDF()">⬇ Descargar PDF</button>
+    </div>
+  </div>
+
+  <div class="preview-wrapper">
+    <div id="preview-area"></div>
+  </div>
+</div>
+
+<script>
+const items = [];
+let extraRows = 0;
+document.getElementById('fecha').valueAsDate = new Date();
+
+function addItem() {
+  const t = document.getElementById('inp-tema').value.trim();
+  const a = document.getElementById('inp-accion').value.trim();
+  const o = document.getElementById('inp-obs').value.trim();
+  if (!t && !a) return;
+  items.push({ tema: t, accion: a, obs: o });
+  extraRows = 0;
+  ['inp-tema','inp-accion','inp-obs'].forEach(id => document.getElementById(id).value = '');
+  renderList(); renderPreview();
+}
+
+function removeItem(i) { items.splice(i, 1); renderList(); renderPreview(); }
+function addMoreRows() { extraRows += 5; renderPreview(); }
+
+function renderList() {
+  const el = document.getElementById('items-list');
+  document.getElementById('count').textContent = items.length;
+  document.getElementById('btn-add-more').style.display = items.length > 0 ? 'inline-block' : 'none';
+  if (!items.length) {
+    el.innerHTML = '<div class="empty">Sin pendientes aún. Agrega el primero arriba.</div>';
+    return;
+  }
+  el.innerHTML = items.map((it, i) => `
+    <div class="item-row">
+      <div class="cell"><span class="lbl">Tema</span>${it.tema||'—'}</div>
+      <div class="cell"><span class="lbl">Acción</span>${it.accion||'—'}</div>
+      <div class="cell"><span class="lbl">Observación</span>${it.obs||'—'}</div>
+      <button class="btn btn-sm" onclick="removeItem(${i})">✕</button>
+    </div>`).join('');
+}
+
+function getData() {
+  const raw = document.getElementById('fecha').value;
+  const fecha = raw
+    ? new Date(raw + 'T12:00:00').toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'})
+    : new Date().toLocaleDateString('es-MX', {day:'2-digit', month:'long', year:'numeric'});
+  return {
+    area:        document.getElementById('area').value || '',
+    responsable: document.getElementById('responsable').value || '',
+    cargo:       document.getElementById('cargo').value || '',
+    fecha
+  };
+}
+
+function buildRows() {
+  const filled = items.map((it, i) => `
+    <tr>
+      <td class="num">${String(i+1).padStart(2,'0')}</td>
+      <td>${it.tema||'—'}</td>
+      <td>${it.accion||'—'}</td>
+      <td>${it.obs||'—'}</td>
+    </tr>`).join('');
+  const empty = Array.from({length: extraRows}, (_, i) => `
+    <tr>
+      <td class="num" style="color:#ddd;">${String(items.length+i+1).padStart(2,'0')}</td>
+      <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+    </tr>`).join('');
+  if (!items.length && !extraRows)
+    return `<tr><td colspan="4" style="text-align:center;color:#bbb;padding:20px;font-size:10px;">Sin pendientes registrados.</td></tr>`;
+  return filled + empty;
+}
+
+/* ── Vista previa en pantalla (clases .hoja-*) ── */
+function buildPreviewHTML(d, fmt) {
+  const isA5   = fmt === 'a5';
+  const cls    = isA5 ? 'hoja hoja-a5' : 'hoja hoja-carta';
+  const maxW   = isA5 ? '480px' : '680px';
+  const px     = isA5 ? '38px'  : '52px';
+  const footH  = isA5 ? '55px'  : '70px';
+  return `
+  <div style="background:#fff;font-family:'Helvetica Neue',Arial,sans-serif;">
+    <div class="${cls}">
+      <div class="hoja-header">
+        <div>
+          <div class="cp-main">Control Patrimonial</div>
+          <div class="cp-sub">Reporte de pendientes</div>
+        </div>
+        <div class="hoja-meta">Toluca de Lerdo, México<br>${d.fecha}</div>
+      </div>
+      <hr class="hoja-divider"><hr class="hoja-divider-thin">
+      ${d.area ? `<div class="hoja-area">${d.area}</div>` : '<div style="margin-bottom:18px;"></div>'}
+      <table class="hoja-table">
+        <thead><tr>
+          <th style="width:5%;">#</th>
+          <th style="width:20%;">Tema</th>
+          <th style="width:38%;">Acción pendiente</th>
+          <th style="width:37%;">Observación</th>
+        </tr></thead>
+        <tbody>${buildRows()}</tbody>
+      </table>
+    </div>
+    <div style="max-width:${maxW};margin:0 auto;padding:0 ${px};">
+      <div style="display:flex;justify-content:flex-end;padding:20px 0 16px;border-top:0.5px solid #e5e5e5;margin-top:20px;">
+        <div style="text-align:center;">
+          <div style="width:180px;border-top:0.5px solid #888;margin:0 auto 6px;"></div>
+          <div style="font-size:11px;font-weight:600;color:#222;">${d.responsable||'________________________________'}</div>
+          <div style="font-size:9.5px;color:#888;margin-top:2px;">${d.cargo||'Cargo'}</div>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:${maxW};margin:0 auto;height:${footH};overflow:hidden;">
+      <svg viewBox="0 0 680 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:100%;">
+        <polygon points="0,80 285,80 120,4" fill="#e8ddd4"/>
+        <polygon points="0,80 215,80 25,10" fill="#7a1f3d"/>
+      </svg>
+    </div>
+  </div>`;
+}
+
+/* ── Contenido de impresión (clases .pd-*) ── */
+function buildPrintContent(d, fmt) {
+  const isA5   = fmt === 'a5';
+  const hdrPt  = isA5 ? '15pt' : '19pt';
+  const metaPt = isA5 ? '8pt'  : '9.5pt';
+  const thPt   = isA5 ? '7pt'  : '8.5pt';
+  const tdPt   = isA5 ? '8pt'  : '9.5pt';
+
+  return `
+    <div class="pd-header">
+      <div>
+        <div class="pd-cp-main" style="font-size:${hdrPt};">Control Patrimonial</div>
+        <div class="pd-cp-sub">Reporte de pendientes</div>
+      </div>
+      <div class="pd-meta" style="font-size:${metaPt};">Toluca de Lerdo, México<br>${d.fecha}</div>
+    </div>
+    <hr class="pd-hr-red"><hr class="pd-hr-thin">
+    ${d.area ? `<div class="pd-area">${d.area}</div>` : '<div style="margin-bottom:12px;"></div>'}
+    <div class="pd-table-wrap">
+      <table class="pd-table" style="font-size:${tdPt};">
+        <thead><tr>
+          <th style="width:5%;font-size:${thPt};">#</th>
+          <th style="width:20%;font-size:${thPt};">Tema</th>
+          <th style="width:38%;font-size:${thPt};">Acción pendiente</th>
+          <th style="width:37%;font-size:${thPt};">Observación</th>
+        </tr></thead>
+        <tbody>${buildRows()}</tbody>
+      </table>
+    </div>
+    <div class="pd-bottom">
+      <div class="pd-firma">
+        <div class="pd-firma-inner">
+          <div class="pd-firma-line"></div>
+          <div class="pd-firma-name">${d.responsable||'________________________________'}</div>
+          <div class="pd-firma-cargo">${d.cargo||'Cargo'}</div>
+        </div>
+      </div>
+      <svg class="pd-svg" viewBox="0 0 680 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="0,80 285,80 120,4" fill="#e8ddd4"/>
+        <polygon points="0,80 215,80 25,10" fill="#7a1f3d"/>
+      </svg>
+    </div>`;
+}
+
+function renderPreview() {
+  const fmt = document.getElementById('fmt').value;
+  const d   = getData();
+  document.getElementById('preview-area').innerHTML = buildPreviewHTML(d, fmt);
+}
+
+/* ── Descargar PDF: imprime desde la misma página (sin popup) ── */
+function downloadPDF() {
+  const fmt  = document.getElementById('fmt').value;
+  const d    = getData();
+  const isA5 = fmt === 'a5';
+
+  /* Inyecta el tamaño de @page dinámicamente */
+  let st = document.getElementById('_page_rule');
+  if (!st) { st = document.createElement('style'); st.id = '_page_rule'; document.head.appendChild(st); }
+  st.textContent = `@media print { @page { size: ${isA5 ? 'a5' : 'letter'} portrait; margin: ${isA5 ? '16mm 14mm' : '18mm 16mm'}; } }`;
+
+  /* Llena la capa de impresión */
+  document.getElementById('print-doc').innerHTML = buildPrintContent(d, fmt);
+
+  /* Imprime */
+  window.print();
+}
+
+document.getElementById('fmt').addEventListener('change', renderPreview);
+['area','responsable','cargo','fecha'].forEach(id =>
+  document.getElementById(id).addEventListener('input', renderPreview));
+
+renderPreview();
+</script>
+</body>
+</html>

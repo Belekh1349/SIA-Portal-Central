@@ -609,6 +609,12 @@
                         <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
                         <span class="font-semibold">Entradas y Salidas</span>
                     </button>
+                    
+                    <button onclick="showSection('reporte-pendientes')" id="nav-reporte-pendientes"
+                        class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                        <span class="font-semibold text-left">Reporte de Pendientes (Control Patrimonial)</span>
+                    </button>
 
                     <button onclick="showSection('solicitud-movimiento')" id="nav-solicitud-movimiento"
                         class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
@@ -895,6 +901,13 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Reporte de Pendientes Section -->
+            <div id="reporte-pendientes-section" class="space-y-8 hidden" style="height: calc(100vh - 200px);">
+                <div class="glass w-full h-full rounded-3xl overflow-hidden border-white/10 shadow-2xl">
+                    <iframe src="../reporte_pendientes_control_patrimonial.html" class="w-full h-full border-none"></iframe>
                 </div>
             </div>
 
@@ -1840,7 +1853,7 @@
             if (activeBtn) activeBtn.classList.add('active');
 
             // Toggle Sections visibility - Explicitly hide all possible sections
-            const possibleSections = ['entradas-salidas-section', 'movimientos-bienes-section', 'solicitud-movimiento-section', 'configuracion-section'];
+            const possibleSections = ['entradas-salidas-section', 'reporte-pendientes-section', 'movimientos-bienes-section', 'solicitud-movimiento-section', 'configuracion-section'];
             possibleSections.forEach(sid => {
                 const el = document.getElementById(sid);
                 if (el) {
@@ -1868,6 +1881,9 @@
             } else if (id === 'solicitud-movimiento') {
                 if (title) title.textContent = 'Solicitud de Movimiento de Bienes Muebles';
                 if (desc) desc.textContent = 'Generación de formatos oficiales de solicitud de movimiento.';
+            } else if (id === 'reporte-pendientes') {
+                if (title) title.textContent = 'Reporte de Pendientes — Control Patrimonial';
+                if (desc) desc.textContent = 'Gestión y seguimiento de trámites pendientes de bienes muebles.';
             } else if (id === 'configuracion') {
                 if (title) title.textContent = 'Configuración de Estructura';
                 if (desc) desc.textContent = 'Gestión de Secretarías, Unidades y Áreas.';
